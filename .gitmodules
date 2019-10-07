@@ -1,0 +1,6 @@
+[submodule "allolib"]
+	path = allolib
+	url = https://github.com/AlloSphere-Research-Group/allolib
+[submodule "al_ext"]
+	path = al_ext
+	url = https://github.com/AlloSphere-Research-Group/al_ext
