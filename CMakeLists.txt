@@ -94,6 +94,11 @@ else()
   endif()
 endif ()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/al_ext")
+  add_subdirectory(al_ext)
+  get_target_property(AL_EXT_LIBRARIES al_ext AL_EXT_LIBRARIES)
+  message("al_ext linking to ${AL_EXT_LIBRARIES}")
+endif()
 
 add_executable(${app_name} ${app_files_list})
 
@@ -137,7 +142,8 @@ endforeach(include_dir IN app_include_dirs)
 
 target_include_directories(${app_name} PRIVATE ${al_includes})
 
-target_link_libraries(${app_name} PRIVATE ${app_link_libs})
+
+target_link_libraries(${app_name} PRIVATE ${app_link_libs} ${AL_EXT_LIBRARIES})
 target_compile_definitions(${app_name} PRIVATE ${app_definitions})
 target_compile_options(${app_name} PRIVATE ${app_compile_flags})
 # Item names starting with -, but not -l or -framework, are treated as linker flags.
