@@ -100,6 +100,14 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/al_ext")
   message("al_ext linking to ${AL_EXT_LIBRARIES}")
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # On macOS if jack is present, RtMidi will link to jack but not provide the
+    # /usr/local/lib location as link directory. This statement only serves the
+    # purpose of working around that bug. Perhaps can be removed on future
+    # updates of RtMidi
+    link_directories("/usr/local/lib")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 add_executable(${app_name} ${app_files_list})
 
 ## dependencies from allolib
