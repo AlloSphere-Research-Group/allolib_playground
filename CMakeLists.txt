@@ -21,11 +21,12 @@ option(AL_VERBOSE_OUTPUT "" OFF)
 option(AL_APP_RUN "" ON)
 
 if (NOT AL_APP_FILE)
-  message(FATAL_ERROR "\n[!] app file needs to be provided\n")
+  message("[!] app file needs to be provided\n")
+  set(BUILD_EXAMPLES 1)
 endif ()
 
 if (IS_DIRECTORY AL_APP_FILE)
-  message(FATAL_ERROR "\n[!] pass file to this cmake script\n")
+  message(CRITICAL_ERROR "[!] pass file to this cmake script\n")
 endif ()
 
 
@@ -35,10 +36,40 @@ else ()
   get_filename_component(file_full_path ${CMAKE_CURRENT_BINARY_DIR}/${AL_APP_FILE} ABSOLUTE)
 endif ()
 
+
+# include allolib target and Gamma target
+set(al_path ${CMAKE_CURRENT_SOURCE_DIR}/allolib)
+if (DEFINED CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_CONFIGURATION_TYPES "Debug;Release")
+  add_subdirectory("${al_path}" "${al_path}/build")
+else()
+  if (${CMAKE_BUILD_TYPE} MATCHES Debug)
+    add_subdirectory("${al_path}" "${al_path}/build/Debug")
+  else()
+    add_subdirectory("${al_path}" "${al_path}/build/Release")
+  endif()
+endif ()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/al_ext")
+  add_subdirectory(al_ext)
+  get_target_property(AL_EXT_LIBRARIES al_ext AL_EXT_LIBRARIES)
+  message("al_ext linking to ${AL_EXT_LIBRARIES}")
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # On macOS if jack is present, RtMidi will link to jack but not provide the
+    # /usr/local/lib location as link directory. This statement only serves the
+    # purpose of working around that bug. Perhaps can be removed on future
+    # updates of RtMidi
+    link_directories("/usr/local/lib")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+
+
+if (AL_APP_FILE)
 get_filename_component(app_name ${file_full_path} NAME_WE)
 get_filename_component(app_path ${file_full_path} DIRECTORY)
 set(app_files_list ${file_full_path})
-set(al_path ${CMAKE_CURRENT_SOURCE_DIR}/allolib)
 
 if(EXISTS "${app_path}/flags.cmake")
   if (AL_VERBOSE_OUTPUT)
@@ -83,32 +114,6 @@ if (AL_VERBOSE_OUTPUT)
   message("compile flags: ${app_compile_flags}")
   message("linker flags: ${app_linker_flags}")
 endif()
-
-# inlcude allolib target and Gamma target
-if (DEFINED CMAKE_CONFIGURATION_TYPES)
-  set(CMAKE_CONFIGURATION_TYPES "Debug;Release")
-  add_subdirectory("${al_path}" "${al_path}/build")
-else()
-  if (${CMAKE_BUILD_TYPE} MATCHES Debug)
-    add_subdirectory("${al_path}" "${al_path}/build/Debug")
-  else()
-    add_subdirectory("${al_path}" "${al_path}/build/Release")
-  endif()
-endif ()
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/al_ext")
-  add_subdirectory(al_ext)
-  get_target_property(AL_EXT_LIBRARIES al_ext AL_EXT_LIBRARIES)
-  message("al_ext linking to ${AL_EXT_LIBRARIES}")
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    # On macOS if jack is present, RtMidi will link to jack but not provide the
-    # /usr/local/lib location as link directory. This statement only serves the
-    # purpose of working around that bug. Perhaps can be removed on future
-    # updates of RtMidi
-    link_directories("/usr/local/lib")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 add_executable(${app_name} ${app_files_list})
 
@@ -228,3 +233,5 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     )
 
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+endif(AL_APP_FILE)
