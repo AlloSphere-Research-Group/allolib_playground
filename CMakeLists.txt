@@ -85,23 +85,6 @@ if(EXISTS "${app_path}/app_config.cmake")
   include(${app_path}/app_config.cmake)
 endif()
 
-#if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../../cuttlebone")
-#  set(CUTTLEBONE_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../cuttlebone")
-#elseif (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../cuttlebone")
-#  set(CUTTLEBONE_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/../../cuttlebone")
-#endif()
-#
-#if (EXISTS ${CUTTLEBONE_SRC_DIR})
-#    set(CUTTLE_BUILD_TESTS_AND_EXAMPLES OFF CACHE BOOL "Build Cuttlebone extras" FORCE)
-#    add_subdirectory(${CUTTLEBONE_SRC_DIR} "${app_path}/build/cuttlebone")
-#    list(APPEND app_include_dirs ${CUTTLEBONE_SRC_DIR})
-#    list(APPEND app_link_libs cuttlebone)
-#    list(APPEND app_definitions -DAL_USE_CUTTLEBONE)
-#else()
-#    message("-- Cuttlebone not found. Not building Cuttlebone.")
-#endif()
-
-
 if (AL_VERBOSE_OUTPUT)
   message("binary dir: ${CMAKE_CURRENT_BINARY_DIR}")
   message("file full path: ${file_full_path}")
