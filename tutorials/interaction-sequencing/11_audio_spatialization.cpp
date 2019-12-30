@@ -1,19 +1,19 @@
 
-#include "al/core/app/al_App.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/core/math/al_Random.hpp"
+#include "al/app/al_App.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/math/al_Random.hpp"
 
-#include "al/core/sound/al_StereoPanner.hpp"
-#include "al/core/sound/al_Vbap.hpp"
-#include "al/core/sound/al_Dbap.hpp"
-#include "al/core/sound/al_Ambisonics.hpp"
+#include "al/sound/al_StereoPanner.hpp"
+#include "al/sound/al_Vbap.hpp"
+#include "al/sound/al_Dbap.hpp"
+#include "al/sound/al_Ambisonics.hpp"
 
 
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_PresetSequencer.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_PresetSequencer.hpp"
 
-#include "al/util/scene/al_SynthSequencer.hpp"
-#include "al/util/ui/al_ControlGUI.hpp"
+#include "al/scene/al_SynthSequencer.hpp"
+#include "al/ui/al_ControlGUI.hpp"
 
 #include "Gamma/Oscillator.h"
 #include "Gamma/Envelope.h"
@@ -137,10 +137,11 @@ class MyApp : public App
 {
 public:
 
-    virtual void onInit() override {
+    void onInit() override {
         // We must call compile() once to prepare the spatializer
         // This must be done in onInit() to make sure it is called before
         // audio starts procesing
+        mSpatializer.setSpeakerLayout(StereoSpeakerLayout());
         mSpatializer.compile();
 
         // We need to pass the spatializer to each of the voices to spatialize
@@ -159,7 +160,7 @@ public:
     }
 
 
-    virtual void onCreate() override {
+    void onCreate() override {
         nav().pos(Vec3d(0,0,8)); // Set the camera to view the scene
 
         gui << X << Y << Size << AttackTime << ReleaseTime; // Register the parameters with the GUI
@@ -173,11 +174,8 @@ public:
         mRecorder << mSequencer.synth();
     }
 
-//    virtual void onAnimate(double dt) override {
-//        navControl().active(!gui.usingInput());
-//    }
 
-    virtual void onDraw(Graphics &g) override
+    void onDraw(Graphics &g) override
     {
         g.clear();
 
@@ -188,7 +186,7 @@ public:
         gui.draw(g);
     }
 
-    virtual void onSound(AudioIOData &io) override {
+    void onSound(AudioIOData &io) override {
          // The spatializer must be "prepared" and "finalized" on every block.
         // We do it here once, independently of the number of voices.
         mSpatializer.prepare(io);
@@ -196,7 +194,7 @@ public:
         mSpatializer.finalize(io);
     }
 
-    virtual void onKeyDown(const Keyboard& k) override
+    bool onKeyDown(const Keyboard& k) override
     {
         MyVoice *voice = mSequencer.synth().getVoice<MyVoice>();
         int midiNote = asciiToMIDI(k.key());
@@ -210,11 +208,13 @@ public:
         // Note that for text sequences to work, you need to set a default
         // user data as you can't pass user data from the text file.
 //        mSequencer.synth().triggerOn(voice, 0, midiNote, &mSpatializer);
+        return  true;
     }
 
-    virtual void onKeyUp(const Keyboard &k) override {
+    bool onKeyUp(const Keyboard &k) override {
         int midiNote = asciiToMIDI(k.key());
         mSequencer.synth().triggerOff(midiNote);
+        return  true;
     }
 
 private:
@@ -234,23 +234,19 @@ private:
     SynthSequencer mSequencer;
 
     // A speaker layout and spatializer
-    SpeakerLayout sl {StereoSpeakerLayout()};
-    SpatializerType mSpatializer {sl};
+    SpatializerType mSpatializer {};
 };
 
 
 int main(int argc, char *argv[])
 {
     MyApp app;
-    app.dimensions(800, 600);
 
     // We will render each voice's output to an internal bus within the
     // AudioIO object. We need to allocate this bus here, before audio
     // is opened by initAudio.
     app.audioIO().channelsBus(1);
-
-    app.initAudio(44100, 256, 2, 0);
-    gam::sampleRate(44100);
+    gam::sampleRate(app.audioIO().framesPerSecond());
 
     app.start();
     return 0;

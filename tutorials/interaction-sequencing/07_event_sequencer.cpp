@@ -1,12 +1,12 @@
 
-#include "al/core/app/al_App.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/core/math/al_Random.hpp"
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_PresetSequencer.hpp"
-#include "al/util/ui/al_ControlGUI.hpp"
+#include "al/app/al_App.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/math/al_Random.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_PresetSequencer.hpp"
+#include "al/ui/al_ControlGUI.hpp"
 
-#include "al/util/scene/al_SynthSequencer.hpp"
+#include "al/scene/al_SynthSequencer.hpp"
 
 #include "Gamma/Oscillator.h"
 #include "Gamma/Envelope.h"
@@ -38,7 +38,8 @@ public:
         mEnvelope.levels(0, 1, 0);
         mEnvelope.sustainPoint(1);
     }
-    virtual void onProcess(AudioIOData &io) override {
+
+    void onProcess(AudioIOData &io) override {
         while(io()) {
             // We multiply the envelope by the generator
             io.out(0) += mEnvelope() * mSource() * 0.05; // Output on the first channel scaled by 0.05;
@@ -51,7 +52,7 @@ public:
         }
     }
 
-    virtual void onProcess(Graphics &g) {
+    void onProcess(Graphics &g) override {
         g.pushMatrix();
         // You can get a parameter's value using the get() member function
         g.translate(mX, mY, 0);
@@ -71,7 +72,7 @@ public:
 
     /* If we depend on triggering envelopes we need to define on TriggerOn()
      */
-    virtual void onTriggerOn() override {
+    void onTriggerOn() override {
         // We want to reset the envelope:
         mEnvelope.reset();
     }
@@ -80,7 +81,7 @@ public:
      * off we need to override the onTriggerOff() function.
      * You can override one, both or none as needed.
      */
-    virtual void onTriggerOff() override {
+    void onTriggerOff() override {
         // We want to force the envelope to release:
 
         mEnvelope.release();
@@ -102,7 +103,11 @@ class MyApp : public App
 {
 public:
 
-    virtual void onCreate() override {
+    void onInit() override {
+        gam::sampleRate(audioIO().framesPerSecond());
+    }
+
+    void onCreate() override {
         nav().pos(Vec3d(0,0,8)); // Set the camera to view the scene
 
         gui << X << Y << Size << AttackTime << ReleaseTime; // Register the parameters with the GUI
@@ -110,7 +115,7 @@ public:
         navControl().active(false); // Disable nav control (because we are using the control to drive the synth
     }
 
-    virtual void onDraw(Graphics &g) override
+    void onDraw(Graphics &g) override
     {
         g.clear();
 
@@ -123,7 +128,7 @@ public:
 //        gui.draw(g);
     }
 
-    virtual void onSound(AudioIOData &io) override {
+    void onSound(AudioIOData &io) override {
         // We call the render method for the sequencer to render audio
         mSequencer.render(io);
     }
@@ -152,12 +157,9 @@ private:
 };
 
 
-int main(int argc, char *argv[])
+int main()
 {
     MyApp app;
-    app.dimensions(800, 600);
-    app.initAudio(44100, 256, 2, 0);
-    gam::sampleRate(44100);
 
     // Before starting the application we will schedule events in the sequencer
 

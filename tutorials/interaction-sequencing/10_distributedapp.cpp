@@ -1,10 +1,10 @@
 #include <string>
 
-#include "al/core/app/al_DistributedApp.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_ControlGUI.hpp"
-#include "al/util/al_FontModule.hpp"
+#include "al/app/al_DistributedApp.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_ControlGUI.hpp"
+#include "al/al_FontModule.hpp"
 
 using namespace al;
 
@@ -27,7 +27,7 @@ class MyApp : public DistributedApp<SharedState>
 {
 public:
 
-    virtual void onCreate() override {
+    void onCreate() override {
         // Set the camera to view the scene
         nav().pos(Vec3d(0,0,8));
         // Prepare mesh to draw a cone
@@ -47,7 +47,7 @@ public:
     }
 
     // The simulate function is only called on the "simulator" instance
-    virtual void simulate(double dt) override {
+    void simulate(double dt) override {
         // You should write to the state on this function
         // Then the state will be available anywhere else in the application
         // (even for instances that are running on a different node on the
@@ -55,10 +55,10 @@ public:
         state().frameCount++;
     }
 
-    virtual void onAnimate(double dt) override {
+    void onAnimate(double dt) override {
     }
 
-    virtual void onDraw(Graphics &g) override
+    void onDraw(Graphics &g) override
     {
         g.clear();
 
@@ -99,10 +99,9 @@ private:
 };
 
 
-int main(int argc, char *argv[])
+int main()
 {
     MyApp app;
-    app.dimensions(800, 600);
     app.start();
     return 0;
 }

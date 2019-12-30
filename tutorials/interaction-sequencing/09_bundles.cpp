@@ -1,13 +1,13 @@
 
-#include "al/core/app/al_App.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/core/math/al_Random.hpp"
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_ParameterBundle.hpp"
-#include "al/util/ui/al_PresetSequencer.hpp"
-#include "al/util/ui/al_ControlGUI.hpp"
+#include "al/app/al_App.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/math/al_Random.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_ParameterBundle.hpp"
+#include "al/ui/al_PresetSequencer.hpp"
+#include "al/ui/al_ControlGUI.hpp"
 
-#include "al/util/scene/al_SynthSequencer.hpp"
+#include "al/scene/al_SynthSequencer.hpp"
 
 #include "Gamma/Oscillator.h"
 #include "Gamma/Domain.h"
@@ -64,7 +64,11 @@ class MyApp : public App
 {
 public:
 
-    virtual void onCreate() override {
+    void onInit() override {
+        gam::sampleRate(audioIO().framesPerSecond());
+    }
+
+    void onCreate() override {
         nav().pos(Vec3d(0,0,8)); // Set the camera to view the scene
 
         // Register the bundles with the gui and the preset handler
@@ -77,11 +81,8 @@ public:
         navControl().active(false); // Disable nav control (because we are using the control to drive the synth
 
     }
-//    virtual void onAnimate(double dt) override {
-//        navControl().active(!gui.usingInput());
-//    }
 
-    virtual void onDraw(Graphics &g) override
+    void onDraw(Graphics &g) override
     {
         g.clear();
 
@@ -104,12 +105,9 @@ private:
 };
 
 
-int main(int argc, char *argv[])
+int main()
 {
     MyApp app;
-    app.dimensions(800, 600);
-    app.initAudio(44100, 256, 2, 0);
-    gam::sampleRate(44100);
     app.start();
     return 0;
 }

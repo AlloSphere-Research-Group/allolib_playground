@@ -1,12 +1,12 @@
 
-#include "al/core/app/al_App.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_PresetSequencer.hpp"
+#include "al/app/al_App.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_PresetSequencer.hpp"
 
-#include "al/util/scene/al_SynthSequencer.hpp"
-#include "al/util/scene/al_SynthRecorder.hpp"
-#include "al/util/ui/al_ControlGUI.hpp"
+#include "al/scene/al_SynthSequencer.hpp"
+#include "al/scene/al_SynthRecorder.hpp"
+#include "al/ui/al_ControlGUI.hpp"
 
 #include "Gamma/Oscillator.h"
 #include "Gamma/Envelope.h"
@@ -139,7 +139,12 @@ class MyApp : public App
 {
 public:
 
-    virtual void onCreate() override {
+    void onInit() override {
+
+        gam::sampleRate(audioIO().framesPerSecond());
+    }
+
+    void onCreate() override {
         nav().pos(Vec3d(0,0,8)); // Set the camera to view the scene
         Light::globalAmbient({0.2, 1, 0.2});
 
@@ -166,11 +171,7 @@ public:
 
     }
 
-//    virtual void onAnimate(double dt) override {
-//        navControl().active(!gui.usingInput());
-//    }
-
-    virtual void onDraw(Graphics &g) override
+    void onDraw(Graphics &g) override
     {
         g.clear();
         g.lighting(true);
@@ -182,7 +183,7 @@ public:
         gui.draw(g);
     }
 
-    virtual void onSound(AudioIOData &io) override {
+    void onSound(AudioIOData &io) override {
         // We call the render method for the sequencer to render audio
         mSequencer.render(io);
     }
@@ -192,18 +193,20 @@ public:
      * Notice that we are using the PolySynth found within the
      * sequencer instead of directly
      */
-    virtual void onKeyDown(const Keyboard& k) override
+    bool onKeyDown(const Keyboard& k) override
     {
         MyVoice *voice = sequencer().synth().getVoice<MyVoice>();
         int midiNote = asciiToMIDI(k.key());
         float freq = 440.0f * powf(2, (midiNote - 69)/12.0f);
         voice->set(X.get(), Y.get(), Size.get(), freq, AttackTime.get(), ReleaseTime.get());
         sequencer().synth().triggerOn(voice, 0, midiNote);
+        return true;
     }
 
-    virtual void onKeyUp(const Keyboard &k) override {
+    bool onKeyUp(const Keyboard &k) override {
         int midiNote = asciiToMIDI(k.key());
         sequencer().synth().triggerOff(midiNote);
+        return true;
     }
 
 
@@ -232,12 +235,9 @@ private:
 };
 
 
-int main(int argc, char *argv[])
+int main()
 {
     MyApp app;
-    app.dimensions(800, 600);
-    app.initAudio(44100, 256, 2, 0);
-    gam::sampleRate(44100);
 
     // Before starting the application we need to register our voice in
     // the PolySynth (that is inside the sequencer). This allows

@@ -1,25 +1,25 @@
 
-#include "al/core/app/al_App.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/core/math/al_Random.hpp"
+#include "al/app/al_App.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/math/al_Random.hpp"
 
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_PresetSequencer.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_PresetSequencer.hpp"
 
-#include "al/util/scene/al_SynthSequencer.hpp"
-#include "al/util/scene/al_DynamicScene.hpp"
-#include "al/util/imgui/al_Imgui.hpp"
+#include "al/scene/al_SynthSequencer.hpp"
+#include "al/scene/al_DynamicScene.hpp"
+#include "al/graphics/al_Imgui.hpp"
 
-#include "al/core/sound/al_StereoPanner.hpp"
-#include "al/core/sound/al_Vbap.hpp"
-#include "al/core/sound/al_Dbap.hpp"
-#include "al/core/sound/al_Ambisonics.hpp"
+#include "al/sound/al_StereoPanner.hpp"
+#include "al/sound/al_Vbap.hpp"
+#include "al/sound/al_Dbap.hpp"
+#include "al/sound/al_Ambisonics.hpp"
 
 #include "Gamma/Oscillator.h"
 #include "Gamma/Envelope.h"
 #include "Gamma/Domain.h"
 
-#include "al/util/sound/al_OutputMaster.hpp"
+//#include "al/util/sound/al_OutputMaster.hpp"
 
 using namespace al;
 
@@ -115,8 +115,8 @@ public:
         SpeakerLayout sl = StereoSpeakerLayout();
         scene.setSpatializer<SpatializerType>(sl);
 
-        mOutputMaster.setMeterOn(true);
-        mOutputMaster.setMeterUpdateFreq(1);
+//        mOutputMaster.setMeterOn(true);
+//        mOutputMaster.setMeterUpdateFreq(1);
     }
 
     virtual void onCreate() override {
@@ -134,8 +134,8 @@ public:
 
     virtual void onDraw(Graphics &g) override
     {
-        float values[2];
-        mOutputMaster.getCurrentValues(values);
+//        float values[2];
+//        mOutputMaster.getCurrentValues(values);
 
         g.clear();
         scene.listenerPose(nav()); // Update listener pose to current nav
@@ -174,7 +174,7 @@ public:
             count++;
             voices = voices->next;
         }
-        ImGui::SliderFloat2("Levels", values, 0.0, 0.03);
+//        ImGui::SliderFloat2("Levels", values, 0.0, 0.03);
         endIMGUI_minimal(true);
     }
 
@@ -184,7 +184,7 @@ public:
 
         scene.prepare(audioIO());
         scene.render(io);
-        mOutputMaster.onAudioCB(io);
+//        mOutputMaster.onAudioCB(io);
     }
 
     virtual void onKeyDown(const Keyboard& k) override
@@ -210,7 +210,7 @@ private:
     rnd::Random<> randomGenerator; // Random number generator
 
     DynamicScene scene;
-    OutputMaster mOutputMaster {2, 44100};
+//    OutputMaster mOutputMaster {2, 44100};
 };
 
 

@@ -1,11 +1,12 @@
 
-#include "al/core/app/al_App.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_Preset.hpp"
-#include "al/util/ui/al_PresetSequencer.hpp"
-#include "al/core/math/al_Random.hpp"
-#include "al/util/ui/al_ControlGUI.hpp"
+#include "al/app/al_App.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_PresetHandler.hpp"
+#include "al/ui/al_PresetSequencer.hpp"
+#include "al/ui/al_SequenceServer.hpp"
+#include "al/math/al_Random.hpp"
+#include "al/ui/al_ControlGUI.hpp"
 
 using namespace al;
 
@@ -23,7 +24,7 @@ class MyApp : public App
 {
 public:
 
-    virtual void onCreate() override {
+    void onCreate() override {
         nav().pos(Vec3d(0,0,8)); // Set the camera to view the scene
         addCone(mesh); // Prepare mesh to draw a cone
         mesh.primitive(Mesh::LINE_STRIP);
@@ -66,13 +67,13 @@ public:
         sequenceServer.print();
     }
 
-    virtual void onAnimate(double dt) override {
+    void onAnimate(double dt) override {
         // You will want to disable navigation and text if the mouse is within
         // the gui window. You need to do this within the onAnimate callback
         navControl().active(!gui.usingInput());
     }
 
-    virtual void onDraw(Graphics &g) override
+    void onDraw(Graphics &g) override
     {
         g.clear();
 
@@ -87,13 +88,14 @@ public:
         gui.draw(g);
     }
 
-    virtual void onKeyDown(const Keyboard& k) override
+    bool onKeyDown(const Keyboard& k) override
     {
         // The space key plays back the sequence we create in the main() function
         if (k.key() == ' ') {
             // Notice that you don't need to add the extension ".sequence" to the name
             presetSequencer.playSequence("demo");
         }
+        return true;
     }
 
 private:
@@ -152,7 +154,6 @@ int main(int argc, char *argv[])
     ofs.close();
 
     MyApp app;
-    app.dimensions(800, 600);
     app.start();
     return 0;
 }

@@ -1,12 +1,12 @@
 
-#include "al/core/app/al_App.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/core/math/al_Random.hpp"
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_PresetSequencer.hpp"
-#include "al/util/ui/al_ControlGUI.hpp"
+#include "al/app/al_App.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/math/al_Random.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_PresetSequencer.hpp"
+#include "al/ui/al_ControlGUI.hpp"
 
-#include "al/util/scene/al_SynthSequencer.hpp"
+#include "al/scene/al_SynthSequencer.hpp"
 
 #include "Gamma/Oscillator.h"
 #include "Gamma/Envelope.h"
@@ -102,7 +102,12 @@ class MyApp : public App
 {
 public:
 
-    virtual void onCreate() override {
+    void onInit() override {
+        gam::sampleRate(audioIO().framesPerSecond());
+    }
+
+    void onCreate() override {
+
         nav().pos(Vec3d(0,0,8)); // Set the camera to view the scene
 
         gui << X << Y << Size << AttackTime << ReleaseTime; // Register the parameters with the GUI
@@ -110,7 +115,7 @@ public:
         navControl().active(false); // Disable nav control (because we are using the control to drive the synth
     }
 
-    virtual void onDraw(Graphics &g) override
+    void onDraw(Graphics &g) override
     {
         g.clear();
 
@@ -120,13 +125,13 @@ public:
         gui.draw(g);
     }
 
-    virtual void onSound(AudioIOData &io) override {
+    void onSound(AudioIOData &io) override {
         // You must also call render() for audio if you want to hear the voice's
         // audio output
         mPolySynth.render(io);
     }
 
-    virtual void onKeyDown(const Keyboard& k) override
+    bool onKeyDown(const Keyboard& k) override
     {
         /*
          * First we need to get a free voice from the PolySynth.
@@ -150,12 +155,14 @@ public:
          * turn it off later.
          */
         mPolySynth.triggerOn(voice, 0, midiNote);
+        return true;
     }
 
-    virtual void onKeyUp(const Keyboard &k) override {
+    bool onKeyUp(const Keyboard &k) override {
 
         int midiNote = asciiToMIDI(k.key());
         mPolySynth.triggerOff(midiNote);
+        return true;
     }
 
 private:
@@ -173,12 +180,9 @@ private:
 };
 
 
-int main(int argc, char *argv[])
+int main()
 {
     MyApp app;
-    app.dimensions(800, 600);
-    app.initAudio(44100, 256, 2, 0);
-    gam::sampleRate(44100);
     app.start();
     return 0;
 }
