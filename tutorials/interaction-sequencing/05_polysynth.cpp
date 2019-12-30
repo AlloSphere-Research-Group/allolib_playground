@@ -1,12 +1,12 @@
 
-#include "al/core/app/al_App.hpp"
-#include "al/core/graphics/al_Shapes.hpp"
-#include "al/core/math/al_Random.hpp"
-#include "al/util/ui/al_Parameter.hpp"
-#include "al/util/ui/al_PresetSequencer.hpp"
-#include "al/util/ui/al_ControlGUI.hpp"
+#include "al/app/al_App.hpp"
+#include "al/graphics/al_Shapes.hpp"
+#include "al/math/al_Random.hpp"
+#include "al/ui/al_Parameter.hpp"
+#include "al/ui/al_PresetSequencer.hpp"
+#include "al/ui/al_ControlGUI.hpp"
 
-#include "al/util/scene/al_SynthSequencer.hpp"
+#include "al/scene/al_SynthSequencer.hpp"
 
 #include "Gamma/Oscillator.h"
 #include "Gamma/Domain.h"
@@ -117,7 +117,7 @@ public:
         mPolySynth.render(io);
     }
 
-    virtual void onKeyDown(const Keyboard& k) override
+    virtual bool onKeyDown(const Keyboard& k) override
     {
         /*
          * First we need to get a free voice from the PolySynth.
@@ -139,6 +139,8 @@ public:
          * PolySynth
          */
         mPolySynth.triggerOn(voice);
+
+	return true;
     }
 
 private:
@@ -157,7 +159,7 @@ int main(int argc, char *argv[])
 {
     MyApp app;
     app.dimensions(800, 600);
-    app.initAudio(44100, 256, 2, 0);
+    app.configureAudio(44100, 256, 2, 0);
     gam::sampleRate(44100);
     app.start();
     return 0;
