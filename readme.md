@@ -1,11 +1,16 @@
-# Setup
+# Allolib playground
+[![Build Status](https://travis-ci.org/AlloSphere-Research-Group/allolib_playground.svg?branch=master)](https://travis-ci.org/AlloSphere-Research-Group/allolib_playground)
+
+This repo provides a quick and simple way to build allolib applications. It also contains a set of tutorials and cookbook examples in addition to the examples in the allolib library.
+
+## Setup
 
 Run the init.sh script to get the allolib and al_ext libraries or execute in
 a bash shell:
 
     git submodule update --recursive --init
 
-# Building and running applications
+## Building and running applications
 
 The allolib playground provides basic facilties for building and debugging 
 single file applications. On a bash shell on Windows, Linux and OS X do:
