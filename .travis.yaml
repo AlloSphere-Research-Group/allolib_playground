@@ -1,6 +1,5 @@
 branches:
   except:
-  - modern_cmake
   - local
 language: cpp
 dist: trusty
@@ -8,8 +7,8 @@ os:
   - linux
 #  - osx
 compiler:
-- gcc
-- clang
+  - gcc
+  - clang
 before_install:
   # - ( git clone -b devel https://github.com/AlloSphere-Research-Group/Gamma /tmp/Gamma )
   # - ( git clone -b cmake https://github.com/AlloSphere-Research-Group/GLV /tmp/GLV )
@@ -19,7 +18,7 @@ install:
 addons:
   apt:
     sources:
-    #- sourceline: 'ppa:keithw/glfw3'
+    - sourceline: 'ppa:keithw/glfw3'
     - sourceline: 'ppa:ubuntu-toolchain-r/test'
     packages:
     - gcc-8
@@ -37,8 +36,8 @@ addons:
     # - libjsoncpp-dev
     # - libfftw3-dev
 script:
-    - mkdir allolib_build
-    - cd allolib_build
+    - mkdir build
+    - cd build
     - cmake .. -DTRAVIS_BUILD=1
     - cmake --build .
 sudo: false
