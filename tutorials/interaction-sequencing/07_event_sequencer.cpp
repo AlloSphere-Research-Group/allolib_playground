@@ -113,6 +113,7 @@ public:
         gui << X << Y << Size << AttackTime << ReleaseTime; // Register the parameters with the GUI
         gui.init(); // Initialize GUI. Don't forget this!
         navControl().active(false); // Disable nav control (because we are using the control to drive the synth
+        sequencer().playSequence();
     }
 
     void onDraw(Graphics &g) override

@@ -1,0 +1,48 @@
+branches:
+  except:
+  - modern_cmake
+  - local
+language: cpp
+dist: trusty
+os:
+  - linux
+#  - osx
+compiler:
+- gcc
+- clang
+before_install:
+  # - ( git clone -b devel https://github.com/AlloSphere-Research-Group/Gamma /tmp/Gamma )
+  # - ( git clone -b cmake https://github.com/AlloSphere-Research-Group/GLV /tmp/GLV )
+  # - ( git clone https://github.com/rbtsx/cuttlebone.git /tmp/cuttlebone )
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-8" CC="gcc-8"; fi
+addons:
+  apt:
+    sources:
+    #- sourceline: 'ppa:keithw/glfw3'
+    - sourceline: 'ppa:ubuntu-toolchain-r/test'
+    packages:
+    - gcc-8
+    - g++-8
+    - portaudio19-dev
+    - libsndfile1-dev
+    #- libglew-dev
+    #- libglfw3-dev
+    - xorg-dev
+    # - libusb-1.0-0-dev
+    - libfreeimage-dev
+    - libfreetype6-dev
+    - libassimp-dev
+    # - libluajit-5.1-dev
+    # - libjsoncpp-dev
+    # - libfftw3-dev
+script:
+    - mkdir allolib_build
+    - cd allolib_build
+    - cmake .. -DTRAVIS_BUILD=1
+    - cmake --build .
+sudo: false
+notifications:
+  email:
+    recipients:
+    - mantaraya36@gmail.com

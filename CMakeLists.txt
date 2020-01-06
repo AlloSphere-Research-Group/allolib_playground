@@ -21,8 +21,9 @@ option(AL_VERBOSE_OUTPUT "" OFF)
 option(AL_APP_RUN "" ON)
 
 if (NOT AL_APP_FILE)
-  message("[!] app file needs to be provided\n")
+  message("[!] app file not provided, building all\n")
   set(BUILD_EXAMPLES 1)
+  set(BUILD_ALL 1)
 endif ()
 
 if (IS_DIRECTORY AL_APP_FILE)
@@ -64,117 +65,105 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     link_directories("/usr/local/lib")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-
-
-if (AL_APP_FILE)
 get_filename_component(app_name ${file_full_path} NAME_WE)
 get_filename_component(app_path ${file_full_path} DIRECTORY)
 set(app_files_list ${file_full_path})
 
-if(EXISTS "${app_path}/flags.cmake")
-  if (AL_VERBOSE_OUTPUT)
-    message("found flags.cmake")
-  endif()
-  include(${app_path}/flags.cmake)
-endif()
-
-if(EXISTS "${app_path}/app_config.cmake")
-  if (AL_VERBOSE_OUTPUT)
-    message("found app_config.cmake")
-  endif()
-  include(${app_path}/app_config.cmake)
-endif()
-
-if (AL_VERBOSE_OUTPUT)
-  message("binary dir: ${CMAKE_CURRENT_BINARY_DIR}")
-  message("file full path: ${file_full_path}")
-  message("app path: ${app_path}")
-  message("app name: ${app_name}")
-  message("al path: ${al_path}")
-  message("include dirs: ${app_include_dirs}")
-  message("link libs: ${app_link_libs}")
-  message("definitions: ${app_definitions}")
-  message("compile flags: ${app_compile_flags}")
-  message("linker flags: ${app_linker_flags}")
-endif()
-
-add_executable(${app_name} ${app_files_list})
-
-## dependencies from allolib
-#get_target_property(al_libs al AL_LINK_LIBRARIES)
-#get_target_property(al_includes al AL_INCLUDE_DIRECTORIES)
-#get_target_property(al_link_directories al AL_LINK_DIRECTORIES)
-#
-#link_directories(${al_link_directories})
-#
-#message("allolib link dirs: ${al_link_directories}")
-#message("allolib include dirs: ${al_includes}")
-#target_include_directories(${app_name} PRIVATE ${al_includes})
-#link_directories(${al_link_directories})
-
-set_target_properties(${app_name} PROPERTIES
-  DEBUG_POSTFIX d
-  RUNTIME_OUTPUT_DIRECTORY ${app_path}/bin
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${app_path}/bin
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${app_path}/bin
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED ON
-)
-
-# flags
-if (AL_WINDOWS)
-  target_compile_options(${app_name} PRIVATE "")
-else ()
-  target_compile_options(${app_name} PRIVATE "-Wall")
-endif (AL_WINDOWS)
-
-target_link_libraries(${app_name} PUBLIC al ${al_libs})
-
-foreach(include_dir IN LISTS app_include_dirs)
-    if (IS_ABSOLUTE ${include_dir})
-        target_include_directories(${app_name} PRIVATE ${include_dir})
-    else()
-        target_include_directories(${app_name} PRIVATE ${app_path}/${include_dir})
+macro(BUILD_FILE  this_app_name this_app_path this_app_files_list)
+    if(EXISTS "${this_app_path}/flags.cmake")
+      if (AL_VERBOSE_OUTPUT)
+        message("found flags.cmake")
+      endif()
+      include(${this_app_path}/flags.cmake)
     endif()
-endforeach(include_dir IN app_include_dirs)
 
-target_include_directories(${app_name} PRIVATE ${al_includes})
+    if(EXISTS "${this_app_path}/app_config.cmake")
+      if (AL_VERBOSE_OUTPUT)
+        message("found app_config.cmake")
+      endif()
+      include(${this_app_path}/app_config.cmake)
+    endif()
 
+    if (AL_VERBOSE_OUTPUT)
+      message("binary dir: ${CMAKE_CURRENT_BINARY_DIR}")
+      message("file full path: ${file_full_path}")
+      message("app path: ${this_app_path}")
+      message("app name: ${this_app_name}")
+      message("al path: ${al_path}")
+      message("include dirs: ${app_include_dirs}")
+      message("link libs: ${app_link_libs}")
+      message("definitions: ${app_definitions}")
+      message("compile flags: ${app_compile_flags}")
+      message("linker flags: ${app_linker_flags}")
+    endif()
 
-target_link_libraries(${app_name} PRIVATE ${app_link_libs} ${AL_EXT_LIBRARIES})
-target_compile_definitions(${app_name} PRIVATE ${app_definitions})
-target_compile_options(${app_name} PRIVATE ${app_compile_flags})
-# Item names starting with -, but not -l or -framework, are treated as linker flags.
-target_link_libraries(${app_name} PRIVATE ${app_linker_flags})
+    add_executable(${this_app_name} ${this_app_files_list})
 
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set (DEBUGGER "gdb" "-ex" "run")
-elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set (DEBUGGER "lldb" "-o run")
-endif()
-
-add_custom_target(${app_name}_run
-    ./${app_name}
-    DEPENDS ${app_name}
-    WORKING_DIRECTORY ${app_path}/bin
-    USES_TERMINAL
+    set_target_properties(${this_app_name} PROPERTIES
+      DEBUG_POSTFIX d
+      RUNTIME_OUTPUT_DIRECTORY ${this_app_path}/bin
+      RUNTIME_OUTPUT_DIRECTORY_DEBUG ${this_app_path}/bin
+      RUNTIME_OUTPUT_DIRECTORY_RELEASE ${this_app_path}/bin
+      CXX_STANDARD 14
+      CXX_STANDARD_REQUIRED ON
     )
-add_custom_target(${app_name}_run_debug
-    ${DEBUGGER} ./${app_name}d
-    DEPENDS ${app_name}
-    WORKING_DIRECTORY ${app_path}/bin
-    USES_TERMINAL
-    )
+
+    # flags
+    if (AL_WINDOWS)
+      target_compile_options(${this_app_name} PRIVATE "")
+    else ()
+      target_compile_options(${this_app_name} PRIVATE "-Wall")
+    endif (AL_WINDOWS)
+
+    target_link_libraries(${this_app_name} PUBLIC al ${al_libs})
+
+    foreach(include_dir IN LISTS app_include_dirs)
+        if (IS_ABSOLUTE ${include_dir})
+            target_include_directories(${this_app_name} PRIVATE ${include_dir})
+        else()
+            target_include_directories(${this_app_name} PRIVATE ${this_app_path}/${include_dir})
+        endif()
+    endforeach(include_dir IN app_include_dirs)
+
+    target_include_directories(${this_app_name} PRIVATE ${al_includes})
+
+    target_link_libraries(${this_app_name} PRIVATE ${app_link_libs} ${AL_EXT_LIBRARIES})
+    target_compile_definitions(${this_app_name} PRIVATE ${app_definitions})
+    target_compile_options(${this_app_name} PRIVATE ${app_compile_flags})
+    # Item names starting with -, but not -l or -framework, are treated as linker flags.
+    target_link_libraries(${this_app_name} PRIVATE ${app_linker_flags})
+endmacro()
 
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  # when run from Visual Studio, working directory is where the solution is by default
-  # set it to app output directory
-  set_target_properties(${app_name} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${app_path}/bin)
-  # startup project is `ALL_BUILD` by default so we change it to app project
-  set_directory_properties(PROPERTIES VS_STARTUP_PROJECT ${app_name})
+if (AL_APP_FILE)
+  BUILD_FILE("${app_name}" "${app_path}" "${app_files_list}")
 
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      set (DEBUGGER "gdb" "-ex" "run")
+  elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+      set (DEBUGGER "lldb" "-o run")
+  endif()
+
+  add_custom_target(${app_name}_run
+      ./${app_name}
+      DEPENDS ${app_name}
+      WORKING_DIRECTORY ${app_path}/bin
+      USES_TERMINAL
+      )
+  add_custom_target(${app_name}_run_debug
+      ${DEBUGGER} ./${app_name}d
+      DEPENDS ${app_name}
+      WORKING_DIRECTORY ${app_path}/bin
+      USES_TERMINAL
+      )
+
+
+  if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # when run from Visual Studio, working directory is where the solution is by default
+    # set it to app output directory
+    set_target_properties(${app_name} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${app_path}/bin)
+    # startup project is `ALL_BUILD` by default so we change it to app project
+    set_directory_properties(PROPERTIES VS_STARTUP_PROJECT ${app_name})
 
   if (USE_PORTAUDIO)
     list(APPEND post_build_command
@@ -216,5 +205,22 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     )
 
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+else()
+    # Build everything
+    list(APPEND paths "tutorials/interaction-sequencing/*.cpp")
+    list(APPEND paths "cookbook/av/*.cpp")
+    list(APPEND paths "cookbook/shaders/*.cpp")
+    list(APPEND paths "cookbook/simulation/*.cpp")
+    foreach(path IN LISTS paths)
+        message("Building path ${path}")
+        FILE(GLOB sources "${path}")
+        foreach(source IN LISTS sources)
+            get_filename_component(app_name ${source} NAME_WE)
+            get_filename_component(app_path ${source} DIRECTORY)
+            message("Building ${app_name} from ${path}")
+            BUILD_FILE("${app_name}" "${app_path}" "${source}")
+        endforeach()
+    endforeach()
 
 endif(AL_APP_FILE)
