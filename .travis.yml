@@ -36,8 +36,8 @@ addons:
 script:
     - mkdir build
     - cd build
-    - cmake .. -DTRAVIS_BUILD=1
-    - cmake --build .
+    - ../cmake/bin/cmake .. -DTRAVIS_BUILD=1
+    - ../cmake/bin/cmake --build .
 sudo: false
 notifications:
   email:
