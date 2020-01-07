@@ -16,7 +16,7 @@ install:
 addons:
   apt:
     sources:
-    - sourceline: 'ppa:keithw/glfw3'
+#    - sourceline: 'ppa:keithw/glfw3'
     - sourceline: 'ppa:ubuntu-toolchain-r/test'
     packages:
     - gcc-8
