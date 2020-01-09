@@ -52,7 +52,7 @@ else()
 endif ()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/al_ext")
-  add_subdirectory(al_ext)
+  add_subdirectory(al_ext "${al_path}/build/al_ext")
   get_target_property(AL_EXT_LIBRARIES al_ext AL_EXT_LIBRARIES)
   message("al_ext linking to ${AL_EXT_LIBRARIES}")
 endif()
