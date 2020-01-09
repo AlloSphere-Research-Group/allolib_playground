@@ -1,5 +1,5 @@
 language: cpp
-dist: bionic
+dist: trusty
 os:
   - linux
 #  - osx
@@ -16,7 +16,7 @@ install:
 addons:
   apt:
     sources:
-    - sourceline: 'ppa:keithw/glfw3'
+#    - sourceline: 'ppa:keithw/glfw3'
     - sourceline: 'ppa:ubuntu-toolchain-r/test'
     packages:
     - gcc-8
@@ -36,8 +36,8 @@ addons:
 script:
     - mkdir build
     - cd build
-    - cmake .. -DTRAVIS_BUILD=1
-    - cmake --build .
+    - ../cmake/bin/cmake .. -DTRAVIS_BUILD=1
+    - ../cmake/bin/cmake --build .
 sudo: false
 notifications:
   email:
