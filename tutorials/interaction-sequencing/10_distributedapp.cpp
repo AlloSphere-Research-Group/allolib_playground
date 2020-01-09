@@ -48,12 +48,12 @@ class MyApp : public DistributedAppWithState<SharedState> {
       quit();
     }
     font.alignCenter();
-    navControl().active(false);
   }
 
   void onAnimate(double dt) override {
     if (isPrimary()) {
       state().frameCount++;
+      navControl().active(!isImguiUsingInput());
     }
 
     font.write(fontMesh, std::to_string(state().frameCount).c_str(), 1.0f);

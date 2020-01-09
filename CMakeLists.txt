@@ -209,6 +209,7 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else()
     # Build everything
     list(APPEND paths "tutorials/interaction-sequencing/*.cpp")
+    list(APPEND paths "tutorials/gui/*.cpp")
     list(APPEND paths "cookbook/av/*.cpp")
     list(APPEND paths "cookbook/shaders/*.cpp")
     list(APPEND paths "cookbook/simulation/*.cpp")
