@@ -95,7 +95,7 @@ class MyVoice : public SynthVoice {
     g.pushMatrix();
     // You can get a parameter's value using the get() member function
     g.translate(mX, mY, 0);
-    g.color(1 - mX, mX, 0.0);
+    g.color(1 - (mFrequency / 1000.0f), (mFrequency / 1000.0f), 0.0);
     g.scale(mSize * mEnvelope.value());
     g.draw(mesh);  // Draw the mesh
     g.popMatrix();
@@ -193,7 +193,7 @@ class MyApp : public App {
     MyVoice *voice = sequencer().synth().getVoice<MyVoice>();
     int midiNote = asciiToMIDI(k.key());
     float freq = 440.0f * powf(2, (midiNote - 69) / 12.0f);
-    voice->set(X.get() + midiNote / 128.0, Y.get(), Size.get(), freq,
+    voice->set(-3.0f + X.get() + midiNote / 24.0, Y.get(), Size.get(), freq,
                AttackTime.get(), ReleaseTime.get());
     sequencer().synth().triggerOn(voice, 0, midiNote);
     return true;
