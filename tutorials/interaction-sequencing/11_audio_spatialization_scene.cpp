@@ -38,8 +38,6 @@ using namespace al;
 class MyAgent : public PositionedVoice {
  public:
   MyAgent() {
-    addDodecahedron(mesh);  // Prepare mesh to draw a dodecahedron
-
     mEnvelope.lengths(5.0f, 5.0f);
     mEnvelope.levels(0, 1, 0);
     mEnvelope.sustainPoint(1);
@@ -59,6 +57,8 @@ class MyAgent : public PositionedVoice {
   }
 
   void onProcess(Graphics &g) override {
+    // Get shared Mesh
+    Mesh *sharedMesh = static_cast<Mesh *>(userData());
     mLifeSpan--;
     if (mLifeSpan == 0) {  // If it's time to die, start die off
       mEnvelope.release();
@@ -67,7 +67,7 @@ class MyAgent : public PositionedVoice {
     g.polygonLine();
     g.color(0.1, 0.9, 0.3);
     g.scale(mSize * mEnvelope.value() + mModulatorValue * 0.1);
-    g.draw(mesh);  // Draw the mesh
+    g.draw(*sharedMesh);  // Draw the mesh
     g.popMatrix();
   }
 
@@ -98,35 +98,38 @@ class MyAgent : public PositionedVoice {
 
   unsigned int mLifeSpan;  // life span counter
   float mModulatorValue;   // To share modulator value from audio to graphics
-
-  Mesh mesh;  // The mesh now belongs to the voice
 };
 
-class MyApp : public App {
- public:
+struct MyApp : public App {
+  Mesh mesh;
+
+  rnd::Random<> randomGenerator;  // Random number generator
+
+  DynamicScene scene;
   virtual void onInit() override {
     // Configure spatializer for the scene
     auto speakers = StereoSpeakerLayout();
     scene.setSpatializer<SpatializerType>(speakers);
 
-    //        mOutputMaster.setMeterOn(true);
-    //        mOutputMaster.setMeterUpdateFreq(1);
+    // You can set how distance attenuattion for audio is handled
+    //    scene.distanceAttenuation().law(ATTEN_NONE);
+
+    addDodecahedron(mesh);  // Prepare mesh to draw a dodecahedron
+    // Set pointer to mesh as default user data for the scene.
+    // This pointer will be passed to all voices allocated from now on.
+    // Voices can access this data through their userData() function.
+    scene.setDefaultUserData(&mesh);
+
+    // Prepare the scene buffers according to audioIO buffers
+    scene.prepare(audioIO());
   }
 
   virtual void onCreate() override {
-    nav().pos(Vec3d(0, 0, 8));  // Set the camera to view the scene
-    Light::globalAmbient({0.2, 1, 0.2});
-
-    navControl().active(true);  // Disable nav control (because we are using the
-                                // control to drive the synth
-
+    navControl().active(true);
     imguiInit();
   }
 
   void onAnimate(double dt) override {
-    // Since we are not using parameters in this case we will use IMGUI
-    // more directly to display information
-
     SynthVoice *voices = scene.getActiveVoices();
     int count = 0;
     while (voices) {
@@ -170,9 +173,6 @@ class MyApp : public App {
   }
 
   void onDraw(Graphics &g) override {
-    //        float values[2];
-    //        mOutputMaster.getCurrentValues(values);
-
     g.clear();
     scene.listenerPose(nav());  // Update listener pose to current nav
     scene.render(g);
@@ -183,10 +183,7 @@ class MyApp : public App {
   virtual void onSound(AudioIOData &io) override {
     // The spatializer must be "prepared" and "finalized" on every block.
     // We do it here once, independently of the number of voices.
-
-    scene.prepare(audioIO());
     scene.render(io);
-    //        mOutputMaster.onAudioCB(io);
   }
 
   bool onKeyDown(const Keyboard &k) override {
@@ -205,14 +202,6 @@ class MyApp : public App {
     }
     return true;
   }
-
- private:
-  Light light;
-
-  rnd::Random<> randomGenerator;  // Random number generator
-
-  DynamicScene scene;
-  //    OutputMaster mOutputMaster {2, 44100};
 };
 
 int main(int argc, char *argv[]) {
