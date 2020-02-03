@@ -64,7 +64,7 @@ class MyAgent : public PositionedVoice {
       mEnvelope.release();
     }
     g.pushMatrix();
-    g.polygonLine();
+    gl::polygonLine();
     g.color(0.1, 0.9, 0.3);
     g.scale(mSize * mEnvelope.value() + mModulatorValue * 0.1);
     g.draw(*sharedMesh);  // Draw the mesh

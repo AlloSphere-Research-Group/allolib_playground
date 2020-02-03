@@ -68,8 +68,7 @@ class MyApp : public DistributedAppWithState<SharedState> {
     g.scale(Size.get());
     g.color(1);
     g.draw(mesh);  // Draw the mesh
-    g.blendAdd();
-    g.blending(true);
+    gl::blendAdd();
     g.texture();
     font.tex.bind();
     g.draw(fontMesh);
