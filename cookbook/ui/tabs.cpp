@@ -5,8 +5,9 @@
 
 using namespace al;
 
-// This example shows connecing gui tabs across application instances through
-// the use of ParameterMenu.
+// This example shows how to make a GUI with tabs using ParameterMenu.
+// Connecing gui tabs across application instances through
+// the use of ParameterMenu
 
 struct MyApp : public DistributedApp {
   void onInit() override {
@@ -30,24 +31,43 @@ struct MyApp : public DistributedApp {
 
   void onExit() { imguiShutdown(); }
 
-  void prepareGui() {
-    imguiBeginFrame();
-    ImGui::SetNextWindowBgAlpha(0.9);
-
-    ImGui::Begin("Tabs example");
-    auto tabNames = mTabs.getElements();
+  int drawTabBar(ParameterMenu &menu) {
+    auto tabNames = menu.getElements();
 
     // Draw tab headers
     ImGui::Columns(tabNames.size(), nullptr, true);
     for (size_t i = 0; i < tabNames.size(); i++) {
-      if (ImGui::Selectable(tabNames[i].c_str(), mTabs.get() == i)) {
-        mTabs.set(i);
+      if (ImGui::Selectable(tabNames[i].c_str(), menu.get() == i)) {
+        menu.set(i);
       }
       ImGui::NextColumn();
     }
     // Draw tab contents
     ImGui::Columns(1);
-    switch (mTabs.get()) {
+    return menu.get();
+  }
+
+  void prepareGui() {
+    imguiBeginFrame();
+    ImGui::SetNextWindowBgAlpha(0.9);
+
+    ImGui::Begin("Tabs example");
+
+    if (ImGui::Button("Add Tab")) {
+      auto elements = mTabs.getElements();
+      elements.push_back("new " + std::to_string(mTabs.getElements().size()));
+      mTabs.setElements(elements);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Remove Tab")) {
+      auto elements = mTabs.getElements();
+      elements.pop_back();
+      mTabs.setElements(elements);
+    }
+    // Draw tab bar
+    int currentTab = drawTabBar(mTabs);
+    // Draw tab contents according to currently selected tab
+    switch (currentTab) {
       case 0:
         ImGui::Text("First tab");
         break;
@@ -58,6 +78,9 @@ struct MyApp : public DistributedApp {
         ImGui::Text("Third tab");
         break;
       default:
+        ImGui::Text(
+            "%s",
+            std::string("Dynamic Tab: " + std::to_string(mTabs.get())).c_str());
         break;
     }
     ImGui::End();
