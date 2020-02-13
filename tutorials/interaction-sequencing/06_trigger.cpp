@@ -48,7 +48,7 @@ class MyVoice : public SynthVoice {
     }
   }
 
-  virtual void onProcess(Graphics &g) {
+  void onProcess(Graphics &g) override {
     g.pushMatrix();
     // You can get a parameter's value using the get() member function
     g.translate(mX, mY, 0);
