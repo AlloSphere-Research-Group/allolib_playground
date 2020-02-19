@@ -50,7 +50,7 @@ class MyApp : public DistributedAppWithState<SharedState> {
     font.alignCenter();
   }
 
-  void onAnimate(double dt) override {
+  void onAnimate(double /*dt*/) override {
     if (isPrimary()) {
       state().frameCount++;
       navControl().active(!isImguiUsingInput());
@@ -80,6 +80,18 @@ class MyApp : public DistributedAppWithState<SharedState> {
     if (isPrimary()) {
       gui.draw(g);
     }
+  }
+
+  bool onKeyDown(Keyboard const &k) override {
+    if (k.key() == ' ') {
+      // The space bar will turn off omni rendering
+      if (omniRendering) {
+        omniRendering->drawOmni = !omniRendering->drawOmni;
+      } else {
+        std::cout << "Not doing omni rendering" << std::endl;
+      }
+    }
+    return true;
   }
 
  private:
