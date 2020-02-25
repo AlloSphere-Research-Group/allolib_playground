@@ -5,6 +5,8 @@ This repo provides a quick and simple way to build allolib applications. It also
 
 ## Setup
 
+Get all dependencies and tools required by allolib. See the [readme file for allolib](https://github.com/AlloSphere-Research-Group/allolib/blob/master/readme.md).
+
 Run the init.sh script to get the allolib and al_ext libraries or execute in
 a bash shell:
 
