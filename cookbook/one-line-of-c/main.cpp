@@ -1,5 +1,5 @@
-#include "al/core.hpp"
-#include "al/util/imgui/al_Imgui.hpp"
+#include "al/app/al_App.hpp"
+#include "al/io/al_Imgui.hpp"
 using namespace al;
 
 using std::cout;
@@ -12,7 +12,7 @@ inline float dbtoa(float db) { return 1.0f * powf(10.0f, db / 20.0f); }
 
 const char* starterCode = R"(
 char foo(int t) {
-  return t; // sawtooth wav
+  return t; // sawtooth
 
   // static int v = 0;
   // return (v=(v>>1)+(v>>4)+t*(((t>>16)|(t>>6))&(69&(t>>9))));
@@ -111,23 +111,14 @@ struct Appp : App {
     strcpy(buffer, starterCode);
   }
 
-  void onExit() override { shutdownIMGUI(); }
+  void onExit() override { imguiShutdown(); }
   void onCreate() override {
-    initIMGUI();
+    imguiInit();
     tcc[active].compile(buffer);
   }
 
   void onAnimate(double dt) override {
-    beginIMGUI();
-    auto& io = ImGui::GetIO();
-    bool using_gui =
-        io.WantCaptureMouse | io.WantCaptureKeyboard | io.WantTextInput;
-
-    navControl().active(false);
-  }
-
-  void onDraw(Graphics& g) override {
-    g.clear(0.1);
+    imguiBeginFrame();
 
     static float db = -20;
     ImGui::SliderFloat(" ", &db, -60.0f, 0.0f);
@@ -151,13 +142,15 @@ struct Appp : App {
     ImGui::Separator();
 
     ImGui::Text(tcc[1 - active].error.c_str());
+    imguiEndFrame();
+  }
 
-    endIMGUI();
-    //
+  void onDraw(Graphics& g) override {
+    g.clear(0.1);
+    imguiDraw();
   }
 
   void onSound(AudioIOData& io) override {
-    //
     while (io()) {
       float s = 0;
 
@@ -177,6 +170,6 @@ struct Appp : App {
 int main() {
   Appp a;
   a.dimensions(1200, 800);
-  a.initAudio();
+  a.audioDomain()->configure(44100, 1024, 2, 0);
   a.start();
 }
