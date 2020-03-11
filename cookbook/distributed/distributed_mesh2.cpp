@@ -9,12 +9,12 @@
 // DynamicScene
 using namespace al;
 
-const size_t maxMeshDataSize = 64;
+const size_t maxMeshDataSize = 256;
 const size_t maxVoices = 3;
 
 struct SerializedMesh {
   uint16_t id = 0;
-  float meshData[maxMeshDataSize];
+  char meshData[maxMeshDataSize];
   size_t meshVertices = 0;
   size_t meshIndeces = 0;
   size_t meshColors = 0;
@@ -23,54 +23,6 @@ struct SerializedMesh {
 struct SharedState {
   SerializedMesh meshes[maxVoices];
 };
-
-void meshSerialize(Mesh &mesh, float *meshData, size_t &numVertices,
-                   size_t &numIndices, size_t &numColors) {
-  if (mesh.vertices().size() * 3 + mesh.indices().size() +
-          mesh.colors().size() * 4 >
-      maxMeshDataSize) {
-    numVertices = numIndices = numColors = 0;
-    return;
-  }
-  numVertices = mesh.vertices().size();
-  for (auto vertex : mesh.vertices()) {
-    *meshData++ = vertex.x;
-    *meshData++ = vertex.y;
-    *meshData++ = vertex.z;
-  }
-  numIndices = mesh.indices().size();
-  for (auto index : mesh.indices()) {
-    *meshData++ = index;
-  }
-  numColors = mesh.colors().size();
-  for (auto color : mesh.colors()) {
-    *meshData++ = color.r;
-    *meshData++ = color.g;
-    *meshData++ = color.b;
-    *meshData++ = color.a;
-  }
-}
-
-void meshDeserialize(Mesh &mesh, float *meshData, size_t numVertices,
-                     size_t numIndices, size_t numColors) {
-  mesh.vertices().resize(numVertices); // Allocate upfront if needed
-  for (auto &vertex : mesh.vertices()) {
-    vertex.x = *meshData++;
-    vertex.y = *meshData++;
-    vertex.z = *meshData++;
-  }
-  mesh.indices().resize(numIndices); // Allocate upfront if needed
-  for (auto &index : mesh.indices()) {
-    index = *meshData++;
-  }
-  mesh.colors().resize(numColors); // Allocate upfront if needed
-  for (auto &color : mesh.colors()) {
-    color.r = *meshData++;
-    color.g = *meshData++;
-    color.b = *meshData++;
-    color.a = *meshData++;
-  }
-}
 
 struct MeshVoice : public PositionedVoice {
 
@@ -98,7 +50,7 @@ struct MeshVoice : public PositionedVoice {
 
 class MyApp : public DistributedAppWithState<SharedState> {
 public:
-  DistributedScene scene{TimeMasterMode::TIME_MASTER_CPU};
+  DistributedScene scene{TimeMasterMode::TIME_MASTER_FREE};
 
   void onCreate() override {
     // Set the camera to view the scene
@@ -119,11 +71,11 @@ public:
       auto *voice = scene.getActiveVoices();
       size_t counter = 0;
       while (voice && counter < maxVoices) {
-        meshSerialize(((MeshVoice *)voice)->mesh,
-                      state().meshes[counter].meshData,
-                      state().meshes[counter].meshVertices,
-                      state().meshes[counter].meshIndeces,
-                      state().meshes[counter].meshColors);
+        Mesh::serialize(((MeshVoice *)voice)->mesh,
+                        state().meshes[counter].meshData,
+                        state().meshes[counter].meshVertices,
+                        state().meshes[counter].meshIndeces,
+                        state().meshes[counter].meshColors, maxMeshDataSize);
         state().meshes[counter].id = voice->id();
         voice = voice->next;
         counter++;
@@ -141,8 +93,8 @@ public:
           }
         }
         if (m) {
-          meshDeserialize(((MeshVoice *)voice)->mesh, m->meshData,
-                          m->meshVertices, m->meshIndeces, m->meshColors);
+          Mesh::deserialize(((MeshVoice *)voice)->mesh, m->meshData,
+                            m->meshVertices, m->meshIndeces, m->meshColors);
 
         } else {
           std::cerr << "ERROR: unexpeceted voice id" << std::endl;
@@ -155,6 +107,10 @@ public:
   void onDraw(Graphics &g) override {
     g.clear(0);
     scene.render(g);
+    scene.processVoices();
+    // Turn off voices
+    scene.processVoiceTurnOff();
+    scene.processVoiceTurnOff();
   }
 
   bool onKeyDown(Keyboard const &k) override {
