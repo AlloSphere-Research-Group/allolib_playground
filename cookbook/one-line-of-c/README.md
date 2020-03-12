@@ -2,8 +2,7 @@
 
 Karl Yerkes / 2019-05-21
 
-This uses the Tiny C Compiler (TCC) library (libtcc). On macOS, install with
-`brew install libtcc`. On Windows, try `choco install tinycc`.
+This uses the Tiny C Compiler (TCC) library (libtcc). On macOS, install with `brew install libtcc`. On Windows, try `choco install tinycc`. Linux can `sudo apt install libtcc-dev`.
 
 We use programs that we did not write. See:
 
@@ -30,6 +29,5 @@ This example still needs some work.
   + Rastrogram
   + Spectrogram
 - Volume level control
-- Time pointer (`t`) control
+- Time pointer (`t`) jumps
 - Sample rate control
-- 
