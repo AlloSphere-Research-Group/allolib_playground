@@ -29,38 +29,25 @@ double function(double x) {
 }
 )";
 
-// Fabrice Bellard's Tiny C Compiler can compile simple C programs quickly and
-// "in memory". Given a string, we create a callable function that generates a
-// sequence of audio samples.
 void tcc_error_handler(void* tcc, const char* msg);
+
 struct TCC {
   using FunctionPointer = double (*)(double);
   FunctionPointer function = nullptr;
   TCCState* instance = nullptr;
   std::string error;
 
-  void destroy() {
-    if (instance) {
-      tcc_delete(instance);
-    }
-  }
-
   bool compile(std::string source) {
-    destroy();
+    if (instance) tcc_delete(instance);
     instance = tcc_new();
     assert(instance != nullptr);
 
-    // set up the compiler
     tcc_set_options(instance, "-nostdinc -nostdlib -Wall -Werror");
-    // tcc_set_error_func(instance, this, tcc_error_handler);
+    tcc_set_error_func(instance, this, tcc_error_handler);
     tcc_set_output_type(instance, TCC_OUTPUT_MEMORY);
-    //
 
-    if (tcc_compile_string(instance, source.c_str()) == -1) {
-      //
-      // error string is set by the TCC handler
+    if (tcc_compile_string(instance, source.c_str()) == -1)  //
       return false;
-    }
 
     if (tcc_relocate(instance, TCC_RELOCATE_AUTO) < 0) {
       error = "failed to relocate code";
@@ -74,27 +61,21 @@ struct TCC {
       return false;
     }
 
-    // maybe we should go a step further and try a few calls to see if it
-    // crashes
-
     error = "";
     function = foo;
     return true;
   }
 
   double operator()(double x) {
-    if (function == nullptr) return 0.123;
+    if (function == nullptr) return 0;
     return function(x);
   }
 };
-void tcc_error_handler(void* tcc, const char* msg) {
-  ((TCC*)tcc)->error = msg;
-  // TODO:
-  // - remove file name prefix which is "<string>"
-  // - correct line number which is off by about 20
-}
+
+void tcc_error_handler(void* tcc, const char* msg) { ((TCC*)tcc)->error = msg; }
 
 const int N = 2000;
+
 struct Appp : App {
   TCC tcc;
   char buffer[10000];
@@ -102,11 +83,10 @@ struct Appp : App {
   Mesh mesh;
 
   Appp() { strcpy(buffer, starterCode); }
-
   void onExit() override { imguiShutdown(); }
-  void onCreate() override {
-    imguiInit();
+  void onInit() override { imguiInit(); }
 
+  void onCreate() override {
     mesh.primitive(Mesh::LINE_STRIP);
     for (int i = 0; i < N; i++) {
       float x = 2.0f * i / (N - 1) - 1;
@@ -124,10 +104,11 @@ struct Appp : App {
   void onAnimate(double dt) override {
     imguiBeginFrame();
 
+    ImGui::Text(tcc.error.c_str());
     ImGui::Separator();
 
     bool update =
-        ImGui::InputTextMultiline("", buffer, sizeof(buffer), ImVec2(640, 480));
+        ImGui::InputTextMultiline("", buffer, sizeof(buffer), ImVec2(420, 330));
 
     if (update) {
       if (tcc.compile(buffer)) {
@@ -137,9 +118,6 @@ struct Appp : App {
       }
     }
 
-    ImGui::Separator();
-
-    ImGui::Text(tcc.error.c_str());
     imguiEndFrame();
   }
 
