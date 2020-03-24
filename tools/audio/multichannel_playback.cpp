@@ -1,79 +1,193 @@
 #include "al/app/al_App.hpp"
 #include "al/io/al_File.hpp"
+#include "al/io/al_Imgui.hpp"
+#include "al/io/al_Toml.hpp"
+#include "al/sound/al_SpeakerAdjustment.hpp"
+#include "al/sphere/al_AlloSphereSpeakerLayout.hpp"
+#include "al/sphere/al_SphereUtils.hpp"
+#include "al/ui/al_FileSelector.hpp"
+#include "al/ui/al_ParameterGUI.hpp"
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
 
 using namespace al;
 
+struct MappedAudioFile {
+  std::unique_ptr<SoundFileBuffered> soundfile;
+  std::vector<size_t> outChannelMap;
+  std::string fileInfoText;
+  std::string fileName;
+  float gain;
+  bool mute{false};
+};
+
 class AudioPlayerApp : public App {
  public:
-  std::string
-      rootDir;  // Set this variable to set root directory before loading files
+  std::string rootDir{""};
 
-  std::map<size_t, std::vector<size_t>> channelOutMap;
+  ParameterBool play{"play", "", 0.0};
+  Trigger rewind{"rewind"};
 
-  bool loadFiles(std::vector<std::string> files) {
-    for (auto file : files) {
-      soundfiles.push_back(std::make_unique<SoundFileBuffered>(
-          File::conformPathToOS(rootDir) + file));
-      if (!soundfiles.back()->opened()) {
-        std::cerr << "ERROR: opening " << File::conformPathToOS(rootDir) + file
-                  << std::endl;
-        return false;
-      }
+  bool loadFile(std::string fileName, std::vector<size_t> channelMap,
+                float gain, bool loop) {
+    soundfiles.push_back(MappedAudioFile());
+    soundfiles.back().soundfile = std::make_unique<SoundFileBuffered>(
+        File::conformPathToOS(rootDir) + fileName);
+    soundfiles.back().soundfile->loop(loop);
+    if (!soundfiles.back().soundfile->opened()) {
+      std::cerr << "ERROR: opening "
+                << File::conformPathToOS(rootDir) + fileName << std::endl;
+      return false;
     }
+    if (soundfiles.back().soundfile->channels() != channelMap.size()) {
+      std::cerr << "Channel mismatch for file " << fileName << ". File has "
+                << soundfiles.back().soundfile->channels() << " but "
+                << channelMap.size() << " provided. Aborting." << std::endl;
+    }
+    soundfiles.back().outChannelMap = channelMap;
+    soundfiles.back().gain = gain;
+    soundfiles.back().fileName = fileName;
+    soundfiles.back().fileInfoText +=
+        " channels: " +
+        std::to_string(soundfiles.back().soundfile->channels()) +
+        " sr: " + std::to_string(soundfiles.back().soundfile->frameRate()) +
+        "\n";
+    soundfiles.back().fileInfoText +=
+        " length: " + std::to_string(soundfiles.back().soundfile->frames()) +
+        "\n";
+    soundfiles.back().fileInfoText +=
+        " gain: " + std::to_string(soundfiles.back().gain) + "\n";
     return true;
   }
 
+  // App callbacks
+
+  void onInit() override {
+    rewind.registerChangeCallback([&](float /*value*/) {
+      play = 0.0;
+      for (auto &sf : soundfiles) {
+        sf.soundfile->seek(0);
+      }
+      play = 1.0;
+    });
+
+    AudioDevice dev = AudioDevice::defaultOutput();
+    if (sphere::isSphereMachine()) {
+      dev = AudioDevice("ECHO X5");
+      gainAdjustment.configure(AlloSphereSpeakerLayout(), 1.82);
+    }
+    configureAudio(dev, soundfiles.back().soundfile->frameRate(), 1024,
+                   dev.channelsOutMax(), 0);
+
+    audioIO().append(gainAdjustment);
+  }
+
+  void onCreate() override { imguiInit(); }
+  void onDraw(Graphics &g) override {
+    imguiBeginFrame();
+
+    ImGui::Begin("Multichannel Player");
+    ParameterGUI::draw(&play);
+    ParameterGUI::draw(&rewind);
+    ParameterGUI::drawParameterMeta(audioDomain()->parameters(),
+                                    " (Global)##AudioIO");
+    ParameterGUI::drawAudioIO(audioIO());
+    ImGui::Separator();
+    for (auto &sf : soundfiles) {
+      ImGui::Text("*** %s", sf.fileName.c_str());
+      ImGui::SameLine(0, 20);
+      ImGui::PushID(sf.soundfile.get());
+      ImGui::Checkbox("Mute", &sf.mute);
+      ImGui::Text("%s", sf.fileInfoText.c_str());
+      ImGui::PopID();
+    }
+
+    ImGui::End();
+    imguiEndFrame();
+    g.clear(0, 0, 0);
+    imguiDraw();
+  }
+
   void onSound(AudioIOData &io) override {
-    float buffer[512 * 60];
-    for (auto outMap : channelOutMap) {
-      int numChannels = soundfiles[outMap.first]->channels();
-      int framesRead =
-          soundfiles[outMap.first]->read(buffer, io.framesPerBuffer());
-      for (size_t i = 0; i < outMap.second.size(); i++) {
-        size_t outIndex = outMap.second[i];
-        for (uint64_t sample = 0; sample < framesRead; sample++) {
-          io.outBuffer(outIndex)[sample] += buffer[sample * numChannels + i];
+    float buffer[2048 * 60];
+    if (play.get() == 1.0f) {
+      for (auto &sf : soundfiles) {
+        int numChannels = sf.soundfile->channels();
+        int framesRead = sf.soundfile->read(buffer, io.framesPerBuffer());
+        for (size_t i = 0; i < sf.outChannelMap.size(); i++) {
+          size_t outIndex = sf.outChannelMap[i];
+          if (!sf.mute) {
+            for (uint64_t sample = 0; sample < framesRead; sample++) {
+              io.outBuffer(outIndex)[sample] +=
+                  sf.gain * buffer[sample * numChannels + i];
+            }
+          }
         }
       }
     }
   }
 
-  void onExit() {
+  void onExit() override {
     for (auto &sf : soundfiles) {
-      sf->close();
+      sf.soundfile->close();
     }
+    imguiShutdown();
   }
 
  private:
-  std::vector<std::unique_ptr<SoundFileBuffered>> soundfiles;
+  std::vector<MappedAudioFile> soundfiles;
+  SpeakerDistanceGainAdjustmentProcessor gainAdjustment;
 };
 
 int main() {
   AudioPlayerApp app;
-  app.rootDir = "";
-  if (!app.loadFiles({"Allosphere_upper_test.wav"})) {
-    return -1;
-  }
 
-  AudioDevice dev = AudioDevice::defaultOutput();
-  if (dev.channelsOutMax() == 60) {
-    app.channelOutMap = {
-        {0, {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
-             15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-             30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
-             45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59}}};
-  } else {
-    std::cout << "Downmixing to two channels" << std::endl;
-    std::vector<size_t> channelMap;
-    for (int i = 0; i < 30; i++) {
-      channelMap.push_back(0);
-      channelMap.push_back(1);
+  /* Load configuration from text file. Config file should look like:
+
+rootDir = "files/"
+[[file]]
+name = "test.wav"
+outChannels = [0, 1]
+gain = 0.9
+[[file]]
+name = "test_mono.wav"
+outChannels = [1]
+gain = 1.2
+    */
+
+  TomlLoader appConfig("multichannel_playback.toml");
+  //  appConfig.writeFile();
+
+  if (appConfig.hasKey<std::string>("rootDir")) {
+    app.rootDir = appConfig.gets("rootDir");
+  }
+  if (appConfig.hasKey<double>("globalGain")) {
+    assert(app.audioDomain()->parameters()[0]->getName() == "gain");
+    app.audioDomain()->parameters()[0]->fromFloat(appConfig.getd("globalGain"));
+  }
+  auto nodesTable = appConfig.root->get_table_array("file");
+  std::vector<std::string> filesToLoad;
+  if (nodesTable) {
+    for (const auto &table : *nodesTable) {
+      std::string name = *table->get_as<std::string>("name");
+      auto outChannelsToml = *table->get_array_of<int64_t>("outChannels");
+      std::vector<size_t> outChannels;
+      float gain = 1.0f;
+      bool loop = false;
+      if (table->contains("gain")) {
+        gain = *table->get_as<double>("gain");
+      }
+      if (table->contains("loop")) {
+        loop = *table->get_as<bool>("loop");
+      }
+      for (auto channel : outChannelsToml) {
+        outChannels.push_back(channel);
+      }
+      // Load requested file into app. If any file fails, abort.
+      if (!app.loadFile(name, outChannels, gain, loop)) {
+        return -1;
+      }
     }
-    app.channelOutMap = {{0, channelMap}};
   }
-
-  app.configureAudio(dev, 48000, 256, 60);
 
   app.start();
   return 0;

@@ -23,6 +23,7 @@ Lance Putnam, Oct. 2014
 */
 
 #include <cmath>
+
 #include "al/app/al_App.hpp"
 #include "al/graphics/al_Shapes.hpp"
 #include "al/math/al_Functions.hpp"
@@ -34,10 +35,10 @@ using namespace al;
 class Boid {
  public:
   // Each boid has a position and velocity.
-  Vec2f pos, vel;
+  Vec2d pos, vel;
 
   // Update position based on velocity and delta time
-  void update(float dt) { pos += vel * dt; }
+  void update(double dt) { pos += vel * dt; }
 };
 
 struct MyApp : public App {
@@ -66,7 +67,7 @@ struct MyApp : public App {
   }
 
   void onAnimate(double dt_ms) {
-    float dt = dt_ms;
+    double dt = dt_ms;
 
     // Compute boid-boid interactions
     for (int i = 0; i < Nb - 1; ++i) {
@@ -77,19 +78,19 @@ struct MyApp : public App {
         auto dist = ds.mag();
 
         // Collision avoidance
-        float pushRadius = 0.05;
-        float pushStrength = 1;
-        float push = exp(-al::pow2(dist / pushRadius)) * pushStrength;
+        double pushRadius = 0.05;
+        double pushStrength = 1;
+        double push = exp(-al::pow2(dist / pushRadius)) * pushStrength;
 
         auto pushVector = ds.normalized() * push;
         boids[i].pos += pushVector;
         boids[j].pos -= pushVector;
 
         // Velocity matching
-        float matchRadius = 0.125;
-        float nearness = exp(-al::pow2(dist / matchRadius));
-        Vec2f veli = boids[i].vel;
-        Vec2f velj = boids[j].vel;
+        double matchRadius = 0.125;
+        double nearness = exp(-al::pow2(dist / matchRadius));
+        Vec2d veli = boids[i].vel;
+        Vec2d velj = boids[j].vel;
 
         // Take a weighted average of velocities according to nearness
         boids[i].vel = veli * (1 - 0.5 * nearness) + velj * (0.5 * nearness);
@@ -102,7 +103,7 @@ struct MyApp : public App {
     // Update boid independent behaviors
     for (auto& b : boids) {
       // Random "hunting" motion
-      float huntUrge = 0.2;
+      float huntUrge = 0.2f;
       auto hunt = rnd::ball<Vec2f>();
       // Use cubed distribution to make small jumps more frequent
       hunt *= hunt.magSqr();
@@ -126,11 +127,11 @@ struct MyApp : public App {
     tails.reset();
     tails.primitive(Mesh::LINES);
 
-    for (int i = 0; i < Nb; ++i) {
+    for (size_t i = 0; i < Nb; ++i) {
       boids[i].update(dt);
 
       heads.vertex(boids[i].pos);
-      heads.color(HSV(float(i) / Nb * 0.3 + 0.3, 0.7));
+      heads.color(HSV(float(i) / Nb * 0.3f + 0.3f, 0.7f));
 
       tails.vertex(boids[i].pos);
       tails.vertex(boids[i].pos - boids[i].vel.normalized(0.07));
@@ -165,4 +166,7 @@ struct MyApp : public App {
   }
 };
 
-int main() { MyApp().start(); }
+int main() {
+  MyApp().start();
+  return 0;
+}

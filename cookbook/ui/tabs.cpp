@@ -24,12 +24,12 @@ struct MyApp : public DistributedApp {
 
   void onAnimate(double dt) override { prepareGui(); }
 
-  void onDraw(Graphics &g) {
+  void onDraw(Graphics &g) override {
     g.clear(0);
     imguiDraw();
   }
 
-  void onExit() { imguiShutdown(); }
+  void onExit() override { imguiShutdown(); }
 
   int drawTabBar(ParameterMenu &menu) {
     auto tabNames = menu.getElements();

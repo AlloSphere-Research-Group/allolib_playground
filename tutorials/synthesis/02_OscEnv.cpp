@@ -4,7 +4,6 @@
 #include "Gamma/Effects.h"
 #include "Gamma/Envelope.h"
 #include "Gamma/Oscillator.h"
-
 #include "al/app/al_App.hpp"
 #include "al/graphics/al_Shapes.hpp"
 #include "al/scene/al_PolySynth.hpp"
@@ -34,7 +33,7 @@ class OscEnv : public SynthVoice {
   Mesh mMesh;
 
   // Initialize voice. This function will nly be called once per voice
-  virtual void init() {
+  void init() override {
     // Intialize envelope
     mAmpEnv.curve(0);  // make segments lines
     mAmpEnv.levels(0, 0.3, 0.3,
@@ -72,7 +71,7 @@ class OscEnv : public SynthVoice {
     if (mAmpEnv.done() && (mEnvFollow.value() < 0.001f)) free();
   }
 
-  virtual void onProcess(Graphics& g) {
+  void onProcess(Graphics& g) override {
     float frequency = getInternalParameterValue("frequency");
     float amplitude = getInternalParameterValue("amplitude");
     g.pushMatrix();

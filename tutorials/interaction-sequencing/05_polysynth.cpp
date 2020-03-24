@@ -35,7 +35,7 @@ class MyVoice : public SynthVoice {
    * define onProcess(AudioIOData &io) to determine the audio behavior of the
    * voice.
    */
-  virtual void onProcess(AudioIOData &io) override {
+  void onProcess(AudioIOData &io) override {
     while (io()) {
       // Always remember to add to the audio output!!
       // Otherwise you will be overwriting everyone else!!
@@ -48,7 +48,7 @@ class MyVoice : public SynthVoice {
    * define onProcess(Graphics &g) to draw the object. Notice that the code
    * from the previous tutorial has been placed here.
    */
-  virtual void onProcess(Graphics &g) {
+  void onProcess(Graphics &g) override {
     g.pushMatrix();
     // You can get a parameter's value using the get() member function
     g.translate(mX, mY, 0);
@@ -152,7 +152,7 @@ class MyApp : public App {
   PolySynth mPolySynth;
 };
 
-int main(int argc, char *argv[]) {
+int main() {
   MyApp app;
   app.dimensions(800, 600);
   app.configureAudio(44100, 256, 2, 0);

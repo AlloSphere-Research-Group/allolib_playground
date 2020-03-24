@@ -7,7 +7,6 @@
 #include "Gamma/Gamma.h"
 #include "Gamma/Oscillator.h"
 #include "Gamma/Types.h"
-
 #include "al/app/al_App.hpp"
 #include "al/graphics/al_Shapes.hpp"
 #include "al/scene/al_PolySynth.hpp"
@@ -95,7 +94,7 @@ class FM : public SynthVoice {
     if (mAmpEnv.done() && (mEnvFollow.value() < 0.001)) free();
   }
 
-  void onProcess(Graphics& g) {
+  void onProcess(Graphics& g) override {
     g.pushMatrix();
     g.translate(getInternalParameterValue("freq") / 300 - 2,
                 (getInternalParameterValue("idx3") +
