@@ -42,7 +42,8 @@ struct MyApp: public App {
 int main()
 {
     MyApp app;
-    app.configureAudio(AudioDevice("devicename"), 44100, 256, 2, 2);
+    auto dev = AudioDevice("devicename");
+    app.configureAudio(dev, 44100, 256, 2, 2);
 
     app.start();
     return 0;
