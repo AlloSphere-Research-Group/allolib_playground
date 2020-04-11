@@ -12,20 +12,20 @@ Lance Putnam, Nov. 2015
 */
 
 #include "al/app/al_App.hpp"
-#include "al/types/al_Conversion.hpp"  // clone
+#include "al/types/al_Conversion.hpp" // clone
 
-#include <algorithm>  // max
-#include <cmath>
 #include "al/graphics/al_Shapes.hpp"
 #include "al/math/al_Random.hpp"
 #include "al/system/al_Time.hpp"
+#include <algorithm> // max
+#include <cmath>
 
 using namespace al;
 using namespace std;
 
 // A particle with acceleration
 class Particle {
- public:
+public:
   Vec3f pos;
   Vec3f vel;
   Vec3f acc;
@@ -38,7 +38,7 @@ class Particle {
 };
 
 class MyApp : public App {
- public:
+public:
   static const int M = 20;
   static const int N = M * M;
   Particle particles[N];
@@ -46,7 +46,7 @@ class MyApp : public App {
   Mesh body1, body2;
   Light light1, light2;
 
-  void onCreate() {
+  void onCreate() override {
     reset();
     addIcosahedron(body1, 0.03);
     body1.generateNormals();
@@ -59,69 +59,70 @@ class MyApp : public App {
 
   void reset(int preset = '1') {
     switch (preset) {
-      case '1':  // dust cloud
-        for (auto& p : particles) {
-          p.pos = rnd::ball<Vec3f>() * 0.2 + Vec3f(-0.7, 0, 0);
-          p.vel = Vec3f(0, -0.3, 0);
-        }
-        break;
-      case '2':  // hourglass
-        for (auto& p : particles) {
-          p.pos = rnd::ball<Vec3f>().mag(1);
-          p.vel = clone(p.pos).rotate(M_PI / 2) * Vec3f(1, 1, -1) * 0.2;
-        }
-        break;
-      case '3':  // line orbit 1
-        for (int i = 0; i < N; ++i) {
-          particles[i].pos = Vec3f(float(i) / N * 0.5 - 1, 0, 0);
-          particles[i].vel = Vec3f(0, -0.3, 0);
-        }
-        break;
-      case '4':  // line orbit 2
-        for (int i = 0; i < N; ++i) {
-          float frac = float(i) / N;
-          particles[i].pos = Vec3f(-0.8, frac, 0);
-          particles[i].vel = Vec3f(-0.1, -0.2, 0.2);
-        }
-        break;
-      case '5':  // grid formation (side)
-        for (int i = 0; i < N; ++i) {
-          particles[i].pos = Vec3f(-1, float(i % M) / (M - 1) * 2 - 1,
-                                   float(i / M) / (M - 1) * 2 - 1);
-          particles[i].vel = Vec3f(0, 0, 0);
-        }
-        break;
-      case '6':  // grid formation (front)
-        for (int i = 0; i < N; ++i) {
-          particles[i].pos = Vec3f(float(i % M) / (M - 1) - 0.5,
-                                   float(i / M) / (M - 1) - 0.5, 1);
-          particles[i].vel = Vec3f(0.1, 0, 0);
-        }
-        break;
+    case '1': // dust cloud
+      for (auto &p : particles) {
+        p.pos = rnd::ball<Vec3f>() * 0.2 + Vec3f(-0.7, 0, 0);
+        p.vel = Vec3f(0, -0.3, 0);
+      }
+      break;
+    case '2': // hourglass
+      for (auto &p : particles) {
+        p.pos = rnd::ball<Vec3f>().mag(1);
+        p.vel = clone(p.pos).rotate(M_PI / 2) * Vec3f(1, 1, -1) * 0.2;
+      }
+      break;
+    case '3': // line orbit 1
+      for (int i = 0; i < N; ++i) {
+        particles[i].pos = Vec3f(float(i) / N * 0.5 - 1, 0, 0);
+        particles[i].vel = Vec3f(0, -0.3, 0);
+      }
+      break;
+    case '4': // line orbit 2
+      for (int i = 0; i < N; ++i) {
+        float frac = float(i) / N;
+        particles[i].pos = Vec3f(-0.8, frac, 0);
+        particles[i].vel = Vec3f(-0.1, -0.2, 0.2);
+      }
+      break;
+    case '5': // grid formation (side)
+      for (int i = 0; i < N; ++i) {
+        particles[i].pos = Vec3f(-1, float(i % M) / (M - 1) * 2 - 1,
+                                 float(i / M) / (M - 1) * 2 - 1);
+        particles[i].vel = Vec3f(0, 0, 0);
+      }
+      break;
+    case '6': // grid formation (front)
+      for (int i = 0; i < N; ++i) {
+        particles[i].pos = Vec3f(float(i % M) / (M - 1) - 0.5,
+                                 float(i / M) / (M - 1) - 0.5, 1);
+        particles[i].vel = Vec3f(0.1, 0, 0);
+      }
+      break;
     }
   }
 
-  void onAnimate(double dt_ms) {
+  void onAnimate(double dt_ms) override {
     // convert millisecond to second
     float dt = dt_ms;
 
     // Compute forces
-    for (auto& p : particles) {
+    for (auto &p : particles) {
       // Newton's law of gravity
-      auto r21 = well.pos - p.pos;  // distance vector between well and particle
-      auto dist = r21.mag();        // distance between well and particle
-      dist = std::max(dist, 0.1f);  // prevent high velocities
-      auto F = r21 / (dist * dist * dist);  // force vector acting on particle
+      auto r21 = well.pos - p.pos; // distance vector between well and particle
+      auto dist = r21.mag();       // distance between well and particle
+      dist = std::max(dist, 0.1f); // prevent high velocities
+      auto F = r21 / (dist * dist * dist); // force vector acting on particle
 
       // Newton's second law of motion, F = ma -> a = F/m
-      p.acc = F * (1. / 10);  // mass of particle is 10
+      p.acc = F * (1. / 10); // mass of particle is 10
     }
 
     // Update particles
-    for (auto& p : particles) p.update(dt);
+    for (auto &p : particles)
+      p.update(dt);
   }
 
-  void onDraw(Graphics& g) {
+  void onDraw(Graphics &g) override {
     g.clear(0.1);
 
     gl::faceCulling(true);
@@ -148,7 +149,7 @@ class MyApp : public App {
 
     // Draw the particles
     g.color(HSV(0.67, 0.2, 0.5));
-    for (auto& p : particles) {
+    for (auto &p : particles) {
       g.pushMatrix();
       g.translate(p.pos);
       g.draw(body1);
@@ -159,7 +160,7 @@ class MyApp : public App {
     //		cout << "\rfps: " << fps() << "   " << rnd::uniform() << flush;
   }
 
-  bool onKeyDown(const Keyboard& k) override {
+  bool onKeyDown(const Keyboard &k) override {
     reset(k.key());
 
     if (k.key() == ' ') {
@@ -169,4 +170,7 @@ class MyApp : public App {
   }
 };
 
-int main() { MyApp().start(); }
+int main() {
+  MyApp().start();
+  return 0;
+}
