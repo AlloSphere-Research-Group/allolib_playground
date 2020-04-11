@@ -50,9 +50,9 @@ using namespace al;
  */
 
 class MyVoice : public SynthVoice {
- public:
+public:
   MyVoice() {
-    addCone(mesh);  // Prepare mesh to draw a cone
+    addCone(mesh); // Prepare mesh to draw a cone
     mesh.primitive(Mesh::LINES);
 
     mEnvelope.lengths(0.1f, 0.5f);
@@ -81,23 +81,23 @@ class MyVoice : public SynthVoice {
     *this << mX << mY << mSize << mFrequency << mAttack << mRelease;
   }
 
-  virtual void onProcess(AudioIOData &io) override {
+  void onProcess(AudioIOData &io) override {
     while (io()) {
       io.out(0) += mEnvelope() * mSource() *
-                   0.05;  // Output on the first channel scaled by 0.05;
+                   0.05; // Output on the first channel scaled by 0.05;
     }
     if (mEnvelope.done()) {
       free();
     }
   }
 
-  virtual void onProcess(Graphics &g) {
+  void onProcess(Graphics &g) override {
     g.pushMatrix();
     // You can get a parameter's value using the get() member function
     g.translate(mX, mY, 0);
     g.color(1 - (mFrequency / 1000.0f), (mFrequency / 1000.0f), 0.0);
     g.scale(mSize * mEnvelope.value());
-    g.draw(mesh);  // Draw the mesh
+    g.draw(mesh); // Draw the mesh
     g.popMatrix();
   }
 
@@ -111,21 +111,21 @@ class MyVoice : public SynthVoice {
     mRelease = releaseTime;
   }
 
-  virtual void onTriggerOn() override {
+  void onTriggerOn() override {
     // We want to reset the envelope:
     mEnvelope.reset();
   }
 
-  virtual void onTriggerOff() override {
+  void onTriggerOff() override {
     // We want to force the envelope to release:
     mEnvelope.release();
   }
 
- private:
-  gam::Sine<> mSource;  // Sine wave oscillator source
+private:
+  gam::Sine<> mSource; // Sine wave oscillator source
   gam::AD<> mEnvelope;
 
-  Mesh mesh;  // The mesh now belongs to the voice
+  Mesh mesh; // The mesh now belongs to the voice
 
   // These are the internal parameters. They "freeze" or copy the external
   // parameters. You can this way separate "per instance" parameters
@@ -139,14 +139,14 @@ class MyVoice : public SynthVoice {
 };
 
 class MyApp : public App {
- public:
+public:
   void onInit() override { gam::sampleRate(audioIO().framesPerSecond()); }
 
   void onCreate() override {
-    nav().pos(Vec3d(0, 0, 8));  // Set the camera to view the scene
+    nav().pos(Vec3d(0, 0, 8)); // Set the camera to view the scene
 
     gui << X << Y << Size << AttackTime
-        << ReleaseTime;  // Register the parameters with the GUI
+        << ReleaseTime; // Register the parameters with the GUI
 
     /*
      * The SynthRecorder object can be passed to a ControlGUI object to
@@ -156,10 +156,10 @@ class MyApp : public App {
     gui << mRecorder;
     gui << mSequencer;
 
-    gui.init();  // Initialize GUI. Don't forget this!
+    gui.init(); // Initialize GUI. Don't forget this!
 
-    navControl().active(false);  // Disable nav control (because we are using
-                                 // the control to drive the synth
+    navControl().active(false); // Disable nav control (because we are using
+                                // the control to drive the synth
 
     // We need to register a PolySynth with the recorder
     // We could use PolySynth directly and we can also use the PolySynth
@@ -209,7 +209,7 @@ class MyApp : public App {
 
   SynthRecorder &recorder() { return mRecorder; }
 
- private:
+private:
   Light light;
 
   Parameter X{"X", "Position", 0.0, "", -1.0f, 1.0f};
