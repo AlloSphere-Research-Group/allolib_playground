@@ -75,9 +75,9 @@ class OscEnv : public SynthVoice {
     float frequency = getInternalParameterValue("frequency");
     float amplitude = getInternalParameterValue("amplitude");
     g.pushMatrix();
-    g.translate(amplitude, amplitude, -4);
-    g.scale(frequency / 200, frequency / 400, 1);
-    g.color(mEnvFollow.value(), frequency / 1000, mEnvFollow.value() * 10, 0.4);
+    g.translate(amplitude+frequency/2000, amplitude/2+frequency/2000, -4);
+    g.scale(0.1, 0.1, 0.1);
+    g.color(mEnvFollow.value(), frequency / 2000, mEnvFollow.value() * 10, 0.6);
     g.draw(mMesh);
     g.popMatrix();
   }
