@@ -17,4 +17,5 @@
 @ 32 10 OscEnv 0.1 265 0.15 0.3 0.5 0 0.7 8
 #   OscEnv amplitude frequency attackTime sustain releaseTime curve pan table
 # amplitude frequency attackTime sustain releaseTime curve pan table   
-
+# Table 
+# / 0.tbSaw / 1.tbSqr / 2.tbImp / 3.tbSin / 4.tbPls / 5-8. tb__1-4 /
