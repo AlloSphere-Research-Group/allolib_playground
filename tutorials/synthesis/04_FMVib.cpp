@@ -156,7 +156,7 @@ class FM : public SynthVoice {
 
 class MyApp : public App {
  public:
-  SynthGUIManager<FM> synthManager{"synth4"};
+  SynthGUIManager<FM> synthManager{"synth4Vib"};
 
   //    ParameterMIDI parameterMIDI;
   int midiNote;
