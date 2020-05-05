@@ -48,7 +48,6 @@ class FM : public SynthVoice {
     // We have the mesh be a sphere
     addDisc(mMesh, 1.0, 30);
 
-    createInternalTriggerParameter("dur", 2, 0, 10);
     createInternalTriggerParameter("freq", 440, 10, 4000.0);
     createInternalTriggerParameter("amplitude", 0.5, 0.0, 1.0);
     createInternalTriggerParameter("attackTime", 0.1, 0.01, 3.0);
