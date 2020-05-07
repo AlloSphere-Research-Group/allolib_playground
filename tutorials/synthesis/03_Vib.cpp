@@ -196,7 +196,7 @@ class MyApp : public App {
                                  // will be using keyboard for note triggering
 
     // Play example sequence. Comment this line to start from scratch
-    synthManager.synthSequencer().playSequence("synth3.synthSequence");
+//    synthManager.synthSequencer().playSequence("synth3.synthSequence");
     synthManager.synthRecorder().verbose(true);
   }
 

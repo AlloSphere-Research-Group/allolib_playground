@@ -132,7 +132,7 @@ class MyApp : public App {
                                  // will be using keyboard for note triggering
 
     // Play example sequence. Comment this line to start from scratch
-    //    synthManager.synthSequencer().playSequence("synth2.synthSequence");
+    //    synthManager.synthSequencer().playSequence("synth4.synthSequence");
     synthManager.synthRecorder().verbose(true);
 
     parameterMIDI.open(0);
@@ -199,7 +199,7 @@ int main() {
   MyApp app;
 
   // Set up audio
-  app.configureAudio(44100., 256, 2, 0);
+  app.configureAudio(48000., 512, 2, 0);
 
   app.start();
 }

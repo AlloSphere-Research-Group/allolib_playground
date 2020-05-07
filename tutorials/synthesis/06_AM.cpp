@@ -221,7 +221,7 @@ int main() {
   MyApp app;
 
   // Set up audio
-  app.configureAudio(44100., 256, 2, 0);
+  app.configureAudio(48000., 512, 2, 0);
 
   app.start();
 }
