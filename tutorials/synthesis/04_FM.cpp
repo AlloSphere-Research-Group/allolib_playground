@@ -101,6 +101,7 @@ class FM : public SynthVoice {
 
     mAmpEnv.lengths()[2] = getInternalParameterValue("releaseTime");
     mModEnv.lengths()[2] = getInternalParameterValue("releaseTime");
+    mPan.pos(getInternalParameterValue("pan"));
 
     //        mModEnv.lengths()[1] = mAmpEnv.lengths()[1];
 
@@ -137,10 +138,7 @@ class MyApp : public App {
 
     parameterMIDI.open(0);
     parameterMIDI.connectControl(
-        synthManager.voice()->getInternalParameter("pan"), 10, 1);
-    //        parameterMIDI.connectNoteToValue(synthManager.voice()->getInternalParameter("carrierFrequency"),0,0,127,127);
-    //  void connectNoteToValue(Parameter &param, int channel, float min, int
-    //  low, float max = -1, int high = -1)
+        synthManager.voice()->getInternalParameter("carrierFrequency"), 10, 1);
   }
 
   void onSound(AudioIOData& io) override {

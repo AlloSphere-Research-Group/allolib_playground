@@ -150,6 +150,8 @@ class FM : public SynthVoice {
     mVibEnv.levels()[2] = getInternalParameterValue("vibRate2");
     mVibDepth = getInternalParameterValue("vibDepth");
     mVibRise = getInternalParameterValue("vibRise");
+    mPan.pos(getInternalParameterValue("pan"));
+
   }
 };
 
