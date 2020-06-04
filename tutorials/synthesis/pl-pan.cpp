@@ -37,8 +37,7 @@ public:
     virtual void init(){
         mAmp  = 1;
         mDur = 2;
-        mAmpEnv.curve(4); // make segments lines
-        mAmpEnv.levels(1,1,0);
+        mAmpEnv.levels(0, 1, 1, 0);
         mPanEnv.curve(4);
         env.decay(0.1);
         delay.maxDelay(1./27.5);
@@ -113,10 +112,10 @@ public:
         mPanRise = getInternalParameterValue("PanRise");
         delay.freq(getInternalParameterValue("frequency"));
         mAmp = getInternalParameterValue("amplitude");
-        mAmpEnv.attack(getInternalParameterValue("attackTime"));
-        mAmpEnv.sustain(getInternalParameterValue("sustain"));
-        mAmpEnv.release(getInternalParameterValue("releaseTime"));
-
+        mAmpEnv.levels()[1] = 1.0;
+        mAmpEnv.levels()[2] = getInternalParameterValue("sustain");
+        mAmpEnv.lengths()[0] = getInternalParameterValue("attackTime");
+        mAmpEnv.lengths()[3] = getInternalParameterValue("releaseTime");
 
         mPanEnv.lengths()[0] = mDur * (1-mPanRise);
         mPanEnv.lengths()[1] = mDur * mPanRise;
