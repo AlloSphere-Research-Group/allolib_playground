@@ -135,10 +135,6 @@ class MyApp : public App {
     // Play example sequence. Comment this line to start from scratch
     //    synthManager.synthSequencer().playSequence("synth4.synthSequence");
     synthManager.synthRecorder().verbose(true);
-
-    parameterMIDI.open(0);
-    parameterMIDI.connectControl(
-        synthManager.voice()->getInternalParameter("carrierFrequency"), 10, 1);
   }
 
   void onSound(AudioIOData& io) override {
