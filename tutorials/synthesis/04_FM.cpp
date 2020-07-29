@@ -101,6 +101,7 @@ class FM : public SynthVoice {
 
     mAmpEnv.lengths()[2] = getInternalParameterValue("releaseTime");
     mModEnv.lengths()[2] = getInternalParameterValue("releaseTime");
+    mPan.pos(getInternalParameterValue("pan"));
 
     //        mModEnv.lengths()[1] = mAmpEnv.lengths()[1];
 
@@ -132,15 +133,8 @@ class MyApp : public App {
                                  // will be using keyboard for note triggering
 
     // Play example sequence. Comment this line to start from scratch
-    //    synthManager.synthSequencer().playSequence("synth2.synthSequence");
+    //    synthManager.synthSequencer().playSequence("synth4.synthSequence");
     synthManager.synthRecorder().verbose(true);
-
-    parameterMIDI.open(0);
-    parameterMIDI.connectControl(
-        synthManager.voice()->getInternalParameter("pan"), 10, 1);
-    //        parameterMIDI.connectNoteToValue(synthManager.voice()->getInternalParameter("carrierFrequency"),0,0,127,127);
-    //  void connectNoteToValue(Parameter &param, int channel, float min, int
-    //  low, float max = -1, int high = -1)
   }
 
   void onSound(AudioIOData& io) override {
@@ -199,7 +193,7 @@ int main() {
   MyApp app;
 
   // Set up audio
-  app.configureAudio(44100., 256, 2, 0);
+  app.configureAudio(48000., 512, 2, 0);
 
   app.start();
 }
