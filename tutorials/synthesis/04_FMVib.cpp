@@ -48,7 +48,6 @@ class FM : public SynthVoice {
     // We have the mesh be a sphere
     addDisc(mMesh, 1.0, 30);
 
-    createInternalTriggerParameter("dur", 2, 0, 10);
     createInternalTriggerParameter("freq", 440, 10, 4000.0);
     createInternalTriggerParameter("amplitude", 0.5, 0.0, 1.0);
     createInternalTriggerParameter("attackTime", 0.1, 0.01, 3.0);
@@ -151,12 +150,14 @@ class FM : public SynthVoice {
     mVibEnv.levels()[2] = getInternalParameterValue("vibRate2");
     mVibDepth = getInternalParameterValue("vibDepth");
     mVibRise = getInternalParameterValue("vibRise");
+    mPan.pos(getInternalParameterValue("pan"));
+
   }
 };
 
 class MyApp : public App {
  public:
-  SynthGUIManager<FM> synthManager{"synth4"};
+  SynthGUIManager<FM> synthManager{"synth4Vib"};
 
   //    ParameterMIDI parameterMIDI;
   int midiNote;
@@ -229,7 +230,7 @@ int main() {
   MyApp app;
 
   // Set up audio
-  app.configureAudio(44100., 256, 2, 0);
+  app.configureAudio(48000., 512, 2, 0);
 
   app.start();
 }

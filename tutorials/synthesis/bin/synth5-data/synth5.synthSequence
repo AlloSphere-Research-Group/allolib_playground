@@ -1,0 +1,23 @@
+@ 0 10 OscTrm 0.5 262 0.1 2 0.8 1 0.8 3 4 8 0.5 0.4
+@ 11 10 OscTrm 0.5 262 0.1 2 0.8 1 0.8 1 4 8 0.5 0.4
+@ 20 10 OscTrm 0.5 120 0.1 2 0.8 1 0.8 0 4 8 0.5 0.4
+@ 30 20 OscTrm 0.5 262 0.1 2 0.8 1 0.8 3 4 80 0.2 0.4
+@ 50 10 OscTrm 0.5 262 0.1 2 0.8 1 0.8 3 4 8 0.5 0.8
+           
+#   OscTrm amplitude frequency attackTime releaseTime sustain curve pan table trm1 trm2 trmRise trmDepth
+#   0:tbSaw   1:tbSqr	2:tbImp	3:tbSin	4:tbPls	5:tb__1	6:tb__2	7:tb__3	8:tb__4
+
+# The '>' command adds an offset to all events following
+> 50 
+@  0  4 OscTrm 0.31   220  0.1   2.075  0.7  4   0.2   0 4 8 0.5 0.4 
+@  5  4 OscTrm 0.31    220  0.1   0.075  0.7  4   0.2   1 4 80 0.2 0.4
+@  10  4 OscTrm 0.31  220  2.0   0.3   0.7   0  -0.2   2 4 8 0.5 0.8
+@  15  4 OscTrm 0.31  220  0.1   0.075  1.7  4   0.0   3 8 4 0.3 0.005 
+@ 20  4 OscTrm 0.31   220  3.0   0.3   0.9   0   0.0   4 4 8 0.5 0.05
+@ 25  4 OscTrm 0.31   220  0.1   2      0.7  4  -0.6   5  4 80 0.2 0.4
+@ 30  4 OscTrm 0.31   220  0.15  0.3   0.5   0   0.0   6  4 8 0.5 0.05
+@ 35  4 OscTrm 0.31   220  0.075 0.7   0.4   1   0.5   7  4 8 0.5 0.35
+@ 40  4 OscTrm 0.31   220  0.15  0.3   0.5   0   0.0   2 4 8 0.5 0.05
+@ 45  4 OscTrm 0.31   220  0.15  0.3   0.5   0   0.0   8 4 8 0.5 0.35
+
+# OscTrm amplitude frequency attackTime releaseTime sustain curve pan table trm1 trm2 trmRise trmDepth

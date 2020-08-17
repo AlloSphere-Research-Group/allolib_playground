@@ -1,0 +1,15 @@
+#brass
+@ 0 5 FM 262 0.5 0.1 0.1 0.75  0.01 7  5  1 1.0007  1
+@ 5 5 FM 220 0.5 0.1 0.1 0.75 0.01 7 5 1 1.0007 0
+# clarinet
+@ 10 5 FM 262 0.5 0.1 0.1 0.75 0.01 4 4 3 2.0007 -1
+#oboe
+@ 15 5 FM 262 0.5 0.2 0.1  0.75  2.00 2 2  3 1.0007  0
+#bassoon
+@ 20 5 FM 139  0.5 0.2 0.1  0.75  0.01 1.5 1.5  5 1.0007  0
+#gong
+@ 25 0.1 FM 100  0.5 0.001 9.90  0.8  7.0  7.0  7.0  1  1.4  0
+#drum
+@ 30 0.05 FM 100  0.5  0.001 0.25  0.8  5 5 5  1  1.48  0
+# FM freq amplitude attackTime releaseTime sustain idx1 idx2 idx3 carMul modMul pan 
+#  freq amplitude attackTime releaseTime sustain idx1 idx2 idx3 carMul modMul pan
