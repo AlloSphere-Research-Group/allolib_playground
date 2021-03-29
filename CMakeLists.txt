@@ -208,6 +208,7 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 else()
     # Build everything
+    list(APPEND paths "tutorials/primer/*.cpp")
     list(APPEND paths "tutorials/interaction-sequencing/*.cpp")
     list(APPEND paths "tutorials/gui/*.cpp")
     list(APPEND paths "tutorials/synthesis/*.cpp")
