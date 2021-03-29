@@ -27,9 +27,9 @@ using namespace al;
  * Start by defining the behavior of a voice.
  */
 class MyVoice : public SynthVoice {
- public:
+public:
   MyVoice() {
-    addCone(mesh);  // Prepare mesh to draw a cone
+    addCone(mesh); // Prepare mesh to draw a cone
     mesh.primitive(Mesh::LINE_STRIP);
 
     mEnvelope.lengths(0.1f, 0.5f);
@@ -41,7 +41,7 @@ class MyVoice : public SynthVoice {
     while (io()) {
       // We multiply the envelope by the generator
       io.out(0) += mEnvelope() * mSource() *
-                   0.05;  // Output on the first channel scaled by 0.05;
+                   0.05; // Output on the first channel scaled by 0.05;
     }
     // it's very important to mark a voice as done to allow the polysynth
     // to reuse it. If you don't do this, each new voice will allocate new
@@ -56,7 +56,7 @@ class MyVoice : public SynthVoice {
     // You can get a parameter's value using the get() member function
     g.translate(mX, mY, 0);
     g.scale(mSize * mEnvelope.value());
-    g.draw(mesh);  // Draw the mesh
+    g.draw(mesh); // Draw the mesh
     g.popMatrix();
   }
 
@@ -87,27 +87,27 @@ class MyVoice : public SynthVoice {
     mEnvelope.release();
   }
 
- private:
-  gam::Sine<> mSource;  // Sine wave oscillator source
+private:
+  gam::Sine<> mSource; // Sine wave oscillator source
   gam::AD<> mEnvelope;
 
-  Mesh mesh;  // The mesh now belongs to the voice
+  Mesh mesh; // The mesh now belongs to the voice
 
-  float mX{0}, mY{0}, mSize{1.0};  // This are the internal parameters
+  float mX{0}, mY{0}, mSize{1.0}; // This are the internal parameters
 };
 
 class MyApp : public App {
- public:
+public:
   void onInit() override { gam::sampleRate(audioIO().framesPerSecond()); }
 
   void onCreate() override {
-    nav().pos(Vec3d(0, 0, 8));  // Set the camera to view the scene
+    nav().pos(Vec3d(0, 0, 8)); // Set the camera to view the scene
 
     gui << X << Y << Size << AttackTime
-        << ReleaseTime;          // Register the parameters with the GUI
-    gui.init();                  // Initialize GUI. Don't forget this!
-    navControl().active(false);  // Disable nav control (because we are using
-                                 // the control to drive the synth
+        << ReleaseTime;         // Register the parameters with the GUI
+    gui.init();                 // Initialize GUI. Don't forget this!
+    navControl().active(false); // Disable nav control (because we are using
+                                // the control to drive the synth
     sequencer().playSequence();
   }
 
@@ -132,16 +132,16 @@ class MyApp : public App {
   // nicer than just using the internal variable.
   SynthSequencer &sequencer() { return mSequencer; }
 
- private:
+private:
   Light light;
 
-  Parameter X{"X", "Position", 0.0, "", -1.0f, 1.0f};
-  Parameter Y{"Y", "Position", 0.0, "", -1.0f, 1.0f};
-  Parameter Size{"Scale", "Size", 1.0, "", 0.1f, 3.0f};
-  Parameter AttackTime{"AttackTime", "Sound", 0.1, "", 0.001f, 2.0f};
-  Parameter ReleaseTime{"ReleaseTime", "Sound", 1.0, "", 0.001f, 5.0f};
+  Parameter X{"X", "Position", 0.0, -1.0f, 1.0f};
+  Parameter Y{"Y", "Position", 0.0, -1.0f, 1.0f};
+  Parameter Size{"Scale", "Size", 1.0, 0.1f, 3.0f};
+  Parameter AttackTime{"AttackTime", "Sound", 0.1, 0.001f, 2.0f};
+  Parameter ReleaseTime{"ReleaseTime", "Sound", 1.0, 0.001f, 5.0f};
 
-  rnd::Random<> randomGenerator;  // Random number generator
+  rnd::Random<> randomGenerator; // Random number generator
 
   ControlGUI gui;
 

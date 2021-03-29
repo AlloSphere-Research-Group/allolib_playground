@@ -212,11 +212,11 @@ public:
 private:
   Light light;
 
-  Parameter X{"X", "Position", 0.0, "", -1.0f, 1.0f};
-  Parameter Y{"Y", "Position", 0.0, "", -1.0f, 1.0f};
-  Parameter Size{"Scale", "Size", 1.0, "", 0.1f, 3.0f};
-  Parameter AttackTime{"AttackTime", "Sound", 0.1, "", 0.001f, 2.0f};
-  Parameter ReleaseTime{"ReleaseTime", "Sound", 1.0, "", 0.001f, 5.0f};
+  Parameter X{"X", "Position", 0.0, -1.0f, 1.0f};
+  Parameter Y{"Y", "Position", 0.0, -1.0f, 1.0f};
+  Parameter Size{"Scale", "Size", 1.0, 0.1f, 3.0f};
+  Parameter AttackTime{"AttackTime", "Sound", 0.1, 0.001f, 2.0f};
+  Parameter ReleaseTime{"ReleaseTime", "Sound", 1.0, 0.001f, 5.0f};
 
   ControlGUI gui;
 

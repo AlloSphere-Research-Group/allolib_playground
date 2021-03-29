@@ -26,9 +26,9 @@ using namespace al;
  * Start by defining the behavior of a voice
  */
 class MyVoice : public SynthVoice {
- public:
+public:
   MyVoice() {
-    addCone(mesh);  // Prepare mesh to draw a cone
+    addCone(mesh); // Prepare mesh to draw a cone
     mesh.primitive(Mesh::LINE_STRIP);
   }
   /*
@@ -40,7 +40,7 @@ class MyVoice : public SynthVoice {
       // Always remember to add to the audio output!!
       // Otherwise you will be overwriting everyone else!!
       io.out(0) +=
-          mSource() * 0.05;  // Output on the first channel scaled by 0.05;
+          mSource() * 0.05; // Output on the first channel scaled by 0.05;
     }
   }
 
@@ -53,11 +53,11 @@ class MyVoice : public SynthVoice {
     // You can get a parameter's value using the get() member function
     g.translate(mX, mY, 0);
     g.scale(mSize);
-    g.draw(mesh);  // Draw the mesh
+    g.draw(mesh); // Draw the mesh
     g.popMatrix();
     if (--mDurCounter < 0) {
-      free();  // if we have counted all the frames, we free this voice
-               // You must always mark the voice as free either in the audio
+      free(); // if we have counted all the frames, we free this voice
+              // You must always mark the voice as free either in the audio
       // or graphics onProcess function if you want it to become available
       // for reuse. If you don't do this, you will see unnecessarily high
       // memory and CPU use.
@@ -72,25 +72,25 @@ class MyVoice : public SynthVoice {
     mDurCounter = numFrames;
   }
 
- private:
-  gam::Sine<> mSource;  // Sine wave oscillator source
+private:
+  gam::Sine<> mSource; // Sine wave oscillator source
 
-  Mesh mesh;  // The mesh now belongs to the voice
+  Mesh mesh; // The mesh now belongs to the voice
 
-  float mX{0}, mY{0}, mSize{1.0};  // This are the internal parameters
+  float mX{0}, mY{0}, mSize{1.0}; // This are the internal parameters
 
-  int mDurCounter{0};  // The number of frames remaining for active
+  int mDurCounter{0}; // The number of frames remaining for active
 };
 
 class MyApp : public App {
- public:
+public:
   virtual void onCreate() override {
-    nav().pos(Vec3d(0, 0, 8));  // Set the camera to view the scene
+    nav().pos(Vec3d(0, 0, 8)); // Set the camera to view the scene
 
-    gui << X << Y << Size;       // Register the parameters with the GUI
-    gui.init();                  // Initialize GUI. Don't forget this!
-    navControl().active(false);  // Disable nav control (because we are using
-                                 // the control to drive the synth
+    gui << X << Y << Size;      // Register the parameters with the GUI
+    gui.init();                 // Initialize GUI. Don't forget this!
+    navControl().active(false); // Disable nav control (because we are using
+                                // the control to drive the synth
   }
   //    virtual void onAnimate(double dt) override {
   //        navControl().active(!gui.usingInput());
@@ -99,7 +99,7 @@ class MyApp : public App {
   virtual void onDraw(Graphics &g) override {
     g.clear();
 
-    mPolySynth.render(g);  // Call render for PolySynth to generate its output
+    mPolySynth.render(g); // Call render for PolySynth to generate its output
 
     // Draw th GUI
     gui.draw(g);
@@ -142,10 +142,10 @@ class MyApp : public App {
     return true;
   }
 
- private:
-  Parameter X{"X", "Position", 0.0, "", -1.0f, 1.0f};
-  Parameter Y{"Y", "Position", 0.0, "", -1.0f, 1.0f};
-  Parameter Size{"Scale", "Size", 1.0, "", 0.1f, 3.0f};
+private:
+  Parameter X{"X", "Position", 0.0, -1.0f, 1.0f};
+  Parameter Y{"Y", "Position", 0.0, -1.0f, 1.0f};
+  Parameter Size{"Scale", "Size", 1.0, 0.1f, 3.0f};
 
   ControlGUI gui;
 

@@ -11,7 +11,7 @@ using namespace al;
 // parameter in the App, together with a GUI to set up MIDI device
 
 struct MyApp : public App {
-  Parameter gain{"gain", "", 0.2f, "", 0.0, 1.0};
+  Parameter gain{"gain", "", 0.2f, 0.0, 1.0};
   ParameterMIDI parameterMIDI;
 
   rnd::Random<> random;

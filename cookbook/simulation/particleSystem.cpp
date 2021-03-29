@@ -25,21 +25,21 @@ struct Particle {
   }
 };
 
-template <int N>
-struct Emitter {
+template <int N> struct Emitter {
   Particle particles[N];
   int tap = 0;
 
   Emitter() {
-    for (auto& p : particles) p.age = N;
+    for (auto &p : particles)
+      p.age = N;
   }
 
-  template <int M>
-  void update() {
-    for (auto& p : particles) p.update(M);
+  template <int M> void update() {
+    for (auto &p : particles)
+      p.update(M);
 
     for (int i = 0; i < M; ++i) {
-      auto& p = particles[tap];
+      auto &p = particles[tap];
 
       // fountain
       if (rnd::prob(0.95)) {
@@ -57,7 +57,8 @@ struct Emitter {
 
       p.age = 0;
       ++tap;
-      if (tap >= N) tap = 0;
+      if (tap >= N)
+        tap = 0;
     }
   }
 
@@ -77,7 +78,7 @@ struct MyApp : public App {
     mesh.primitive(Mesh::POINTS);
 
     for (int i = 0; i < em1.size(); ++i) {
-      Particle& p = em1.particles[i];
+      Particle &p = em1.particles[i];
       float age = float(p.age) / em1.size();
 
       mesh.vertex(p.pos);
@@ -85,9 +86,9 @@ struct MyApp : public App {
     }
   }
 
-  void onDraw(Graphics& g) {
+  void onDraw(Graphics &g) {
     g.clear(0);
-    gl::blendAdd();
+    g.blendAdd();
     gl::pointSize(6);
     g.meshColor();
     g.draw(mesh);

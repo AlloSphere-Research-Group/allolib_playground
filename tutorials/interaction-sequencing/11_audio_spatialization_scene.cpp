@@ -36,7 +36,7 @@ using namespace al;
 
 //
 class MyAgent : public PositionedVoice {
- public:
+public:
   MyAgent() {
     mEnvelope.lengths(5.0f, 5.0f);
     mEnvelope.levels(0, 1, 0);
@@ -48,7 +48,7 @@ class MyAgent : public PositionedVoice {
     while (io()) {
       mModulatorValue = mModulator();
       io.out(0) +=
-          mEnvelope() * mSource() * mModulatorValue * 0.05;  // compute sample
+          mEnvelope() * mSource() * mModulatorValue * 0.05; // compute sample
     }
 
     if (mEnvelope.done()) {
@@ -60,14 +60,14 @@ class MyAgent : public PositionedVoice {
     // Get shared Mesh
     Mesh *sharedMesh = static_cast<Mesh *>(userData());
     mLifeSpan--;
-    if (mLifeSpan == 0) {  // If it's time to die, start die off
+    if (mLifeSpan == 0) { // If it's time to die, start die off
       mEnvelope.release();
     }
     g.pushMatrix();
-    gl::polygonLine();
+    gl::polygonMode(GL_LINE);
     g.color(0.1, 0.9, 0.3);
     g.scale(mSize * mEnvelope.value() + mModulatorValue * 0.1);
-    g.draw(*sharedMesh);  // Draw the mesh
+    g.draw(*sharedMesh); // Draw the mesh
     g.popMatrix();
   }
 
@@ -85,25 +85,25 @@ class MyAgent : public PositionedVoice {
   virtual void onTriggerOn() override {
     // We want to reset the envelope:
     mEnvelope.reset();
-    mModulator.phase(-0.1);  // reset the phase
+    mModulator.phase(-0.1); // reset the phase
   }
 
   // No need for onTriggerOff() function as duration of agent's life is fixed
 
   // Make everything public so we can query it
   // private:
-  gam::Sine<> mSource;    // Sine wave oscillator source
-  gam::Saw<> mModulator;  // Saw wave modulator
+  gam::Sine<> mSource;   // Sine wave oscillator source
+  gam::Saw<> mModulator; // Saw wave modulator
   gam::AD<> mEnvelope;
 
-  unsigned int mLifeSpan;  // life span counter
-  float mModulatorValue;   // To share modulator value from audio to graphics
+  unsigned int mLifeSpan; // life span counter
+  float mModulatorValue;  // To share modulator value from audio to graphics
 };
 
 struct MyApp : public App {
   Mesh mesh;
 
-  rnd::Random<> randomGenerator;  // Random number generator
+  rnd::Random<> randomGenerator; // Random number generator
 
   DynamicScene scene;
   virtual void onInit() override {
@@ -114,7 +114,7 @@ struct MyApp : public App {
     // You can set how distance attenuattion for audio is handled
     //    scene.distanceAttenuation().law(ATTEN_NONE);
 
-    addDodecahedron(mesh);  // Prepare mesh to draw a dodecahedron
+    addDodecahedron(mesh); // Prepare mesh to draw a dodecahedron
     // Set pointer to mesh as default user data for the scene.
     // This pointer will be passed to all voices allocated from now on.
     // Voices can access this data through their userData() function.
@@ -174,7 +174,7 @@ struct MyApp : public App {
 
   void onDraw(Graphics &g) override {
     g.clear();
-    scene.listenerPose(nav());  // Update listener pose to current nav
+    scene.listenerPose(nav()); // Update listener pose to current nav
     scene.render(g);
 
     imguiDraw();
@@ -196,7 +196,7 @@ struct MyApp : public App {
       float frequency = randomGenerator.uniform(440.0, 880.0);
       int lifespan =
           graphicsDomain()->fps() * randomGenerator.uniform(8.0, 20.0);
-      voice->set(position.x, position.y, position.z - 1,  // Place it in front
+      voice->set(position.x, position.y, position.z - 1, // Place it in front
                  size, frequency, lifespan);
       scene.triggerOn(voice);
     }
@@ -204,7 +204,7 @@ struct MyApp : public App {
   }
 };
 
-int main(int argc, char *argv[]) {
+int main() {
   MyApp app;
   app.dimensions(800, 600);
 

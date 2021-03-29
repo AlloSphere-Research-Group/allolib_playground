@@ -125,7 +125,7 @@ public:
   void onDraw(Graphics &g) override {
     g.clear(0.1);
 
-    gl::faceCulling(true);
+    gl::culling(true);
     gl::depthTesting(true);
     g.lighting(true);
     // g.polygonMode(Graphics::LINE);

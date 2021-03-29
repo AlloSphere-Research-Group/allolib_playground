@@ -11,7 +11,7 @@ using namespace al;
 
 struct MyApp : public DistributedApp {
   void onInit() override {
-    rank = 0;  // Force application to draw regular window
+    rank = 0; // Force application to draw regular window
     imguiInit();
 
     // Set the avaialable tab names
@@ -68,26 +68,26 @@ struct MyApp : public DistributedApp {
     int currentTab = drawTabBar(mTabs);
     // Draw tab contents according to currently selected tab
     switch (currentTab) {
-      case 0:
-        ImGui::Text("First tab");
-        break;
-      case 1:
-        ImGui::Text("Second tab");
-        break;
-      case 2:
-        ImGui::Text("Third tab");
-        break;
-      default:
-        ImGui::Text(
-            "%s",
-            std::string("Dynamic Tab: " + std::to_string(mTabs.get())).c_str());
-        break;
+    case 0:
+      ImGui::Text("First tab");
+      break;
+    case 1:
+      ImGui::Text("Second tab");
+      break;
+    case 2:
+      ImGui::Text("Third tab");
+      break;
+    default:
+      ImGui::Text(
+          "%s",
+          std::string("Dynamic Tab: " + std::to_string(mTabs.get())).c_str());
+      break;
     }
     ImGui::End();
     imguiEndFrame();
   }
 
-  ParameterMenu mTabs{"Tabs", "", 0, ""};
+  ParameterMenu mTabs{"Tabs", "", 0};
 };
 
 int main() {

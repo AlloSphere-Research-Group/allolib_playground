@@ -24,7 +24,7 @@ struct SharedState {
 // Inherit from DistributedApp and template it on the shared
 // state data struct
 class MyApp : public DistributedAppWithState<SharedState> {
- public:
+public:
   void onCreate() override {
     // Set the camera to view the scene
     nav().pos(Vec3d(0, 0, 8));
@@ -34,7 +34,7 @@ class MyApp : public DistributedAppWithState<SharedState> {
 
     // Register the parameters with the GUI
     gui << X << Y << Size;
-    gui.init();  // Initialize GUI. Don't forget this!
+    gui.init(); // Initialize GUI. Don't forget this!
 
     // DistributedApp provides a parameter server.
     // This links the parameters between "simulator" and "renderers"
@@ -67,8 +67,8 @@ class MyApp : public DistributedAppWithState<SharedState> {
     g.translate(X.get(), Y.get(), 0);
     g.scale(Size.get());
     g.color(1);
-    g.draw(mesh);  // Draw the mesh
-    gl::blendAdd();
+    g.draw(mesh); // Draw the mesh
+    g.blendAdd();
     g.texture();
     font.tex.bind();
     g.draw(fontMesh);
@@ -94,14 +94,14 @@ class MyApp : public DistributedAppWithState<SharedState> {
     return true;
   }
 
- private:
+private:
   Mesh mesh;
   Font font;
   Mesh fontMesh;
 
-  Parameter X{"X", "Position", 0.0, "", -1.0f, 1.0f};
-  Parameter Y{"Y", "Position", 0.0, "", -1.0f, 1.0f};
-  Parameter Size{"Scale", "Size", 1.0, "", 0.1f, 3.0f};
+  Parameter X{"X", "Position", 0.0, -1.0f, 1.0f};
+  Parameter Y{"Y", "Position", 0.0, -1.0f, 1.0f};
+  Parameter Size{"Scale", "Size", 1.0, 0.1f, 3.0f};
 
   /* DistributedApp provides a parameter server. In fact it will
    * crash if you have a parameter server with the same port,
