@@ -100,17 +100,23 @@ elif [ $(uname -s) == "Linux" ]; then
   BUILD_FLAGS="${BUILD_FLAGS} -j${PROC_FLAG}"
 elif [ $(uname -s) != MINGW64* ] && [ "${GENERATOR_PLATFORM}" != "x86" ]; then
     # WINDOWS_FLAGS=-DCMAKE_GENERATOR_PLATFORM=x64
-    echo Building for Visual Studio 15 2017
-      if [ ! -d "C:\Program Files (x86)\Microsoft Visual Studio\2017" ]; then
-        echo You must install Visual Studio 2017 to use allolib
+    echo Building for Visual Studio
+      if [ ! -d "C:\Program Files (x86)\Microsoft Visual Studio\2017" ] && [ ! -d "C:\Program Files (x86)\Microsoft Visual Studio\2019" ]; then
+        echo You must install Visual Studio 2017 or 2019 to use allolib
     fi
-    GENERATOR="Visual Studio 15 2017 Win64"
-    CMAKE_BINARY="C:/Program Files/CMake/bin/cmake.exe"
+    if [ ! -f "${CMAKE_BINARY}" ]; then
+      CMAKE_BINARY="C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
+      GENERATOR="Visual Studio 16 2019"
+      echo Tryng VS 2019 build.
+    fi
     if [ ! -f "${CMAKE_BINARY}" ]; then
       CMAKE_BINARY="C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
+      GENERATOR="Visual Studio 15 2017 Win64"
+      echo Tryng VS 2017 build.
     fi
+
     if [ ! -f "${CMAKE_BINARY}" ]; then
-      echo Trying to use cmake on PATH as Visual Studio Cmake not found
+      echo Trying to use cmake on PATH as Visual Studio Cmake not found.
       CMAKE_BINARY="cmake.exe"
     fi
 fi
