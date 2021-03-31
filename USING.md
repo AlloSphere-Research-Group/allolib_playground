@@ -58,7 +58,7 @@ More details at [here](https://code.visualstudio.com/docs/cpp/config-msvc).
 
 <br>
 
-#### For macOS: Ensure XCode and Clang are installed
+#### For macOS: Ensure Xcode and Clang are installed
 
 Clang may already be installed on your Mac. To verify that it is, you need to use **Terminal** in one of two ways: 
 
@@ -79,7 +79,9 @@ If Clang isn't installed, enter the following command to install the command lin
 xcode-select --install
 ```
 
-- You need to install [XCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) form App Store if you can't run the above command.
+- You need to install [Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) form App Store if you can't run the above command.
+- **Note**: If you can't download Xcode from App Store because your macOS version is old, you can download it from [the Apple Developer downloads page](https://developer.apple.com/download/more/) with your Apple account. Please check both your macOS version and a supported Xcode version from [here](https://en.wikipedia.org/wiki/Xcode).
+  - Alternatively, you can just download and install the Command Line Tools from the same page.
 
 More details at [here](https://code.visualstudio.com/docs/cpp/config-clang-mac).
 
@@ -97,17 +99,81 @@ You have already installed the dependencies if you correctly followed all the in
 
 #### For macOS
 
+**Note**: Before following the instructions below, please make sure you have installed the command line developer tools for macOS explained above in Step 3.
+
 Install Homebrew: open Terminal and copy and paste the below text of the install command in Terminal.
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-To install necessary components, run the command below in Terminal:
+Necessary components on macOS are **git**, **git-lfs**, **CMake**, **libsndfile**.
+
+First, to install git, run the command below in Terminal:
 
 ```shell
-brew install git git-lfs cmake libsndfile
+brew install git
 ```
+
+To test the git installation, enter the command below in Terminal and if you can see a version for git, it is okay to move on to the next.
+
+```
+git --version
+```
+
+Then, to install other components, run the command below in Terminal:
+
+```shell
+brew install git-lfs cmake libsndfile
+```
+
+- If you are having error messages like below:
+
+	```shell
+  Error: 
+    homebrew-core is a shallow clone.
+  To `brew update`, first run:
+    git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core fetch --unshallow
+  This command may take a few minutes to run due to the large size of the repository.
+	```
+
+- You need to update your `homebrew-core` first by running the command below in Terminal:
+
+  ```shell
+  git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core fetch --unshallow
+  ```
+
+- Then update Homebrew with the command below:
+
+  ```shell
+  brew update
+  ```
+
+- Now, you can try again the same command in Terminal:
+
+  ```
+  brew install git-lfs cmake libsndfile
+  ```
+
+To test if CMake is installed, run the command below in Terminal
+
+```shell
+cmake --version
+```
+
+If typing `cmake`doesn't work make sure `/usr/local/bin` is your `PATH`, which a system environment variable. You can check it by running the command below in Terminal:
+
+```
+echo $PATH
+```
+
+If you don't see `/usr/local/bin`, 
+
+- Open the `.bash_profile` file in your home directory (for example, `/Users/your-user-name/.bash_profile`) in a text editor.
+- Add `export PATH="/usr/local/bin:$PATH"` to the last line of the file.
+- Save the `.bash_profile` file.
+- Restart your terminal.
+- Test again if typing CMake works.
 
 <br>
 
@@ -195,7 +261,9 @@ To compile and build c++ source code files with VS Code, it requires to set thre
 
 - Open `01_SineEnv.cpp`  file under the `synthesis` folder with VS Code.
 
-- Select **Terminal** > **Configure Default Build Task** from the VS Code menu. and choose "**create tasks.json from the default template**". It will open `tasks.json`. Change it as below:
+- When you open It will ask ""
+
+- Select **Terminal** > **Configure Default Build Task** from the VS Code menu. and choose "**create tasks.json from the default template**". If you cannot see this item from a template list, choose any item in the list because you will replace the contents of `tasks.json`. Then it will open `tasks.json`. Change it as below:
 
   ```json
   {
@@ -228,7 +296,7 @@ To compile and build c++ source code files with VS Code, it requires to set thre
   }
   ```
 
-- To run the example `01_SineEnv.cpp` opened before, select **Terminal > Run Build Task (Control+Shift+B**) on the menu and choose **allolib_run**.
+- Switch to the tab for `01_SineEnv.cpp` opened before, and select **Terminal > Run Build Task (Control+Shift+B**) on the menu.
 
 - Wait until finishing the code compiling.
 
@@ -238,7 +306,7 @@ To compile and build c++ source code files with VS Code, it requires to set thre
 
 #### c_cpp_properties.json (macOS only)
 
-- When you first open the example code file above, it will ask "**Configure your IntelliSense settings to help find missing headers.**" Click "**Configure (JSON)**". 
+- When you first open the example code file above, it will ask **"Configure your IntelliSense settings to help find missing headers."** Click **"Configure (JSON)"**. 
 
 - It will open `c_cpp_properties.json`. If the message above didn't appear or was dismissed, create the file under `.vscode` folder in the `allolib_playground` directory.
 
