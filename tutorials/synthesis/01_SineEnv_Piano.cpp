@@ -27,19 +27,19 @@ using namespace al;
 int asciiToKeyLabelIndex(int asciiKey) {
   switch (asciiKey) {
   case '2':
-    return 27;
-  case '3':
-    return 28;
-  case '5':
-    return 29;
-  case '6':
     return 30;
-  case '7':
+  case '3':
     return 31;
-  case '9':
-    return 32;
-  case '0':
+  case '5':
     return 33;
+  case '6':
+    return 34;
+  case '7':
+    return 35;
+  case '9':
+    return 37;
+  case '0':
+    return 38;
 
   case 'q':
     return 10;
@@ -67,15 +67,15 @@ int asciiToKeyLabelIndex(int asciiKey) {
   case 'd':
     return 21;
   case 'g':
-    return 22;
-  case 'h':
     return 23;
-  case 'j':
+  case 'h':
     return 24;
-  case 'l':
+  case 'j':
     return 25;
+  case 'l':
+    return 27;
   case ';':
-    return 26;
+    return 28;
 
   case 'z':
     return 0;
@@ -110,6 +110,8 @@ class SineEnv : public SynthVoice {
   // envelope follower to connect audio output to graphics
   gam::EnvFollow<> mEnvFollow;
 
+  Mesh mMesh;
+
   // Initialize voice. This function will only be called once per voice when
   // it is created. Voices will be reused if they are idle.
   void init() override {
@@ -118,6 +120,7 @@ class SineEnv : public SynthVoice {
     mAmpEnv.levels(0, 1, 1, 0);
     mAmpEnv.sustainPoint(2);  // Make point 2 sustain until a release is issued
 
+    addRect(mMesh, 0, 0, 1, 1);
     // This is a quick way to create parameters for the voice. Trigger
     // parameters are meant to be set only when the voice starts, i.e. they
     // are expected to be constant within a voice instance. (You can actually
@@ -129,6 +132,11 @@ class SineEnv : public SynthVoice {
     createInternalTriggerParameter("attackTime", 1.0, 0.01, 3.0);
     createInternalTriggerParameter("releaseTime", 3.0, 0.1, 10.0);
     createInternalTriggerParameter("pan", 0.0, -1.0, 1.0);
+    
+    createInternalTriggerParameter("pianoKeyX");
+    createInternalTriggerParameter("pianoKeyY");
+    createInternalTriggerParameter("pianoKeyWidth");
+    createInternalTriggerParameter("pianoKeyHeight");
   }
 
   // The audio processing function
@@ -164,7 +172,24 @@ class SineEnv : public SynthVoice {
     float frequency = getInternalParameterValue("frequency");
     float amplitude = getInternalParameterValue("amplitude");
 
-    // In this example, no drawing.
+    float x = getInternalParameterValue("pianoKeyX");
+    float y = getInternalParameterValue("pianoKeyY");
+
+    float w = getInternalParameterValue("pianoKeyWidth");
+    float h = getInternalParameterValue("pianoKeyHeight");
+
+    float hue = (frequency - 200) / 1000;
+    float sat = amplitude;
+    float val = 0.9;
+    
+    g.pushMatrix();
+    g.translate(x, y);
+    g.scale(w, h);
+    
+    g.color(Color(HSV(hue, sat, val), mEnvFollow.value() * 30));
+    
+    g.draw(mMesh);
+    g.popMatrix();
   }
 
   // The triggering functions just need to tell the envelope to start or release
@@ -190,13 +215,8 @@ class MyApp : public App {
   float fontSize;
   std::string whitekeyLabels[20] = {"Z","X","C","V","B","N","M",",",".","/",
                                     "Q","W","E","R","T","Y","U","I","O","P"};
-  std::string blackkeyLabels[14] = {"S","D","G","H","J","L",";",
-                                    "2","3","5","6","7","9","0"};
-  
-  // boolean varaibles to track what piano keys are pressed
-  bool whitekeyPressed[20]{};
-  bool blackkeyPressed[14]{};
-
+  std::string blackkeyLabels[20] = {"S","D","","G","H","J","","L",";","",
+                                    "2","3","","5","6","7","","9","0",""};
   // Font renderder
   FontRenderer fontRender;
 
@@ -227,7 +247,7 @@ class MyApp : public App {
     fontRender.load(Font::defaultFont().c_str(), 60, 1024);
 
     // Play example sequence. Comment this line to start from scratch
-    // synthManager.synthSequencer().playSequence("synth1.synthSequence");
+    synthManager.synthSequencer().playSequence("synth1.synthSequence");
     synthManager.synthRecorder().verbose(true);
   }
 
@@ -247,11 +267,7 @@ class MyApp : public App {
   // The graphics callback function.
   void onDraw(Graphics& g) override {
     g.clear();
-    // Render the synth's graphics
-    synthManager.render(g);
 
-    g.pushCamera();
-    
     // This example uses only the orthogonal projection for 2D drawing
     g.camera(Viewpoint::ORTHO_FOR_2D);  // Ortho [0:width] x [0:height]
 
@@ -261,7 +277,6 @@ class MyApp : public App {
       g.pushMatrix();
       
       float c = 0.9;
-      if(whitekeyPressed[i] == true) c = 0.7;
       float x = (keyWidth + keyPadding * 2) * index + keyPadding;
       float y = 0;
 
@@ -282,16 +297,13 @@ class MyApp : public App {
     }
 
     // Drawing balck piano keys
-    int blackKeyLabelIndex = 0;
     for(int i = 0; i < 20; i++) {
       int index = i % 10;
       if(index == 2 || index == 6 || index == 9) continue;
 
       g.pushMatrix();
       
-      float c = 0.3;
-      if(blackkeyPressed[blackKeyLabelIndex] == true) c = 0.5; 
-      
+      float c = 0.5;      
       float x = (keyWidth + keyPadding * 2) * index + keyPadding + keyWidth * 0.5;
       float y = keyHeight * 0.5;
 
@@ -308,14 +320,14 @@ class MyApp : public App {
       g.scale(1, 2);
       
       g.tint(1);
-      fontRender.write(blackkeyLabels[blackKeyLabelIndex].c_str(), fontSize);
+      fontRender.write(blackkeyLabels[i].c_str(), fontSize);
       fontRender.renderAt(g, {keyWidth * 0.5 - 5, keyHeight * 0.1, 0.0});
-      blackKeyLabelIndex++;
       
       g.popMatrix();
     }
 
-    g.popCamera();
+    // Render the synth's graphics
+    synthManager.render(g);
 
     // GUI is drawn here
     imguiDraw();
@@ -336,20 +348,39 @@ class MyApp : public App {
       int midiNote = asciiToMIDI(k.key());
       
       if (midiNote > 0) {
-
-        synthManager.voice()->setInternalParameterValue(
-            "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
-        synthManager.triggerOn(midiNote);
-
         // Check which key is pressed
         int keyIndex = asciiToKeyLabelIndex(k.key());
         
+        bool isBlackKey = false;
         if(keyIndex >= 20) {
           keyIndex -= 20;
-          blackkeyPressed[keyIndex] = true;
-        } else {
-          whitekeyPressed[keyIndex] = true;
+          isBlackKey = true;
         }
+
+        synthManager.voice()->setInternalParameterValue(
+            "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+
+        float w = keyWidth;
+        float h = keyHeight;
+        float x = (keyWidth + keyPadding * 2) * (keyIndex % 10) + keyPadding;
+        float y = 0;
+        
+        if(isBlackKey == true) {
+          x += keyWidth * 0.5;
+          y += keyHeight * 0.5;
+          h *= 0.5;
+        }
+        
+        if(keyIndex >= 10) {
+          y += keyHeight + keyPadding * 2;
+        }
+        
+        synthManager.voice()->setInternalParameterValue("pianoKeyWidth", w);
+        synthManager.voice()->setInternalParameterValue("pianoKeyHeight", h);
+        synthManager.voice()->setInternalParameterValue("pianoKeyX", x);
+        synthManager.voice()->setInternalParameterValue("pianoKeyY", y);
+        
+        synthManager.triggerOn(midiNote);
       }
     }
     return true;
@@ -360,16 +391,6 @@ class MyApp : public App {
     int midiNote = asciiToMIDI(k.key());
     if (midiNote > 0) {
       synthManager.triggerOff(midiNote);
-
-      // Check which key is released
-      int keyIndex = asciiToKeyLabelIndex(k.key());
-        
-      if(keyIndex >= 20) {
-        keyIndex -= 20;
-        blackkeyPressed[keyIndex] = false;
-      } else {
-        whitekeyPressed[keyIndex] = false;
-      }
     }
     return true;
   }
