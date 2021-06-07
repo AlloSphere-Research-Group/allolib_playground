@@ -1,0 +1,19 @@
+::gungeon pluck
+/amplitude f 0.147000 
+/attackTime f 0.010000 
+/bw1 f 522.033997 
+/bw2 f 19.309999 
+/bwRise f 0.281000 
+/cf1 f 1695.056030 
+/cf2 f 28.618999 
+/cfRise f 0.242000 
+/curve f -1.791000 
+/envDur f 0.998000 
+/frequency f 203.876846 
+/hmamp f 0.996000 
+/hmnum f 12.500000 
+/noise f 0.252000 
+/pan f 0.000000 
+/releaseTime f 0.340000 
+/sustain f 0.569000 
+::

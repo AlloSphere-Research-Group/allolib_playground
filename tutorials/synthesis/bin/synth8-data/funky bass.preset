@@ -1,0 +1,19 @@
+::funky bass
+/amplitude f 0.385000 
+/attackTime f 0.010000 
+/bw1 f 10.000000 
+/bw2 f 3124.471924 
+/bwRise f 0.520000 
+/cf1 f 10.000000 
+/cf2 f 4828.875000 
+/cfRise f 0.556000 
+/curve f 2.721000 
+/envDur f 0.569000 
+/frequency f 42.859833 
+/hmamp f 0.706000 
+/hmnum f 16.563999 
+/noise f 0.012000 
+/pan f 0.000000 
+/releaseTime f 0.100000 
+/sustain f 0.695000 
+::

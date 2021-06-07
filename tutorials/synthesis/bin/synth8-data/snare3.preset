@@ -1,0 +1,19 @@
+::snare3
+/amplitude f 0.923000 
+/attackTime f 0.010000 
+/bw1 f 4121.257812 
+/bw2 f 2654.072021 
+/bwRise f 1.131000 
+/cf1 f 3556.352051 
+/cf2 f 449.371002 
+/cfRise f 1.459000 
+/curve f -9.654000 
+/envDur f 0.063000 
+/frequency f 114.422020 
+/hmamp f 1.000000 
+/hmnum f 19.386999 
+/noise f 0.976000 
+/pan f 0.000000 
+/releaseTime f 0.302000 
+/sustain f 0.841000 
+::

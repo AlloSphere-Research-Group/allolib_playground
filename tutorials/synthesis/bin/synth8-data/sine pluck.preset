@@ -1,0 +1,19 @@
+::sine pluck
+/amplitude f 0.147000 
+/attackTime f 0.010000 
+/bw1 f 2058.134033 
+/bw2 f 596.510986 
+/bwRise f 0.430000 
+/cf1 f 4543.825195 
+/cf2 f 10.000000 
+/cfRise f 0.100000 
+/curve f 2.836000 
+/envDur f 2.127000 
+/frequency f 272.142944 
+/hmamp f 0.364000 
+/hmnum f 7.854000 
+/noise f 0.132000 
+/pan f 0.000000 
+/releaseTime f 0.340000 
+/sustain f 0.569000 
+::
