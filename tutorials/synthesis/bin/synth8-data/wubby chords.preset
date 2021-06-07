@@ -1,0 +1,19 @@
+::wubby chords
+/amplitude f 0.300000 
+/attackTime f 0.010000 
+/bw1 f 736.156982 
+/bw2 f 326.529999 
+/bwRise f 1.759000 
+/cf1 f 3631.474121 
+/cf2 f 10.000000 
+/cfRise f 0.777000 
+/curve f 4.776000 
+/envDur f 0.233000 
+/frequency f 513.737427 
+/hmamp f 1.000000 
+/hmnum f 13.815000 
+/noise f 0.067000 
+/pan f 0.000000 
+/releaseTime f 0.248000 
+/sustain f 0.306000 
+::
