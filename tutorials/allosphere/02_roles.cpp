@@ -45,7 +45,7 @@ OSC
 The second instance will shown an unfolded cube representing the full surround
 rendering.
 
-Notice that the spheres are not synchronized. This is because each application
+Notice that the spheres are not synchronized! This is because each application
 instance is running onAnimate independently and generating its own value for
 "mod". The next files in this tutorial show state and parameter synchronization.
 */
@@ -99,15 +99,15 @@ public:
 
   void onAnimate(double dt) override {
     // mod is a signal that goes up and down with a funky shape
-    float factor = 1.03f;
+    float factor = 0.02f;
     if (rising) {
-      mod *= factor;
+      mod += factor;
     } else {
-      mod *= 1 / factor;
+      mod -= factor;
     }
-    if (mod > 0.8) {
+    if (mod > 1.0) {
       rising = false;
-    } else if (mod < 0.2) {
+    } else if (mod < 0.0) {
       rising = true;
     }
   }

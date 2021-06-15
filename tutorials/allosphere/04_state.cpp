@@ -16,7 +16,14 @@ state data. you can then get the state using state().
 Notice how the nav from the primary application is syncrhonized for all others
 writing if primary or reading from the state if otherwise.
 
-Rule of thumb: parameter vs. state
+It's very important to ensure that everything that needs to be synchronized is,
+so it is good practice, as a rule of thumb to not use any class variables in
+your code, but always ensure that they are set and read through state() or a
+parameter that is synchronized by the parameter server. As you become more
+comfortable understanding this, you will be able to see the data that is the
+source of other data, and you will only need to synchronize that.
+
+Another rule of thumb: parameter vs. state
 
 You should use state synchronization for large data and data that is generated
 and consumed at frame rate (i.e. simulation data and graphics parameters).
@@ -68,18 +75,18 @@ public:
     if (isPrimary()) {
       if (rising) {
         // We can no longer use *= operators with Parameter classes...
-        mod = mod * factor;
+        mod = mod + factor;
       } else {
-        mod = mod * (1 / factor);
+        mod = mod - factor;
       }
-      if (mod > 0.8) {
+      if (mod > 1.0) {
         rising = false;
-      } else if (mod < 0.2) {
+      } else if (mod < 0.0) {
         rising = true;
       }
       state().mod = mod;
 
-      state().xPosition = (factor - 1) * 10;
+      state().xPosition = factor * 10;
       state().nav = nav();
     } else {
       nav() = state().nav;
@@ -106,10 +113,10 @@ public:
     // factor affects frequency
     // Even though we are using the "factor" parameter here, we don't need
     // to syncrhonize it in this case, as audio is run by the same node that
-    // updates it.
-    // But you must always be aware of who is synchronizing what to ensure
-    // that everything gets synchronized properly.
-    osc.freq(220 * (factor - 1) * 10);
+    // updates it. But it would still be good practice to write
+    // state().factor instead of factor. This could potentially save a lot of
+    // headaches trying to figure out why things are not working.
+    osc.freq(220 * factor * 10);
     while (io()) {
       io.out(0) = osc() * mod;
     }

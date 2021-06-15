@@ -42,7 +42,7 @@ public:
   gam::Square<> osc;
 
   // We will make the modulation "factor" a parameter
-  Parameter factor{"factor", "", 1.03f, 1.001f, 1.08f};
+  Parameter factor{"factor", "", 0.03f, 0.001f, 0.08f};
   // The "mod" parameter will only be used to move data
   // it will not be visible in the controls.
   Parameter mod{"mod", "", 0.5};
@@ -64,13 +64,13 @@ public:
     if (isPrimary()) {
       if (rising) {
         // We can no longer use *= operators with Parameter classes...
-        mod = mod * factor;
+        mod = mod + factor;
       } else {
-        mod = mod * (1 / factor);
+        mod = mod - factor;
       }
-      if (mod > 0.8) {
+      if (mod > 1.0) {
         rising = false;
-      } else if (mod < 0.2) {
+      } else if (mod < 0.0) {
         rising = true;
       }
     }
@@ -79,7 +79,7 @@ public:
   void onDraw(Graphics &g) override {
     g.clear(0);
     g.pushMatrix();
-    g.translate((factor - 1) * 10, 0, -4);
+    g.translate(factor * 10, 0, -4);
     g.scale(mod);
     g.polygonLine();
     g.draw(m);
@@ -91,7 +91,7 @@ public:
 
   void onSound(AudioIOData &io) override {
     // factor affects frequency
-    osc.freq(220 * (factor - 1) * 10);
+    osc.freq(220 * factor * 10);
     while (io()) {
       io.out(0) = osc() * mod;
     }

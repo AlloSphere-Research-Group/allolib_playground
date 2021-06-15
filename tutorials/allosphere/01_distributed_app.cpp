@@ -47,15 +47,15 @@ public:
   void onCreate() override { addIcosphere(m); }
   void onAnimate(double dt) override {
     // mod is a signal that goes up and down with a funky shape
-    float factor = 1.03f;
+    float factor = 0.02f;
     if (rising) {
-      mod *= factor;
+      mod += factor;
     } else {
-      mod *= 1 / factor;
+      mod -= factor;
     }
-    if (mod > 0.8) {
+    if (mod > 1.0) {
       rising = false;
-    } else if (mod < 0.2) {
+    } else if (mod < 0.0) {
       rising = true;
     }
   }
