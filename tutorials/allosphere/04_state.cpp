@@ -55,7 +55,7 @@ public:
   gam::Square<> osc;
 
   // We will make the modulation "factor" a parameter
-  Parameter factor{"factor", "", 1.03f, 1.001f, 1.08f};
+  Parameter factor{"factor", "", 0.03f, 0.001f, 0.08f};
   // The "mod" parameter will only be used to move data
   // it will not be visible in the controls.
   Parameter mod{"mod", "", 0.5};

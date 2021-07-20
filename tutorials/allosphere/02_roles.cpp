@@ -1,7 +1,7 @@
 
 /*
 This file shows how to know at runtime the role of the current application.
-The role is defined through "capabilities". The list of capabilities are
+The role determines a set of "capabilities". The list of capabilities are
 defined in the Capability typedef. Currently the available capabilities are:
 
 CAP_NONE = 0,
@@ -44,6 +44,10 @@ OSC
 
 The second instance will shown an unfolded cube representing the full surround
 rendering.
+
+The SIMULATOR capability indicates that the onAnimate() callback is called. For
+this reason, you can use the onAnimate() function to send state as well as
+to apply state.
 
 Notice that the spheres are not synchronized! This is because each application
 instance is running onAnimate independently and generating its own value for

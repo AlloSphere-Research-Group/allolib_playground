@@ -1,6 +1,6 @@
 
 /*
-This set of examples demosntrates how to build a distributed application using
+This set of examples demonstrate how to build a distributed application using
 allolib, and will target the Allosphere in particular, but there will be
 enough information if you want to run this distributed application on a
 different system.
@@ -16,11 +16,11 @@ The simulator node is in charge of generating the common state for the
 application and handling interaction.
 
 The audio node receives the state and parameters from the simulator and renders
-multichannel audio.
+multichannel audio, but it is common that the simulator and audio are the same
+application.
 
 The renderer nodes take state and parameters from the simulator and render their
 correct viewports from existing calibration files.
-
 
 To build a distributed application, you want to start with the DistributedApp
 class.
@@ -36,6 +36,9 @@ using namespace al;
 // functions. The al::DistributedApp class has an identical API to al::App, so
 // you can start prototyping using App, and then just change the inheritance to
 // al::DistributedApp. See the other tutorials for more details about al::App.
+
+// This class is ready, but noy yet a distributed app, as the shared state is
+// not being distributed.
 class MyApp : public DistributedApp {
 public:
   Mesh m;
