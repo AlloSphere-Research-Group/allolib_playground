@@ -1,0 +1,19 @@
+::bright crystals
+/amplitude f 0.219000 
+/attackTime f 0.010000 
+/bw1 f 2214.087891 
+/bw2 f 1413.223999 
+/bwRise f 0.350000 
+/cf1 f 2542.646973 
+/cf2 f 311.179993 
+/cfRise f 0.262000 
+/curve f 4.705000 
+/envDur f 2.078000 
+/frequency f 915.376160 
+/hmamp f 1.000000 
+/hmnum f 16.934000 
+/noise f 0.346000 
+/pan f 0.000000 
+/releaseTime f 0.100000 
+/sustain f 0.569000 
+::

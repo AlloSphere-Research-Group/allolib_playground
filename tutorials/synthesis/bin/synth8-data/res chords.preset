@@ -1,0 +1,19 @@
+::res chords
+/amplitude f 0.219000 
+/attackTime f 0.010000 
+/bw1 f 537.064026 
+/bw2 f 3254.527100 
+/bwRise f 1.302000 
+/cf1 f 427.545013 
+/cf2 f 2932.812012 
+/cfRise f 0.314000 
+/curve f 4.705000 
+/envDur f 2.078000 
+/frequency f 685.757263 
+/hmamp f 0.988000 
+/hmnum f 5.885000 
+/noise f 0.125000 
+/pan f 0.000000 
+/releaseTime f 0.100000 
+/sustain f 0.569000 
+::

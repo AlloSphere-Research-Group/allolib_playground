@@ -1,0 +1,19 @@
+::acidy lead
+/amplitude f 0.219000 
+/attackTime f 0.010000 
+/bw1 f 4435.094238 
+/bw2 f 347.373993 
+/bwRise f 0.100000 
+/cf1 f 4686.164062 
+/cf2 f 535.676025 
+/cfRise f 0.361000 
+/curve f 4.705000 
+/envDur f 1.509000 
+/frequency f 363.267242 
+/hmamp f 0.943000 
+/hmnum f 20.000000 
+/noise f 0.310000 
+/pan f 0.000000 
+/releaseTime f 0.100000 
+/sustain f 0.569000 
+::
