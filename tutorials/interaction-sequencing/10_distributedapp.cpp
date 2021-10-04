@@ -76,7 +76,7 @@ public:
 
     g.popMatrix();
 
-    // Draw th GUI on the simulator only
+    // Draw the GUI on the simulator only
     if (isPrimary()) {
       gui.draw(g);
     }
