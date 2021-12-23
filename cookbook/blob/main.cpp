@@ -15,14 +15,10 @@ using namespace al;
 #include <vector> // vector
 
 // This example demonstrates how to write a distributed application that
-// shares mesh vertices on the state through cuttlebone.
+// shares mesh vertices through cuttlebone.
+// Original by Karl Yerkes, adapted by Andres Cabrera
 
 // State --------------------------
-#define PPCAT_NX(A, B) A##B
-#define PPCAT(A, B) PPCAT_NX(A, B)
-#define STRINGIZE_NX(A) #A
-#define STRINGIZE(A) STRINGIZE_NX(A)
-
 #define N 162
 //#define N 642
 //#define N 2562
@@ -31,22 +27,16 @@ using namespace al;
 //#define N 163842
 //#define N 655362
 
-#define ICOSPHERE_FILE STRINGIZE(PPCAT(N, .ico))
-
 struct State {
   Pose pose; // for navigation
 
   // this is how you might control renderering settings.
   double eyeSeparation;
-  double audioGain;
   Color backgroundColor{0};
   bool wireFrame; // alternative is shaded
 
-  unsigned pokedVertex;
-  Vec3f pokedVertexRest;
-
   // all of the above data could be distributed using unicast OSC to each
-  // renderering host (it's only about 60 bytes), but this scheme would suffer
+  // renderering host, but this scheme could suffer
   // from tearing due to out-of-sync sending and receiving of packets. the win
   // above is that all this data appears at each renderering host
   // simultaneously because we're using UDP broadcast, which does not use a
@@ -137,6 +127,7 @@ struct Blob : DistributedAppWithState<State> {
                0.3f};                       // spring constant between neighbors
   Parameter D{"D", "", 0.08f, 0.01f, 0.3f}; // damping factor
 
+  // Display parameters
   ParameterColor bgColor{"BackgroundColor", "", Color(0)};
   ParameterBool wireFrame{"wireFrame", "", true};
 
@@ -149,8 +140,9 @@ struct Blob : DistributedAppWithState<State> {
 
   // a boolean value that is read and reset (false) by the simulation step and
   // written (true) by audio, keyboard and mouse callbacks.
-  //
   bool shouldPoke;
+  unsigned pokedVertex;
+  Vec3f pokedVertexRest;
 
   // a mesh we use to do graphics rendering in this app
   Mesh mesh;
@@ -161,18 +153,20 @@ struct Blob : DistributedAppWithState<State> {
 
     mesh.primitive(Mesh::TRIANGLES);
 
+    SearchPaths searchPaths;
+    searchPaths.addSearchPath(".", false);
+    searchPaths.addSearchPath("/alloshare/blob", false);
+    searchPaths.addAppPaths();
+
+    std::string icoSphereFile = std::to_string(N) + ".ico";
+
+    if (!load(searchPaths.find(icoSphereFile).filepath(), mesh, nn)) {
+      std::cout << "cannot find " << icoSphereFile << std::endl;
+      quit();
+    }
     if (isPrimary()) {
       shouldPoke = true; // start with a poke
 
-      SearchPaths searchPaths;
-      searchPaths.addSearchPath(".", false);
-      searchPaths.addSearchPath("/alloshare/blob", false);
-      searchPaths.addAppPaths();
-
-      if (!load(searchPaths.find(ICOSPHERE_FILE).filepath(), mesh, nn)) {
-        std::cout << "cannot find " << ICOSPHERE_FILE << std::endl;
-        //      Main::get().stop();
-      }
       // Initialize simulation data
       velocity.resize(mesh.vertices().size(), Vec3f(0, 0, 0));
       original.resize(mesh.vertices().size());
@@ -182,14 +176,11 @@ struct Blob : DistributedAppWithState<State> {
       for (int i = 0; i < N; i++)
         state().p[i] = original[i];
       state().eyeSeparation = 0.03;
-      state().audioGain = 0.97;
-      state().backgroundColor = Color(0.1, 0.1);
+      state().backgroundColor = Color(0.1f, 0.1f);
       state().wireFrame = true;
     }
-    //    initWindow(Window::Dim(0, 0, 600, 400), "Blob Control Center", 60);
-    //    initAudio(44100, 128, 2, 1);
 
-    // Enable cuttlebne for state distribution
+    // Enable cuttlebone for state distribution
     auto cuttleboneDomain =
         CuttleboneStateSimulationDomain<State>::enableCuttlebone(this);
     if (!cuttleboneDomain) {
@@ -204,7 +195,7 @@ struct Blob : DistributedAppWithState<State> {
     }
   }
 
-  void onCreate() override {}
+  //  void onCreate() override {}
 
   void onAnimate(double dt) override {
 
@@ -213,13 +204,12 @@ struct Blob : DistributedAppWithState<State> {
       if (shouldPoke) {
         shouldPoke = false;
         int n = al::rnd::uniform(N);
-        state().pokedVertex = n;
-        state().pokedVertexRest = original[n];
+        pokedVertex = n;
+        pokedVertexRest = original[n];
         Vec3f v = Vec3f(rnd::uniformS(), rnd::uniformS(), rnd::uniformS());
         for (unsigned k = 0; k < nn[n].size(); k++)
           state().p[nn[n][k]] += v * 0.5;
         state().p[n] += v;
-        //      LOG("poke!");
       }
 
       // Compute new postions
@@ -236,9 +226,11 @@ struct Blob : DistributedAppWithState<State> {
         velocity[i] += force;
       }
 
-      for (int i = 0; i < N; i++)
+      for (int i = 0; i < N; i++) {
         state().p[i] += velocity[i];
+      }
 
+      // Update variables in state to send to nodes
       state().pose = nav();
       state().backgroundColor = bgColor;
       state().wireFrame = wireFrame;
@@ -247,6 +239,7 @@ struct Blob : DistributedAppWithState<State> {
       // For remote nodes, update pose and color from state
       pose() = state().pose;
       bgColor = state().backgroundColor;
+      wireFrame = state().wireFrame;
     }
     // Copy vertex positions from state to mesh
     memcpy(&mesh.vertices()[0], &state().p[0], sizeof(Vec3f) * N);
@@ -260,46 +253,43 @@ struct Blob : DistributedAppWithState<State> {
     } else {
       g.color(1.0);
     }
-    if (state().wireFrame)
+    if (state().wireFrame) {
       g.polygonLine();
-    else
+    } else {
       g.polygonFill();
+    }
     g.draw(mesh);
     g.popMatrix();
   }
 
   void onSound(AudioIOData &io) override {
-    //    static cuttlebone::Stats fps("onSound()");
-    //    fps(io.secondsPerBuffer());
 
-    float maxInputAmplitude = 0.0f;
+    if (isPrimary()) { // Only primary will produce audio
+      float maxInputAmplitude = 0.0f;
+      while (io()) {
+        // find largest amplitude in block
+        if (io.channelsIn() > 0) {
+          float in = fabs(io.in(0));
+          if (in > maxInputAmplitude) {
+            maxInputAmplitude = in;
+          }
+        }
 
-    while (io()) {
+        float f = (state().p[pokedVertex] - pokedVertexRest).mag() - 0.45;
 
-      // find largest amplitude
-      //
-      if (io.channelsIn() > 0) {
-        float in = fabs(io.in(0));
-        if (in > maxInputAmplitude)
-          maxInputAmplitude = in;
+        if (f > 0.99) {
+          f = 0.99;
+        } else if (f < 0) {
+          f = 0;
+        }
+
+        io.out(0) = io.out(1) = pinkNoise() * f * 0.3;
       }
 
-      float f =
-          (state().p[state().pokedVertex] - state().pokedVertexRest).mag() -
-          0.45;
-
-      if (f > 0.99)
-        f = 0.99;
-      if (f < 0)
-        f = 0;
-
-      io.out(0) = io.out(1) = pinkNoise() * f * state().audioGain;
+      // poke the blob if the largest amplitude is above some threshold
+      if (maxInputAmplitude > 0.707f)
+        shouldPoke = true;
     }
-
-    // poke the blob if the largest amplitude is above some threshold
-    //
-    if (maxInputAmplitude > 0.707f)
-      shouldPoke = true;
   }
 
   bool onKeyDown(const Keyboard &k) override {
