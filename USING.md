@@ -16,6 +16,8 @@ This document guides you to build allolib applications with Visual Studio Code o
 
 ### 1. VS Code Installation<a name="1"></a>
 
+Installing VS Code is optional, but if you don't have experience setting up an IDE for building software, getting VS Code will simplify the process of started.
+
 #### For Windows
 
 - Download the [Visual Studio Code installer](https://go.microsoft.com/fwlink/?LinkID=534107) for Windows.
@@ -39,6 +41,8 @@ More details at [here](https://code.visualstudio.com/docs/setup/mac).
 <br>
 
 ### 2. Install the C++ Extension for VS Code<a name="2"></a>
+
+This step is optional, only necessary if you will use VS Code to edit source code and/or build allolib playground applications through it.
 
 - You can install the [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) by searching for 'c++' in the Extensions view (Windows: Ctrl+Shift+X, macOS: ⇧⌘X) in VS Code.
 
