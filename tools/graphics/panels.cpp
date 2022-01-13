@@ -11,6 +11,10 @@
 #include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 #include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 
+#ifdef AL_EXT_LIBAV
+#include "al_ext/video/al_VideoDecoder.hpp"
+#endif
+
 #include <Gamma/Noise.h>
 
 using namespace al;
@@ -19,6 +23,7 @@ using namespace al;
 #include <vector> // vector
 
 const size_t numPictures = 8;
+const size_t numVideos = 2;
 
 struct State {
   Pose pose; // for navigation
@@ -30,30 +35,63 @@ struct State {
 #undef far
 #endif
 
-class PictureAgent : public PositionedVoice {
+static const char *imagePath = "Sensorium/CFM_SensoriumImages_HiRes/";
+static const char *videoPath = "Sensorium/video/";
+
+class Panel : public PositionedVoice {
 public:
   ParameterString file{"file"};
   Parameter alpha{"alpha", "", 1.0, 0.0, 1.0};
   Texture tex;
   float aspectRatio{1.0f};
-
-  ParameterBundle bundle{"pictureParams"};
   ParameterBool billboard{"billboard", "", false};
   std::string currentlyLoadedFile;
 
+  ParameterBundle bundle{"pictureParams"};
+
   virtual void init() {
+
     registerParameters(parameterPose(), parameterSize(), file, billboard,
                        alpha);
 
     parameterSize().min(0.1f);
     parameterSize().max(2.0f);
 
+    file.setSynchronousCallbacks(
+        false); // texture must always be loaded in graphics context
+
+    bundle.addParameter(parameterPose());
+    bundle.addParameter(parameterSize());
+    bundle.addParameter(alpha);
+    bundle.addParameter(file);
+    bundle.addParameter(billboard);
+  }
+
+  virtual void onProcess(Graphics &g) {
+    file.processChange();
+    g.pushMatrix();
+    if (billboard.get() == 1) {
+      Vec3f forward = pose().pos();
+      forward.normalize();
+      Quatf rot = Quatf::getBillboardRotation(-forward, Vec3f{0.0, 1.0f, 0.0f});
+      g.rotate(rot);
+    }
+    g.tint(1.0, alpha);
+    g.quad(tex, -0.5 * aspectRatio, -0.5, aspectRatio, 1, true);
+    g.popMatrix();
+  }
+};
+
+class PicturePanel : public Panel {
+public:
+  virtual void init() {
+    Panel::init();
+
     file.registerChangeCallback([&](std::string value) {
       if (value != currentlyLoadedFile) {
         std::string *rootPath = static_cast<std::string *>(userData());
 
-        std::string filename =
-            *rootPath + "Sensorium/CFM_SensoriumImages_HiRes/" + value;
+        std::string filename = *rootPath + imagePath + value;
 
         auto imageData = Image(filename);
 
@@ -71,19 +109,89 @@ public:
         currentlyLoadedFile = value;
       }
     });
-    file.setSynchronousCallbacks(
-        false); // texture must always be loaded in graphics context
-
-    bundle.addParameter(parameterPose());
-    bundle.addParameter(parameterSize());
-    bundle.addParameter(alpha);
-    bundle.addParameter(file);
-    bundle.addParameter(billboard);
   }
-  virtual void update(double dt = 0) { (void)dt; }
+};
+
+class VideoPanel : public Panel {
+public:
+  double wallTime{0.0};
+  double previousTime{0.0};
+
+  ParameterBool playing{"playing", "", false};
+  Parameter currentTime{"currentTime", "", 0.0};
+
+  virtual void init() {
+    Panel::init();
+
+    bundle.addParameter(playing);
+    registerParameter(playing);
+    registerParameter(currentTime); // Current time u
+
+    file.registerChangeCallback([&](std::string value) {
+      if (value != currentlyLoadedFile) {
+#ifdef AL_EXT_LIBAV
+        videoDecoder.stop();
+
+        videoDecoder.init();
+        std::string *rootPath = static_cast<std::string *>(userData());
+
+        std::string filename = *rootPath + videoPath + value;
+
+        if (!videoDecoder.load(filename.c_str())) {
+          std::cerr << "Error loading video file: " << filename << std::endl;
+          //            quit();
+        }
+        // generate texture
+        tex.filter(Texture::LINEAR);
+        tex.wrap(Texture::REPEAT, Texture::CLAMP_TO_EDGE,
+                 Texture::CLAMP_TO_EDGE);
+        tex.create2D(videoDecoder.width(), videoDecoder.height(),
+                     Texture::RGBA8, Texture::RGBA, Texture::UBYTE);
+        videoDecoder.enableAudio(false);
+        aspectRatio = videoDecoder.width() / (double)videoDecoder.height();
+        wallTime = 0.0;
+        playing = 1.0;
+        videoDecoder.start();
+
+#else
+        std::cerr << "ERROR: video extension al_ext/video not built. Video "
+                     "will not play back"
+                  << std::endl;
+#endif
+      }
+    });
+  }
+
+  void update(double dt) {
+#ifdef AL_EXT_LIBAV
+    bool timeChanged = false;
+    if (playing.get() == 1.0f) {
+      wallTime += dt;
+      timeChanged = true;
+    }
+    if (wallTime < previousTime) {
+      videoDecoder.stream_seek((int64_t)(wallTime * AV_TIME_BASE), -10);
+      timeChanged = true;
+    } else if (wallTime - previousTime > 3.0 / 30.0) {
+      videoDecoder.stream_seek((int64_t)(wallTime * AV_TIME_BASE), 10);
+      timeChanged = true;
+    } else if (wallTime != previousTime) {
+      videoDecoder.stream_seek((int64_t)(wallTime * AV_TIME_BASE), 10);
+      timeChanged = true;
+    }
+    if (timeChanged) {
+      uint8_t *frame = videoDecoder.getVideoFrame(wallTime);
+      if (frame) {
+        tex.submit(frame);
+      }
+    }
+    previousTime = wallTime;
+#endif
+  }
+
   virtual void onProcess(Graphics &g) {
-    //    g.tint(1.0, alpha);
     file.processChange();
+    g.pushMatrix();
     if (billboard.get() == 1) {
       Vec3f forward = pose().pos();
       forward.normalize();
@@ -91,14 +199,18 @@ public:
       g.rotate(rot);
     }
     g.tint(1.0, alpha);
-    g.quad(tex, -0.5 * aspectRatio, -0.5, aspectRatio, 1, true);
+    g.quad(tex, -0.5 * aspectRatio, 0.5, aspectRatio, -1, false);
+    g.popMatrix();
   }
 
-  virtual void onProcess(AudioIOData & /*io*/) {}
+private:
+#ifdef AL_EXT_LIBAV
+  VideoDecoder videoDecoder;
+#endif
 };
 
-struct PictureViewer : DistributedAppWithState<State> {
-
+class PictureViewer : public DistributedAppWithState<State> {
+public:
   // a mesh we use to do graphics rendering in this app
   Mesh mesh;
 
@@ -108,10 +220,12 @@ struct PictureViewer : DistributedAppWithState<State> {
 
   DistributedScene scene{TimeMasterMode::TIME_MASTER_CPU};
   FileList imageFiles;
+  FileList videoFiles;
   PersistentConfig config;
-  PictureAgent pictures[numPictures];
+  PicturePanel pictures[numPictures];
+  VideoPanel videos[numVideos];
 
-  int8_t currentImage[numPictures]{0};
+  int8_t currentImage[numPictures + numVideos]{0};
   PresetHandler presets;
   ControlGUI *gui;
 
@@ -138,7 +252,7 @@ struct PictureViewer : DistributedAppWithState<State> {
     }
 
     registerDynamicScene(scene);
-    scene.registerSynthClass<PictureAgent>(); // Needed to propagate changes
+    scene.registerSynthClass<PicturePanel>(); // Needed to propagate changes
     scene.verbose(true);
     // Picture voices
     for (size_t i = 0; i < numPictures; i++) {
@@ -150,6 +264,16 @@ struct PictureViewer : DistributedAppWithState<State> {
       scene.triggerOn(&pictures[i], 0, i, &dataRoot);
       if (!isPrimary()) {
         pictures[i].markAsReplica();
+      }
+    }
+
+    for (size_t i = 0; i < numVideos; i++) {
+      videos[i].init();
+      videos[i].id(i);
+      scene.registerVoiceParameters(&videos[i]);
+      scene.triggerOn(&videos[i], 0, 100 + i, &dataRoot);
+      if (!isPrimary()) {
+        videos[i].markAsReplica();
       }
     }
 
@@ -170,12 +294,16 @@ struct PictureViewer : DistributedAppWithState<State> {
         *gui << pictures[i].bundle;
         presets.registerParameterBundle(pictures[i].bundle);
       }
+      for (size_t i = 0; i < numVideos; i++) {
+        *gui << videos[i].bundle;
+        presets.registerParameterBundle(videos[i].bundle);
+      }
     } else {
     }
     parameterServer() << bgColor;
 
-    imageFiles =
-        fileListFromDir(dataRoot + "Sensorium/CFM_SensoriumImages_HiRes");
+    imageFiles = fileListFromDir(dataRoot + imagePath);
+    videoFiles = fileListFromDir(dataRoot + videoPath);
   }
 
   //  void onCreate() override {}
@@ -215,24 +343,48 @@ struct PictureViewer : DistributedAppWithState<State> {
     if (isPrimary()) {
       auto currentPanel = gui->getBundleCurrent("pictureParams");
       if (k.key() == '[') {
-        auto i = currentImage[currentPanel] - 1;
-        if (i == -1) {
-          i = imageFiles.count() - 1;
+        if (currentPanel < numPictures) {
+          auto i = currentImage[currentPanel] - 1;
+          if (i == -1) {
+            i = imageFiles.count() - 1;
+          }
+          currentImage[currentPanel] = i;
+          std::cout << "Loading " << (int)currentPanel << " -> "
+                    << imageFiles[i].filepath() << std::endl;
+          pictures[currentPanel].file.set(imageFiles[i].file());
+        } else {
+          // Video Panel
+          auto i = currentImage[currentPanel] - 1;
+          if (i == -1) {
+            i = videoFiles.count() - 1;
+          }
+          currentImage[currentPanel] = i;
+          std::cout << "Loading " << (int)currentPanel << " -> "
+                    << videoFiles[i].filepath() << std::endl;
+          videos[currentPanel - numPictures].file.set(videoFiles[i].file());
         }
-        currentImage[currentPanel] = i;
-        std::cout << "Loading " << (int)currentPanel << " -> "
-                  << imageFiles[i].filepath() << std::endl;
-        pictures[currentPanel].file.set(imageFiles[i].file());
       } else if (k.key() == ']') {
 
-        auto i = currentImage[currentPanel] + 1;
-        if (i == imageFiles.count()) {
-          i = 0;
+        if (currentPanel < numPictures) {
+          auto i = currentImage[currentPanel] + 1;
+          if (i == imageFiles.count()) {
+            i = 0;
+          }
+          currentImage[currentPanel] = i;
+          std::cout << "Loading " << (int)currentPanel << " -> "
+                    << imageFiles[i].filepath() << std::endl;
+          pictures[currentPanel].file.set(imageFiles[i].file());
+        } else {
+          // Video Panel
+          auto i = currentImage[currentPanel] + 1;
+          if (i == videoFiles.count()) {
+            i = 0;
+          }
+          currentImage[currentPanel] = i;
+          std::cout << "Loading " << (int)currentPanel << " -> "
+                    << videoFiles[i].filepath() << std::endl;
+          videos[currentPanel - numPictures].file.set(videoFiles[i].file());
         }
-        currentImage[currentPanel] = i;
-        std::cout << "Loading " << (int)currentPanel << " -> "
-                  << imageFiles[i].filepath() << std::endl;
-        pictures[currentPanel].file.set(imageFiles[i].file());
       }
     } else { // Renderer
       if (k.key() == 'o') {
