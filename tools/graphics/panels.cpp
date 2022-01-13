@@ -165,7 +165,8 @@ struct PictureViewer : DistributedAppWithState<State> {
     }
     parameterServer() << bgColor;
 
-    imageFiles = fileListFromDir(dataRoot + "CFM_SensoriumImages_HiRes");
+    imageFiles =
+        fileListFromDir(dataRoot + "Sensorium/CFM_SensoriumImages_HiRes");
   }
 
   //  void onCreate() override {}
