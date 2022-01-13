@@ -52,7 +52,8 @@ public:
       if (value != currentlyLoadedFile) {
         std::string *rootPath = static_cast<std::string *>(userData());
 
-        std::string filename = *rootPath + "CFM_SensoriumImages_HiRes/" + value;
+        std::string filename =
+            *rootPath + "Sensorium/CFM_SensoriumImages_HiRes/" + value;
 
         auto imageData = Image(filename);
 
