@@ -118,6 +118,14 @@ struct PictureViewer : DistributedAppWithState<State> {
 
     if (!sphere::isSphereMachine()) {
       dataRoot = "c:/Users/Andres/Downloads/";
+    } else {
+      if (sphere::isRendererMachine()) {
+        dataRoot += "/data/";
+      } else {
+        // CHange this to your local data root path
+        dataRoot = "/Volumes/Data/";
+        //    app.dataRoot = "/Users/cannedstar/code/video_player/data/";
+      }
     }
 
     // Enable cuttlebone for state distribution
