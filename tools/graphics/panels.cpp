@@ -77,7 +77,7 @@ public:
       g.rotate(rot);
     }
     g.tint(1.0, alpha);
-    g.quad(tex, -0.5 * aspectRatio, -0.5, aspectRatio, 1, true);
+    g.quad(tex, -0.5 * aspectRatio, 0.5, aspectRatio, -1, false);
     g.popMatrix();
   }
 };
@@ -114,7 +114,7 @@ public:
 
 class VideoPanel : public Panel {
 public:
-  double wallTime{0.0};
+  //  double wallTime{0.0};
   double previousTime{0.0};
 
   ParameterBool playing{"playing", "", false};
@@ -124,8 +124,10 @@ public:
     Panel::init();
 
     bundle.addParameter(playing);
+    bundle.addParameter(currentTime);
     registerParameter(playing);
-    registerParameter(currentTime); // Current time u
+    registerParameter(currentTime); // Current time will be updated on replicas
+    currentTime.min(0.0f);
 
     file.registerChangeCallback([&](std::string value) {
       if (value != currentlyLoadedFile) {
@@ -149,7 +151,8 @@ public:
                      Texture::RGBA8, Texture::RGBA, Texture::UBYTE);
         videoDecoder.enableAudio(false);
         aspectRatio = videoDecoder.width() / (double)videoDecoder.height();
-        wallTime = 0.0;
+        currentTime = 0.0;
+        currentTime.max(3000); // TODO set from video length
         playing = 1.0;
         videoDecoder.start();
 
@@ -165,27 +168,29 @@ public:
   void update(double dt) {
 #ifdef AL_EXT_LIBAV
     bool timeChanged = false;
-    if (playing.get() == 1.0f) {
-      wallTime += dt;
-      timeChanged = true;
+    if (isPrimary()) {
+      if (playing.get() == 1.0f) {
+        currentTime = currentTime.get() + dt;
+        timeChanged = true;
+      }
     }
-    if (wallTime < previousTime) {
-      videoDecoder.stream_seek((int64_t)(wallTime * AV_TIME_BASE), -10);
+    if (currentTime < previousTime) {
+      videoDecoder.stream_seek((int64_t)(currentTime * AV_TIME_BASE), -10);
       timeChanged = true;
-    } else if (wallTime - previousTime > 3.0 / 30.0) {
-      videoDecoder.stream_seek((int64_t)(wallTime * AV_TIME_BASE), 10);
+    } else if (currentTime - previousTime > 3.0 / 30.0) {
+      videoDecoder.stream_seek((int64_t)(currentTime * AV_TIME_BASE), 10);
       timeChanged = true;
-    } else if (wallTime != previousTime) {
-      videoDecoder.stream_seek((int64_t)(wallTime * AV_TIME_BASE), 10);
+    } else if (currentTime != previousTime) {
+      videoDecoder.stream_seek((int64_t)(currentTime * AV_TIME_BASE), 10);
       timeChanged = true;
     }
     if (timeChanged) {
-      uint8_t *frame = videoDecoder.getVideoFrame(wallTime);
+      uint8_t *frame = videoDecoder.getVideoFrame(currentTime);
       if (frame) {
         tex.submit(frame);
       }
+      previousTime = currentTime;
     }
-    previousTime = wallTime;
 #endif
   }
 
@@ -209,7 +214,7 @@ private:
 #endif
 };
 
-class PictureViewer : public DistributedAppWithState<State> {
+class PanelViewer : public DistributedAppWithState<State> {
 public:
   // a mesh we use to do graphics rendering in this app
   Mesh mesh;
@@ -344,6 +349,9 @@ public:
       auto currentPanel = gui->getBundleCurrent("pictureParams");
       if (k.key() == '[') {
         if (currentPanel < numPictures) {
+          if (imageFiles.count() == 0) {
+            return true;
+          }
           auto i = currentImage[currentPanel] - 1;
           if (i == -1) {
             i = imageFiles.count() - 1;
@@ -354,6 +362,9 @@ public:
           pictures[currentPanel].file.set(imageFiles[i].file());
         } else {
           // Video Panel
+          if (videoFiles.count() == 0) {
+            return true;
+          }
           auto i = currentImage[currentPanel] - 1;
           if (i == -1) {
             i = videoFiles.count() - 1;
@@ -366,6 +377,9 @@ public:
       } else if (k.key() == ']') {
 
         if (currentPanel < numPictures) {
+          if (imageFiles.count() == 0) {
+            return true;
+          }
           auto i = currentImage[currentPanel] + 1;
           if (i == imageFiles.count()) {
             i = 0;
@@ -376,6 +390,9 @@ public:
           pictures[currentPanel].file.set(imageFiles[i].file());
         } else {
           // Video Panel
+          if (videoFiles.count() == 0) {
+            return true;
+          }
           auto i = currentImage[currentPanel] + 1;
           if (i == videoFiles.count()) {
             i = 0;
@@ -398,7 +415,7 @@ public:
 };
 
 int main() {
-  PictureViewer viewer;
+  PanelViewer viewer;
   viewer.start();
   return 0;
 }
