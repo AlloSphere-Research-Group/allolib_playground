@@ -20,7 +20,7 @@
 using namespace al;
 
 #include <iostream> // cout
-#include <vector>   // vector
+#include <vector> // vector
 
 const size_t numPictures = 8;
 const size_t numVideos = 2;
@@ -222,6 +222,13 @@ public:
 
   ParameterColor bgColor{"bgColor", "", Color(0)};
 
+  ParameterBool skybox{"skybox"};
+  int8_t currentSkybox{0};
+  VAOMesh sphereMesh;
+  ParameterString skyboxFile{"skyboxFile"};
+  Texture skyboxTexture;
+  std::string currentSkyboxFile;
+
   DistributedScene scene{TimeMasterMode::TIME_MASTER_CPU};
   FileList imageFiles;
   FileList videoFiles;
@@ -281,6 +288,34 @@ public:
       }
     }
 
+    // Skybox
+    {
+      addSphereWithTexcoords(sphereMesh, 10, 50, true);
+      sphereMesh.update();
+
+      skyboxFile.registerChangeCallback([&](std::string value) {
+        if (value != currentSkyboxFile) {
+
+          std::string filename = dataRoot + imagePath + value;
+
+          auto imageData = Image(filename);
+
+          if (imageData.array().size() == 0) {
+            std::cout << "failed to load image " << filename << std::endl;
+          }
+          std::cout << "loaded image size: " << imageData.width() << ", "
+                    << imageData.height() << std::endl;
+
+          skyboxTexture.create2D(imageData.width(), imageData.height());
+          skyboxTexture.submit(imageData.array().data(), GL_RGBA,
+                               GL_UNSIGNED_BYTE);
+
+          skyboxTexture.filter(Texture::LINEAR);
+          currentSkyboxFile = value;
+        }
+      });
+    }
+
     if (isPrimary()) {
       // Persistent configuration
       config.registerParameter(bgColor);
@@ -291,6 +326,8 @@ public:
       gui = &guiDomain->newGUI();
       *gui << bgColor;
       *gui << presets;
+
+      *gui << skybox << skyboxFile;
 
       presets << bgColor;
 
@@ -328,6 +365,12 @@ public:
     g.blendTrans();
     scene.render(g);
     g.popMatrix();
+
+    if (skybox.get() == 1.0) {
+      skyboxTexture.bind();
+      g.draw(sphereMesh);
+      skyboxTexture.unbind();
+    }
   }
 
   void onSound(AudioIOData &io) override {
@@ -401,6 +444,31 @@ public:
                     << videoFiles[i].filepath() << std::endl;
           videos[currentPanel - numPictures].file.set(videoFiles[i].file());
         }
+      } else if (k.key() == ',') {
+        if (imageFiles.count() == 0) {
+          return true;
+        }
+        auto i = currentSkybox - 1;
+        if (i == -1) {
+          i = imageFiles.count() - 1;
+        }
+        currentSkybox = i;
+        std::cout << "Loading " << (int)currentPanel << " -> "
+                  << imageFiles[i].filepath() << std::endl;
+        skyboxFile.set(imageFiles[i].file());
+      } else if (k.key() == '.') {
+
+        if (imageFiles.count() == 0) {
+          return true;
+        }
+        auto i = currentSkybox + 1;
+        if (i == imageFiles.count()) {
+          i = 0;
+        }
+        currentSkybox = i;
+        std::cout << "Loading " << (int)currentPanel << " -> "
+                  << imageFiles[i].filepath() << std::endl;
+        skyboxFile.set(imageFiles[i].file());
       }
     } else { // Renderer
       if (k.key() == 'o') {
