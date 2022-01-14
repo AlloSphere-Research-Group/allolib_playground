@@ -20,7 +20,7 @@
 using namespace al;
 
 #include <iostream> // cout
-#include <vector> // vector
+#include <vector>   // vector
 
 const size_t numPictures = 8;
 const size_t numVideos = 2;
@@ -174,14 +174,13 @@ public:
         timeChanged = true;
       }
     }
-    if (currentTime < previousTime) {
+    if (currentTime - previousTime < -3.0 / 30.0) {
       videoDecoder.stream_seek((int64_t)(currentTime * AV_TIME_BASE), -10);
       timeChanged = true;
     } else if (currentTime - previousTime > 3.0 / 30.0) {
       videoDecoder.stream_seek((int64_t)(currentTime * AV_TIME_BASE), 10);
       timeChanged = true;
     } else if (currentTime != previousTime) {
-      videoDecoder.stream_seek((int64_t)(currentTime * AV_TIME_BASE), 10);
       timeChanged = true;
     }
     if (timeChanged) {
