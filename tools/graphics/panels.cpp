@@ -314,6 +314,7 @@ public:
           currentSkyboxFile = value;
         }
       });
+      parameterServer() << skyboxFile << skybox;
     }
 
     if (isPrimary()) {
