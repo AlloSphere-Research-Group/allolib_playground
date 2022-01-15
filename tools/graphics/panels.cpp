@@ -345,6 +345,7 @@ public:
         presets.registerParameterBundle(videos[i].bundle);
       }
     } else {
+      stereo.setSynchronousCallbacks(false);
       stereo.registerChangeCallback([&](auto value) {
         if (omniRendering) {
           omniRendering->stereo(value == 1.0);
@@ -361,6 +362,8 @@ public:
 
   void onAnimate(double dt) override {
     skyboxFile.processChange();
+    stereo.processChange();
+
     scene.update(dt);
     if (isPrimary()) {
 
