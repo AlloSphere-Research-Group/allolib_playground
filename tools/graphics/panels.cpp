@@ -369,18 +369,18 @@ public:
   }
 
   void onDraw(Graphics &g) override {
+    if (skybox.get() == 1.0) {
+      skyboxTexture.bind();
+      g.draw(sphereMesh);
+      skyboxTexture.unbind();
+    }
+
     g.pushMatrix();
     g.clear(bgColor);
     g.blending(true);
     g.blendTrans();
     scene.render(g);
     g.popMatrix();
-
-    if (skybox.get() == 1.0) {
-      skyboxTexture.bind();
-      g.draw(sphereMesh);
-      skyboxTexture.unbind();
-    }
   }
 
   void onSound(AudioIOData &io) override {
