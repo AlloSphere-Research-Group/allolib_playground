@@ -291,7 +291,7 @@ public:
 
     // Skybox
     {
-      addSphereWithTexcoords(sphereMesh, 10, 50, true);
+      addSphereWithTexcoords(sphereMesh, 20, 50, true);
       sphereMesh.update();
 
       skyboxFile.setSynchronousCallbacks(false);
@@ -306,7 +306,7 @@ public:
           if (imageData.array().size() == 0) {
             std::cout << "failed to load image " << filename << std::endl;
           }
-          std::cout << "loaded image size: " << imageData.width() << ", "
+          std::cout << "SKYBOX loaded image size: " << imageData.width() << ", "
                     << imageData.height() << std::endl;
 
           skyboxTexture.create2D(imageData.width(), imageData.height());
@@ -369,16 +369,17 @@ public:
   }
 
   void onDraw(Graphics &g) override {
+    g.clear(bgColor);
+    g.blending(true);
+    g.blendTrans();
     if (skybox.get() == 1.0) {
+      g.texture();
       skyboxTexture.bind();
       g.draw(sphereMesh);
       skyboxTexture.unbind();
     }
 
     g.pushMatrix();
-    g.clear(bgColor);
-    g.blending(true);
-    g.blendTrans();
     scene.render(g);
     g.popMatrix();
   }
