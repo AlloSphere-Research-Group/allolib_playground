@@ -221,6 +221,7 @@ public:
   gam::NoisePink<> pinkNoise;
 
   ParameterColor bgColor{"bgColor", "", Color(0)};
+  ParameterBool stereo{"stereo"};
 
   ParameterBool skybox{"skybox"};
   int8_t currentSkybox{0};
@@ -331,8 +332,9 @@ public:
       *gui << presets;
 
       *gui << skybox << skyboxFile;
+      *gui << stereo;
 
-      presets << bgColor;
+      presets << bgColor << skyboxFile << skybox;
 
       for (size_t i = 0; i < numPictures; i++) {
         *gui << pictures[i].bundle;
@@ -343,8 +345,13 @@ public:
         presets.registerParameterBundle(videos[i].bundle);
       }
     } else {
+      stereo.registerChangeCallback([&](auto value) {
+        if (omniRendering) {
+          omniRendering->stereo(value == 1.0);
+        }
+      });
     }
-    parameterServer() << bgColor;
+    parameterServer() << bgColor << stereo;
 
     imageFiles = fileListFromDir(dataRoot + imagePath);
     videoFiles = fileListFromDir(dataRoot + videoPath);
