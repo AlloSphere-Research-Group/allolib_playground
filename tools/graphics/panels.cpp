@@ -293,6 +293,8 @@ public:
       addSphereWithTexcoords(sphereMesh, 10, 50, true);
       sphereMesh.update();
 
+      skyboxFile.setSynchronousCallbacks(false);
+
       skyboxFile.registerChangeCallback([&](std::string value) {
         if (value != currentSkyboxFile) {
 
@@ -351,7 +353,7 @@ public:
   //  void onCreate() override {}
 
   void onAnimate(double dt) override {
-
+    skyboxFile.processChange();
     scene.update(dt);
     if (isPrimary()) {
 
