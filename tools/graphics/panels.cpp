@@ -222,14 +222,14 @@ public:
 
   ParameterColor bgColor{"bgColor", "", Color(0)};
   ParameterBool stereo{"stereo"};
+  Parameter rotateSpeed{"rotateSpeed", 0.f, -5.f, 5.f};
+  Parameter rotatePhase{"rotatePhase"};
 
   ParameterBool skybox{"skybox"};
   int8_t currentSkybox{0};
   VAOMesh sphereMesh;
   ParameterString skyboxFile{"skyboxFile"};
   ParameterPose skyboxPose{"skyboxPose"};
-  Parameter skyboxRotY{"skyboxRotY", 0.f, -5.f, 5.f};
-  Parameter skyboxRotPhase{"skyboxRotPhase"};
   Texture skyboxTexture;
   std::string currentSkyboxFile;
 
@@ -319,8 +319,8 @@ public:
           currentSkyboxFile = value;
         }
       });
-      parameterServer() << skyboxFile << skybox << skyboxPose << skyboxRotY
-                        << skyboxRotPhase;
+      parameterServer() << skyboxFile << skybox << skyboxPose << rotateSpeed
+                        << rotatePhase;
     }
 
     if (isPrimary()) {
@@ -334,11 +334,11 @@ public:
       *gui << bgColor;
       *gui << presets;
 
-      *gui << skybox << skyboxFile << skyboxPose << skyboxRotY;
+      *gui << skybox << skyboxFile << skyboxPose << rotateSpeed;
       *gui << stereo;
 
-      presets << bgColor << skyboxFile << skybox << skyboxPose << skyboxRotY
-              << skyboxRotPhase;
+      presets << bgColor << skyboxFile << skybox << skyboxPose << rotateSpeed
+              << rotatePhase;
 
       for (size_t i = 0; i < numPictures; i++) {
         *gui << pictures[i].bundle;
@@ -370,11 +370,11 @@ public:
 
     scene.update(dt);
     if (isPrimary()) {
-      skyboxRotPhase.set(skyboxRotPhase.get() + skyboxRotY.get() * dt);
-      if (skyboxRotPhase.get() > 360.f)
-        skyboxRotPhase.set(skyboxRotPhase.get() - 360.f);
-      else if (skyboxRotPhase.get() < -360.f)
-        skyboxRotPhase.set(skyboxRotPhase.get() + 360.f);
+      rotatePhase.set(rotatePhase.get() + rotateSpeed.get() * dt);
+      if (rotatePhase.get() > 360.f)
+        rotatePhase.set(rotatePhase.get() - 360.f);
+      else if (rotatePhase.get() < -360.f)
+        rotatePhase.set(rotatePhase.get() + 360.f);
     } else {
     }
   }
@@ -383,12 +383,15 @@ public:
     g.clear(bgColor);
     g.blending(true);
     g.blendTrans();
+
+    g.pushMatrix();
+    g.rotate(rotatePhase, 0, 1, 0);
+
     if (skybox.get() == 1.0) {
       g.pushMatrix();
       g.texture();
       g.translate(skyboxPose.get().pos());
       g.rotate(skyboxPose.get().quat());
-      g.rotate(skyboxRotPhase, 0, 1, 0);
       skyboxTexture.bind();
       g.draw(sphereMesh);
       skyboxTexture.unbind();
@@ -397,6 +400,8 @@ public:
 
     g.pushMatrix();
     scene.render(g);
+    g.popMatrix();
+
     g.popMatrix();
   }
 
@@ -498,8 +503,8 @@ public:
         skyboxFile.set(imageFiles[i].file());
       } else if (k.key() == 'r') {
         nav().home();
-        skyboxRotY.set(0.f);
-        skyboxRotPhase.set(0.f);
+        rotateSpeed.set(0.f);
+        rotatePhase.set(0.f);
       }
     } else { // Renderer
       if (k.key() == 'o') {
