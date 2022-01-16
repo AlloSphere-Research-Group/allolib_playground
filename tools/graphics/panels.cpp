@@ -35,8 +35,8 @@ struct State {
 #undef far
 #endif
 
-static const char *imagePath = "Sensorium/CFM_SensoriumImages_HiRes/";
-static const char *videoPath = "Sensorium/video/";
+static const char *imagePath = "Sensorium/images/";
+static const char *videoPath = "Sensorium/videos/";
 
 class Panel : public PositionedVoice {
 public:
