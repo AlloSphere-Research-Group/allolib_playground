@@ -20,10 +20,10 @@
 using namespace al;
 
 #include <iostream> // cout
-#include <vector> // vector
+#include <vector>   // vector
 
-const size_t numPictures = 8;
-const size_t numVideos = 2;
+const size_t numPictures = 7;
+const size_t numVideos = 1;
 
 struct State {
   Pose pose; // for navigation
@@ -199,7 +199,7 @@ public:
     if (billboard.get() == 1) {
       Vec3f forward = pose().pos();
       forward.normalize();
-      Quatf rot = Quatf::getBillboardRotation(-forward, Vec3f{0.0, 1.0f, 0.0f});
+      Quatf rot = Quatf::getBillboardRotation(-forward, Vec3f{0.f, 1.f, 0.f});
       g.rotate(rot);
     }
     g.tint(1.0, alpha);
@@ -227,6 +227,9 @@ public:
   int8_t currentSkybox{0};
   VAOMesh sphereMesh;
   ParameterString skyboxFile{"skyboxFile"};
+  ParameterPose skyboxPose{"skyboxPose"};
+  Parameter skyboxRotY{"skyboxRotY", 0.f, -5.f, 5.f};
+  Parameter skyboxRotPhase{"skyboxRotPhase"};
   Texture skyboxTexture;
   std::string currentSkyboxFile;
 
@@ -244,14 +247,13 @@ public:
   void onInit() override {
 
     if (!sphere::isSphereMachine()) {
-      dataRoot = "c:/Users/Andres/Downloads/";
+      // dataRoot = "c:/Users/Andres/Downloads/";
+      dataRoot = "/Users/cannedstar/code/allolib_playground/";
     } else {
       if (sphere::isRendererMachine()) {
         dataRoot += "/data/";
       } else {
-        // CHange this to your local data root path
         dataRoot = "/Volumes/Data/";
-        //    app.dataRoot = "/Users/cannedstar/code/video_player/data/";
       }
     }
 
@@ -291,7 +293,7 @@ public:
 
     // Skybox
     {
-      addSphereWithTexcoords(sphereMesh, 20, 50, true);
+      addSphereWithTexcoords(sphereMesh, 50, 50, true);
       sphereMesh.update();
 
       skyboxFile.setSynchronousCallbacks(false);
@@ -317,7 +319,8 @@ public:
           currentSkyboxFile = value;
         }
       });
-      parameterServer() << skyboxFile << skybox;
+      parameterServer() << skyboxFile << skybox << skyboxPose << skyboxRotY
+                        << skyboxRotPhase;
     }
 
     if (isPrimary()) {
@@ -331,10 +334,11 @@ public:
       *gui << bgColor;
       *gui << presets;
 
-      *gui << skybox << skyboxFile;
+      *gui << skybox << skyboxFile << skyboxPose << skyboxRotY;
       *gui << stereo;
 
-      presets << bgColor << skyboxFile << skybox;
+      presets << bgColor << skyboxFile << skybox << skyboxPose << skyboxRotY
+              << skyboxRotPhase;
 
       for (size_t i = 0; i < numPictures; i++) {
         *gui << pictures[i].bundle;
@@ -366,7 +370,11 @@ public:
 
     scene.update(dt);
     if (isPrimary()) {
-
+      skyboxRotPhase.set(skyboxRotPhase.get() + skyboxRotY.get() * dt);
+      if (skyboxRotPhase.get() > 360.f)
+        skyboxRotPhase.set(skyboxRotPhase.get() - 360.f);
+      else if (skyboxRotPhase.get() < -360.f)
+        skyboxRotPhase.set(skyboxRotPhase.get() + 360.f);
     } else {
     }
   }
@@ -376,10 +384,15 @@ public:
     g.blending(true);
     g.blendTrans();
     if (skybox.get() == 1.0) {
+      g.pushMatrix();
       g.texture();
+      g.translate(skyboxPose.get().pos());
+      g.rotate(skyboxPose.get().quat());
+      g.rotate(skyboxRotPhase, 0, 1, 0);
       skyboxTexture.bind();
       g.draw(sphereMesh);
       skyboxTexture.unbind();
+      g.popMatrix();
     }
 
     g.pushMatrix();
@@ -483,6 +496,10 @@ public:
         std::cout << "Loading " << (int)currentPanel << " -> "
                   << imageFiles[i].filepath() << std::endl;
         skyboxFile.set(imageFiles[i].file());
+      } else if (k.key() == 'r') {
+        nav().home();
+        skyboxRotY.set(0.f);
+        skyboxRotPhase.set(0.f);
       }
     } else { // Renderer
       if (k.key() == 'o') {
