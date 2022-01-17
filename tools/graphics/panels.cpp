@@ -383,11 +383,12 @@ public:
       }
     } else {
       if (omniRendering) {
-        omniRendering->stereo(value == 1.0);
+        omniRendering->stereo(stereo.get());
       }
 
       stereo.setSynchronousCallbacks(false);
       stereo.registerChangeCallback([&](auto value) {
+        stereo.set(value == 1.0);
         if (omniRendering) {
           omniRendering->stereo(value == 1.0);
         }
