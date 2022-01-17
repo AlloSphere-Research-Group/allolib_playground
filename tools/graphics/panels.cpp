@@ -382,10 +382,7 @@ public:
         presets.registerParameterBundle(videos[i].bundle);
       }
     } else {
-      if (omniRendering) {
-        omniRendering->stereo(false);
-      }
-
+      lens().eyeSep(0);
       stereo.setSynchronousCallbacks(false);
       stereo.registerChangeCallback([&](auto value) {
         if (omniRendering) {
