@@ -382,6 +382,10 @@ public:
         presets.registerParameterBundle(videos[i].bundle);
       }
     } else {
+      if (omniRendering) {
+        omniRendering->stereo(false);
+      }
+
       stereo.setSynchronousCallbacks(false);
       stereo.registerChangeCallback([&](auto value) {
         if (omniRendering) {
@@ -552,7 +556,6 @@ public:
 
 int main() {
   PanelViewer viewer;
-  viewer.omniRendering->stereo(false);
   viewer.start();
   return 0;
 }
