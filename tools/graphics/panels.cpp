@@ -44,8 +44,12 @@ public:
   Parameter alpha{"alpha", "", 1.0, 0.0, 1.0};
   Texture tex;
   float aspectRatio{1.0f};
-  ParameterBool billboard{"billboard", "", false};
+  ParameterBool billboard{"billboard", "", true};
   std::string currentlyLoadedFile;
+
+  Parameter lat{"lat", "", 0.0, -90.0, 90.0};
+  Parameter lon{"lon", "", 0.0, -180.0, 180.0};
+  Parameter radius{"radius", "", 10.0, 0.0, 50.0};
 
   ParameterBundle bundle{"pictureParams"};
 
@@ -54,13 +58,42 @@ public:
     registerParameters(parameterPose(), parameterSize(), file, billboard,
                        alpha);
 
-    parameterSize().min(0.1f);
+    parameterSize().min(0.0f);
     parameterSize().max(2.0f);
+    parameterSize().set(0.0f);
 
     file.setSynchronousCallbacks(
         false); // texture must always be loaded in graphics context
 
+    lat.registerChangeCallback([&](float value) {
+      parameterPose().setPos(Vec3d(radius.get() * cos(value / 180.0 * M_PI) *
+                                       sin(lon.get() / 180.0 * M_PI),
+                                   radius.get() * sin(value / 180.0 * M_PI),
+                                   -radius.get() * cos(value / 180.0 * M_PI) *
+                                       cos(lon.get() / 180.0 * M_PI)));
+    });
+
+    lon.registerChangeCallback([&](float value) {
+      parameterPose().setPos(
+          Vec3d(radius.get() * cos(lat.get() / 180.0 * M_PI) *
+                    sin(value / 180.0 * M_PI),
+                radius.get() * sin(lat.get() / 180.0 * M_PI),
+                -radius.get() * cos(lat.get() / 180.0 * M_PI) *
+                    cos(value / 180.0 * M_PI)));
+    });
+
+    radius.registerChangeCallback([&](float value) {
+      parameterPose().setPos(Vec3d(value * cos(lat.get() / 180.0 * M_PI) *
+                                       sin(lon.get() / 180.0 * M_PI),
+                                   value * sin(lat.get() / 180.0 * M_PI),
+                                   -value * cos(lat.get() / 180.0 * M_PI) *
+                                       cos(lon.get() / 180.0 * M_PI)));
+    });
+
     bundle.addParameter(parameterPose());
+    bundle.addParameter(lon);
+    bundle.addParameter(lat);
+    bundle.addParameter(radius);
     bundle.addParameter(parameterSize());
     bundle.addParameter(alpha);
     bundle.addParameter(file);
@@ -349,6 +382,10 @@ public:
         presets.registerParameterBundle(videos[i].bundle);
       }
     } else {
+      if (omniRendering) {
+        omniRendering->stereo(value == 1.0);
+      }
+
       stereo.setSynchronousCallbacks(false);
       stereo.registerChangeCallback([&](auto value) {
         if (omniRendering) {
