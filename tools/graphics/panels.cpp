@@ -370,8 +370,7 @@ public:
       *gui << skybox << skyboxFile << skyboxPose << rotateSpeed;
       *gui << stereo;
 
-      presets << bgColor << skyboxFile << skybox << skyboxPose << rotateSpeed
-              << rotatePhase;
+      presets << bgColor << skyboxFile << skybox << skyboxPose << rotateSpeed;
 
       for (size_t i = 0; i < numPictures; i++) {
         *gui << pictures[i].bundle;
@@ -424,6 +423,7 @@ public:
     if (skybox.get() == 1.0) {
       g.pushMatrix();
       g.texture();
+      g.tint(1.f, 1.f);
       g.translate(skyboxPose.get().pos());
       g.rotate(skyboxPose.get().quat());
       skyboxTexture.bind();
