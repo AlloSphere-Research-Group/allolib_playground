@@ -59,7 +59,7 @@ public:
                        alpha);
 
     parameterSize().min(0.0f);
-    parameterSize().max(2.0f);
+    parameterSize().max(10.0f);
     parameterSize().set(0.0f);
 
     file.setSynchronousCallbacks(
