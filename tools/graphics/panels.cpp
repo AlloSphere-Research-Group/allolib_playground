@@ -432,10 +432,10 @@ public:
       g.popMatrix();
     }
 
-    g.pushMatrix();
-    scene.render(g);
     g.popMatrix();
 
+    g.pushMatrix();
+    scene.render(g);
     g.popMatrix();
   }
 
