@@ -24,7 +24,7 @@ Installing VS Code is optional, but if you don't have experience setting up an I
 - Once it is downloaded, run the installer (`VSCodeUserSetup-{version}.exe`). This will only take a minute.
 - By default, VS Code is installed under `C:\users\{username}\AppData\Local\Programs\Microsoft VS Code`.
 
-More details at [here](https://code.visualstudio.com/docs/setup/windows).
+More details [here](https://code.visualstudio.com/docs/setup/windows).
 
 <br>
 
@@ -36,7 +36,7 @@ More details at [here](https://code.visualstudio.com/docs/setup/windows).
 - Drag `Visual Studio Code.app` to the `Applications` folder, making it available in the macOS Launchpad.
 - Add VS Code to your Dock by right-clicking on the icon to bring up the context menu and choosing **Options**, **Keep in Dock**.
 
-More details at [here](https://code.visualstudio.com/docs/setup/mac).
+More details [here](https://code.visualstudio.com/docs/setup/mac).
 
 <br>
 
@@ -58,7 +58,7 @@ This step is optional, only necessary if you will use VS Code to edit source cod
   - Install "Individual Components": **C++/CLI support**, **Git for Windows**, **C++ CMake tools for Windows**. (These components are necessary for allolib. See [here](https://github.com/AlloSphere-Research-Group/allolib/blob/master/readme.md) in details.)
 - Restart your computer after the installation is done.
 
-More details at [here](https://code.visualstudio.com/docs/cpp/config-msvc).
+More details [here](https://code.visualstudio.com/docs/cpp/config-msvc).
 
 <br>
 
@@ -84,10 +84,9 @@ xcode-select --install
 ```
 
 - You need to install [Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) form App Store if you can't run the above command.
-- **Note**: If you can't download Xcode from App Store because your macOS version is old, you can download it from [the Apple Developer downloads page](https://developer.apple.com/download/more/) with your Apple account. Please check both your macOS version and a supported Xcode version from [here](https://en.wikipedia.org/wiki/Xcode).
-  - Alternatively, you can just download and install the Command Line Tools from the same page.
+- **Note**: If you can't download Xcode from App Store because your macOS version is old, you can download it from [the Apple Developer downloads page](https://developer.apple.com/download/more/) with your Apple account. Please check both your macOS version and a supported Xcode version [here](https://developer.apple.com/support/xcode/).
 
-More details at [here](https://code.visualstudio.com/docs/cpp/config-clang-mac).
+More details [here](https://code.visualstudio.com/docs/cpp/config-clang-mac).
 
 <br>
 
@@ -118,6 +117,21 @@ First, to install git, run the command below in Terminal:
 ```shell
 brew install git
 ```
+
+- If you are having an error like below:
+
+  ```shell
+  fatal: Could not resolve HEAD to a revision
+  ```
+
+- Run the commands below one by one in Terminal:
+
+  ```shell
+  rm -rf $(brew --repo homebrew/core)
+  brew tap homebrew/core
+  ```
+
+- And re-run `brew install git`.
 
 To test the git installation, enter the command below in Terminal and if you can see a version for git, it is okay to move on to the next.
 
@@ -227,6 +241,10 @@ git clone https://github.com/AlloSphere-Research-Group/allolib_playground
 
 ### 6. Install Submodules<a name="6"></a>
 
+Your Windows should open bash script files (init.sh or run.sh) with Git Bash. Please make sure a default program for .sh files is Git Bash on your Windows.
+
+<br>
+
 Open Terminal by clicking **Terminal > New Terminal** on the menu on VS Code. 
 
 Run the init.sh file:
@@ -264,8 +282,6 @@ To compile and build c++ source code files with VS Code, it requires to set thre
 #### tasks.json
 
 - Open `01_SineEnv.cpp`  file under the `synthesis` folder with VS Code.
-
-- When you open It will ask ""
 
 - Select **Terminal** > **Configure Default Build Task** from the VS Code menu. and choose "**create tasks.json from the default template**". If you cannot see this item from a template list, choose any item in the list because you will replace the contents of `tasks.json`. Then it will open `tasks.json`. Change it as below:
 
