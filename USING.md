@@ -324,16 +324,42 @@ To compile and build c++ source code files with VS Code, it requires to set thre
 
 <br>
 
-#### c_cpp_properties.json (macOS only)
+#### c_cpp_properties.json
 
 - When you first open the example code file above, it will ask **"Configure your IntelliSense settings to help find missing headers."** Click **"Configure (JSON)"**. 
-
 - It will open `c_cpp_properties.json`. If the message above didn't appear or was dismissed, create the file under `.vscode` folder in the `allolib_playground` directory.
 
-- Change it as below:
+- If you don't have `c_cpp_properties.json` in the `.vscode` folder, you can manually create it:
+  - On the menu, click **View > Command Palette** (Windows:Ctrl+Shift+P, macOS: ⇧⌘P)
+  - Click **Add Configuration** under the Configuration name section (don't need to give a file name for it).
+- When you open `c_cpp_properties.json`, it should look something like below:
 
-  ```json
-  {
+For Windows
+
+```json
+{
+    "configurations": [
+          {
+            "name": "Win32",
+            "includePath": ["${workspaceFolder}/**"],
+            "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
+            "windowsSdkVersion": "10.0.18362.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "msvc-x64"
+          }
+    ],
+    "version": 4
+}
+```
+
+- See [here](https://code.visualstudio.com/docs/cpp/config-msvc#_cc-configurations) in details.
+
+For macOS
+
+```json
+{
     "configurations": [
           {
               "name": "Mac",
@@ -349,10 +375,12 @@ To compile and build c++ source code files with VS Code, it requires to set thre
               "cppStandard": "c++14",
               "intelliSenseMode": "clang-x64"
           }
-      ],
-      "version": 4
-  }
-  ```
+    ],
+    "version": 4
+}
+```
+
+- See [here](https://code.visualstudio.com/docs/cpp/config-clang-mac#_cc-configuration) in details.
 
 <br>
 
