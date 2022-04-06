@@ -1,6 +1,6 @@
 ﻿// MUS109IA & MAT276IA.
 // Spring 2022
-// Course Instrument 01. Sine Envelope
+// Course Instrument 01. Sine Envelope with Visaul (Meshs and Spectrum)
 // Myungin Lee
 
 #include <cstdio> // for printing to stdout
@@ -10,6 +10,7 @@
 #include "Gamma/Effects.h"
 #include "Gamma/Envelope.h"
 #include "Gamma/Oscillator.h"
+#include "Gamma/DFT.h"
 
 #include "al/app/al_App.hpp"
 #include "al/graphics/al_Shapes.hpp"
@@ -34,6 +35,7 @@ Vec3f randomVec3f(float scale)
   return Vec3f(al::rnd::uniformS(), al::rnd::uniformS(), al::rnd::uniformS()) * scale;
 }
 
+#define FFT_SIZE 4048
 
 class SineEnv : public SynthVoice
 {
@@ -44,6 +46,8 @@ public:
   gam::Env<3> mAmpEnv;
   // envelope follower to connect audio output to graphics
   gam::EnvFollow<> mEnvFollow;
+  // Draw parameters
+  Mesh mMesh;
   double a = 0;
   double b = 0;
   double timepose = 0;
@@ -51,7 +55,6 @@ public:
   Vec3f note_direction;
 
   // Additional members
-  Mesh mMesh;
   // Initialize voice. This function will only be called once per voice when
   // it is created. Voices will be reused if they are idle.
   void init() override
@@ -127,8 +130,8 @@ public:
     g.translate(note_position + note_direction * timepose);
     g.rotate(a, Vec3f(0, 1, 0));
     g.rotate(b, Vec3f(1));
-    g.scale( 0.3+mAmpEnv()*0.2, 0.3+mAmpEnv()*0.5, amplitude);
-    g.color(HSV(frequency / 1000, 0.5+mAmpEnv()*0.1, 0.3+0.5*mAmpEnv()));
+    g.scale(0.3 + mAmpEnv() * 0.2, 0.3 + mAmpEnv() * 0.5, amplitude);
+    g.color(HSV(frequency / 1000, 0.5 + mAmpEnv() * 0.1, 0.3 + 0.5 * mAmpEnv()));
     g.draw(mMesh);
     g.popMatrix();
   }
@@ -136,15 +139,15 @@ public:
   // The triggering functions just need to tell the envelope to start or release
   // The audio processing function checks when the envelope is done to remove
   // the voice from the processing chain.
-  void onTriggerOn() override { 
+  void onTriggerOn() override
+  {
     float angle = getInternalParameterValue("frequency") / 200;
-    mAmpEnv.reset(); 
+    mAmpEnv.reset();
     a = al::rnd::uniform();
     b = al::rnd::uniform();
     timepose = 0;
-    note_position = {0,0,0};
-    note_direction = {sin(angle), cos(angle) , 0};
-
+    note_position = {0, 0, 0};
+    note_direction = {sin(angle), cos(angle), 0};
   }
 
   void onTriggerOff() override { mAmpEnv.release(); }
@@ -159,6 +162,18 @@ public:
   // where the presets and sequences are stored
   SynthGUIManager<SineEnv> synthManager{"SineEnv"};
   RtMidiIn midiIn; // MIDI input carrier
+  Mesh mSpectrogram;
+  vector<float> spectrum;
+  bool showGUI = true;
+  bool showSpectro = true;
+
+  // STFT variables
+  // Window size
+  // Hop size; number of samples between transforms
+  // Pad size; number of zero-valued samples appended to window
+  // Window type: HAMMING, HANN, WELCH, NYQUIST, or etc
+  // Format of frequency samples: COMPLEX, MAG_PHASE, or MAG_FREQ
+  gam::STFT stft = gam::STFT(FFT_SIZE, FFT_SIZE / 4, 0, gam::HANN, gam::MAG_FREQ);
 
   // This function is called right after the window is created
   // It provides a grphics context to initialize ParameterGUI
@@ -168,7 +183,7 @@ public:
   {
     navControl().active(false); // Disable navigation via keyboard, since we
                                 // will be using keyboard for note triggering
-    nav().pos(0, 0, 13);  
+    nav().pos(0, 0, 13);
 
     // Set sampling rate for Gamma objects from app's audio
     gam::sampleRate(audioIO().framesPerSecond());
@@ -198,11 +213,26 @@ public:
     {
       printf("Error: No MIDI devices found.\n");
     }
+    // Declare the size of the spectrum 
+    spectrum.resize(FFT_SIZE / 2 + 1);
   }
   // The audio callback function. Called when audio hardware requires data
   void onSound(AudioIOData &io) override
   {
     synthManager.render(io); // Render audio
+    // STFT
+    while (io())
+    {
+      if (stft(io.out(0)))
+      { // Loop through all the frequency bins
+        for (unsigned k = 0; k < stft.numBins(); ++k)
+        {
+          // Here we simply scale the complex sample
+          spectrum[k] = tanh(pow(stft.bin(k).real(), 1.3) );
+          //spectrum[k] = stft.bin(k).real();
+        }
+      }
+    }
   }
 
   void onAnimate(double dt) override
@@ -220,9 +250,28 @@ public:
     g.clear();
     // Render the synth's graphics
     synthManager.render(g);
-
+    // // Draw Spectrum
+    mSpectrogram.reset();
+    mSpectrogram.primitive(Mesh::LINE_STRIP);
+    if (showSpectro)
+    {
+      for (int i = 0; i < FFT_SIZE / 2; i++)
+      {
+        mSpectrogram.color(HSV(0.5 - spectrum[i] * 100));
+        mSpectrogram.vertex(i, spectrum[i], 0.0);
+      }
+      g.meshColor(); // Use the color in the mesh
+      g.pushMatrix();
+      g.translate(-5.0, -3, 0);
+      g.scale(100.0 / FFT_SIZE, 100, 1.0);
+      g.draw(mSpectrogram);
+      g.popMatrix();
+    }
     // GUI is drawn here
-    imguiDraw();
+    if (showGUI)
+    {
+      imguiDraw();
+    }
   }
 
   // This gets called whenever a MIDI message is received on the port
@@ -242,7 +291,8 @@ public:
         synthManager.triggerOn(midiNote);
         printf("On Note %u, Vel %f", m.noteNumber(), m.velocity());
       }
-      else {
+      else
+      {
         synthManager.triggerOff(midiNote);
         printf("Off Note %u, Vel %f", m.noteNumber(), m.velocity());
       }
@@ -263,9 +313,7 @@ public:
       // If shift pressed then keyboard sets preset
       int presetNumber = asciiToIndex(k.key());
       synthManager.recallPreset(presetNumber);
-    }
-    else
-    {
+    } else {
       // Otherwise trigger note for polyphonic synth
       int midiNote = asciiToMIDI(k.key());
       if (midiNote > 0)
@@ -275,7 +323,15 @@ public:
         synthManager.triggerOn(midiNote);
       }
     }
-
+    switch (k.key())
+    {
+    case ']':
+      showGUI = !showGUI;
+      break;
+    case '[':
+      showSpectro = !showSpectro;
+      break;
+    }
     return true;
   }
 

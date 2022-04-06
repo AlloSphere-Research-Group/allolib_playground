@@ -1,6 +1,8 @@
 // MUS109IA & MAT276IA.
 // Spring 2022
-// Course Instrument 04. FM Vib-Visual-MIDI
+// Course Instrument 04. FM Vib-Visual (Mesh & Spectrum)
+// Press '[' or ']' to turn on & off GUI 
+// Able to play with MIDI device
 // Myungin Lee
 
 #include <cstdio>  // for printing to stdout
@@ -11,6 +13,8 @@
 #include "Gamma/Gamma.h"
 #include "Gamma/Oscillator.h"
 #include "Gamma/Types.h"
+#include "Gamma/DFT.h"
+
 #include "al/app/al_App.hpp"
 #include "al/graphics/al_Shapes.hpp"
 #include "al/scene/al_PolySynth.hpp"
@@ -21,7 +25,7 @@
 // using namespace gam;
 using namespace al;
 using namespace std;
-float tclock = 0;
+#define FFT_SIZE 4048
 
 class FM : public SynthVoice {
  public:
@@ -122,7 +126,6 @@ class FM : public SynthVoice {
   void onTriggerOn() override {
     timepose = 10;
     updateFromParameters();
-
     float modFreq =
         getInternalParameterValue("freq") * getInternalParameterValue("modMul");
     mod.freq(modFreq);
@@ -146,7 +149,6 @@ class FM : public SynthVoice {
     mModEnv.levels()[3] = getInternalParameterValue("idx3");
 
     mAmpEnv.levels()[1] = 1.0;
-    // mAmpEnv.levels()[2] = 1.0;
     mAmpEnv.levels()[2] = getInternalParameterValue("sustain");
 
     mAmpEnv.lengths()[0] = getInternalParameterValue("attackTime");
@@ -170,12 +172,17 @@ class MyApp : public App, public MIDIMessageHandler {
  public:
   SynthGUIManager<FM> synthManager{"synth4Vib"};
   RtMidiIn midiIn; // MIDI input carrier
-  bool showGUI = true;
   //    ParameterMIDI parameterMIDI;
   int midiNote;
   float mVibFrq;
   float mVibDepth;
   float tscale = 1;
+
+  Mesh mSpectrogram;
+  vector<float> spectrum;
+  bool showGUI = true;
+  bool showSpectro = true;
+  gam::STFT stft = gam::STFT(FFT_SIZE, FFT_SIZE / 4, 0, gam::HANN, gam::MAG_FREQ);
 
   void onInit() override {
     imguiInit();
@@ -197,6 +204,8 @@ class MyApp : public App, public MIDIMessageHandler {
     } else {
       printf("Error: No MIDI devices found.\n");
     }
+    // Declare the size of the spectrum 
+    spectrum.resize(FFT_SIZE / 2 + 1);
   }
 
   void onCreate() override {
@@ -208,10 +217,22 @@ class MyApp : public App, public MIDIMessageHandler {
 
   void onSound(AudioIOData& io) override {
     synthManager.render(io);  // Render audio
+    // STFT
+    while (io())
+    {
+      if (stft(io.out(0)))
+      { // Loop through all the frequency bins
+        for (unsigned k = 0; k < stft.numBins(); ++k)
+        {
+          // Here we simply scale the complex sample
+          spectrum[k] = tanh(pow(stft.bin(k).real(), 1.3) );
+          //spectrum[k] = stft.bin(k).real();
+        }
+      }
+    }
   }
 
   void onAnimate(double dt) override {
-    tclock += dt * tscale;
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
     imguiEndFrame();
@@ -220,8 +241,26 @@ class MyApp : public App, public MIDIMessageHandler {
   void onDraw(Graphics& g) override {
     g.clear();
     synthManager.render(g);
-    // Draw GUI
-    if (showGUI){
+    // // Draw Spectrum
+    mSpectrogram.reset();
+    mSpectrogram.primitive(Mesh::LINE_STRIP);
+    if (showSpectro)
+    {
+      for (int i = 0; i < FFT_SIZE / 2; i++)
+      {
+        mSpectrogram.color(HSV(0.5 - spectrum[i] * 100));
+        mSpectrogram.vertex(i, spectrum[i], 0.0);
+      }
+      g.meshColor(); // Use the color in the mesh
+      g.pushMatrix();
+      g.translate(-3, -3, 0);
+      g.scale(10.0 / FFT_SIZE, 100, 1.0);
+      g.draw(mSpectrogram);
+      g.popMatrix();
+    }
+    // GUI is drawn here
+    if (showGUI)
+    {
       imguiDraw();
     }
   }
@@ -269,6 +308,9 @@ class MyApp : public App, public MIDIMessageHandler {
     {
     case ']':
       showGUI = !showGUI;
+      break;
+    case '[':
+      showSpectro = !showSpectro;
       break;
     case '-':
       tscale -= 0.1;
