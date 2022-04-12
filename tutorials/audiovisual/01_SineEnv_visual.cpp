@@ -3,6 +3,16 @@
 // Course Instrument 01. Sine Envelope with Visaul (Meshs and Spectrum)
 // Myungin Lee
 
+// Press '[' or ']' to turn on & off GUI 
+// Able to play with MIDI device
+
+// How to make .synthSequence notes 
+// # The '>' command adds an offset time to all events following
+// > 50 
+// # The '=' command adds another existing .synthSequence file to be played at the offset time.
+// For example, the underlying command plays "note_02.synthSequence" file at 9 sec.
+// = 9 note_02 1 
+
 #include <cstdio> // for printing to stdout
 #include <stdio.h>
 
@@ -289,12 +299,12 @@ public:
         synthManager.voice()->setInternalParameterValue(
             "attackTime", m.velocity());
         synthManager.triggerOn(midiNote);
-        printf("On Note %u, Vel %f", m.noteNumber(), m.velocity());
+        printf("On Note %u, Vel %f \n", m.noteNumber(), m.velocity());
       }
       else
       {
         synthManager.triggerOff(midiNote);
-        printf("Off Note %u, Vel %f", m.noteNumber(), m.velocity());
+        printf("Off Note %u, Vel %f \n", m.noteNumber(), m.velocity());
       }
       break;
     }
