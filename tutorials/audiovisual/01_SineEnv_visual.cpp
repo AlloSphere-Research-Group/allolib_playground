@@ -297,7 +297,7 @@ public:
         synthManager.voice()->setInternalParameterValue(
             "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
         synthManager.voice()->setInternalParameterValue(
-            "attackTime", m.velocity());
+            "attackTime", 1/m.velocity());
         synthManager.triggerOn(midiNote);
         printf("On Note %u, Vel %f \n", m.noteNumber(), m.velocity());
       }
