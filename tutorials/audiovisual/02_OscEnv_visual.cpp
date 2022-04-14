@@ -161,7 +161,6 @@ class OscEnv : public SynthVoice {
     }
   }
 
-  //
   virtual void onProcess(AudioIOData& io) override {
     updateFromParameters();
     while (io()) {
@@ -198,7 +197,7 @@ class OscEnv : public SynthVoice {
     g.translate( timepose, getInternalParameterValue("frequency") / 200 - 3 , -4);
     g.rotate(a_rotate, Vec3f(0, 1, 1));
     g.rotate(b_rotate, Vec3f(1));    
-    g.scale(0.5 + mAmpEnv() * 2, 0.5 + mAmpEnv() * 2, 0.5 + 0.5*mAmpEnv() );
+    g.scale(0.5 + mAmpEnv() * 2, 0.5 + mAmpEnv() * 2, 0.03 + 0.1*mAmpEnv() );
     g.color(HSV(frequency / 1000, 0.6 + mAmpEnv() * 0.1, 0.6 + 0.5 * mAmpEnv()));
     g.draw(mMesh[shape]);
     g.popMatrix();
