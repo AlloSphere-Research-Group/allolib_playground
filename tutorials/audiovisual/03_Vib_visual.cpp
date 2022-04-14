@@ -197,11 +197,7 @@ class Vib : public SynthVoice {
     a_rotate += 0.81;
     b_rotate += 0.78;
     timepose -= 0.06;
-    float amplitude = getInternalParameterValue("amplitude");
     int shape = getInternalParameterValue("table");
-    float oscFreq = getInternalParameterValue("frequency");
-    float vibDepth = getInternalParameterValue("vibDepth");
-
     // static Light light;
     g.polygonMode(wireframe ? GL_LINE : GL_FILL);
     // light.pos(0, 0, 0);
@@ -213,7 +209,7 @@ class Vib : public SynthVoice {
     g.translate( timepose, outFreq / 200 - 3 , -4);
     g.rotate(a_rotate, Vec3f(0, 1, 1));
     g.rotate(b_rotate, Vec3f(1));    
-    g.scale(0.5 + mAmpEnv() * 2, 0.5 + mAmpEnv() * 2, 0.5 + 0.5*mAmpEnv() );
+    g.scale(0.5 + mAmpEnv() * 2, 0.5 + mAmpEnv() * 2, 0.03 + 0.1*mAmpEnv() );
     g.color(HSV(outFreq / 1000, 0.6 + mAmpEnv() * 0.1, 0.6 + 0.5 * mAmpEnv()));
     g.draw(mMesh[shape]);
     g.popMatrix();
