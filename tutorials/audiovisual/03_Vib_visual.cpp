@@ -34,14 +34,15 @@ gam::ArrayPow2<float> tbSaw(2048), tbSqr(2048), tbImp(2048), tbSin(2048),
 
 // This is the same SineEnv class defined in graphics/synth1.cpp
 // It inclludes drawing code
-class OscEnv : public SynthVoice {
+class Vib : public SynthVoice {
  public:
   // Unit generators
   gam::Pan<> mPan;
   gam::Osc<> mOsc;
+  gam::Sine<> mVib;
   gam::ADSR<> mAmpEnv;
-  gam::EnvFollow<>
-      mEnvFollow;  // envelope follower to connect audio output to graphics
+  gam::ADSR<> mVibEnv;
+  gam::EnvFollow<> mEnvFollow;  // envelope follower to connect audio output to graphics
   int mtable;
   // Additional members
   static const int numb_waveform = 9;
@@ -51,7 +52,9 @@ class OscEnv : public SynthVoice {
   double a_rotate = 0;
   double b_rotate = 0;
   double timepose = 0;
-
+  float vibValue;
+  float outFreq;
+  
   // Initialize voice. This function will nly be called once per voice
   void init() override {
     // Intialize envelope
@@ -59,6 +62,7 @@ class OscEnv : public SynthVoice {
     mAmpEnv.levels(0, 0.3, 0.3,
                    0);  // These tables are not normalized, so scale to 0.3
     mAmpEnv.sustainPoint(2);  // Make point 2 sustain until a release is issued
+    mVibEnv.curve(0);
 
     createInternalTriggerParameter("amplitude", 0.1, 0.0, 1.0);
     createInternalTriggerParameter("frequency", 60, 20, 5000);
@@ -68,6 +72,10 @@ class OscEnv : public SynthVoice {
     createInternalTriggerParameter("curve", 4.0, -10.0, 10.0);
     createInternalTriggerParameter("pan", 0.0, -1.0, 1.0);
     createInternalTriggerParameter("table", 0, 0, 8);
+    createInternalTriggerParameter("vibRate1", 3.5, 0.2, 20);
+    createInternalTriggerParameter("vibRate2", 5.8, 0.2, 20);
+    createInternalTriggerParameter("vibRise", 0.5, 0.1, 2);
+    createInternalTriggerParameter("vibDepth", 0.005, 0.0, 0.3);
 
     // Table & Visual meshes
     // Now We have the mesh according to the waveform
@@ -164,7 +172,13 @@ class OscEnv : public SynthVoice {
   //
   virtual void onProcess(AudioIOData& io) override {
     updateFromParameters();
+    float oscFreq = getInternalParameterValue("frequency");
+    float vibDepth = getInternalParameterValue("vibDepth");
+    outFreq = oscFreq + vibValue * vibDepth * oscFreq;
     while (io()) {
+      mVib.freq(mVibEnv());
+      vibValue = mVib();
+       mOsc.freq(outFreq);
       float s1 =
           0.1 * mOsc() * mAmpEnv() * getInternalParameterValue("amplitude");
       float s2;
@@ -183,9 +197,10 @@ class OscEnv : public SynthVoice {
     a_rotate += 0.81;
     b_rotate += 0.78;
     timepose -= 0.06;
-    float frequency = getInternalParameterValue("frequency");
     float amplitude = getInternalParameterValue("amplitude");
     int shape = getInternalParameterValue("table");
+    float oscFreq = getInternalParameterValue("frequency");
+    float vibDepth = getInternalParameterValue("vibDepth");
 
     // static Light light;
     g.polygonMode(wireframe ? GL_LINE : GL_FILL);
@@ -195,11 +210,11 @@ class OscEnv : public SynthVoice {
     // g.light(light);
     g.pushMatrix();
     g.depthTesting(true);
-    g.translate( timepose, getInternalParameterValue("frequency") / 200 - 3 , -4);
+    g.translate( timepose, outFreq / 200 - 3 , -4);
     g.rotate(a_rotate, Vec3f(0, 1, 1));
     g.rotate(b_rotate, Vec3f(1));    
     g.scale(0.5 + mAmpEnv() * 2, 0.5 + mAmpEnv() * 2, 0.5 + 0.5*mAmpEnv() );
-    g.color(HSV(frequency / 1000, 0.6 + mAmpEnv() * 0.1, 0.6 + 0.5 * mAmpEnv()));
+    g.color(HSV(outFreq / 1000, 0.6 + mAmpEnv() * 0.1, 0.6 + 0.5 * mAmpEnv()));
     g.draw(mMesh[shape]);
     g.popMatrix();
   } 
@@ -211,7 +226,10 @@ class OscEnv : public SynthVoice {
     timepose = 10;
   }
 
-  virtual void onTriggerOff() override { mAmpEnv.triggerRelease(); }
+  virtual void onTriggerOff() override { 
+    mAmpEnv.triggerRelease(); 
+    mVibEnv.triggerRelease();
+  }
 
   void updateFromParameters() {
     mOsc.freq(getInternalParameterValue("frequency"));
@@ -221,6 +239,13 @@ class OscEnv : public SynthVoice {
     mAmpEnv.sustain(getInternalParameterValue("sustain"));
     mAmpEnv.curve(getInternalParameterValue("curve"));
     mPan.pos(getInternalParameterValue("pan"));
+    mVibEnv.levels(getInternalParameterValue("vibRate1"),
+                   getInternalParameterValue("vibRate2"),
+                   getInternalParameterValue("vibRate2"),
+                   getInternalParameterValue("vibRate1"));
+    mVibEnv.lengths()[0] = getInternalParameterValue("vibRise");
+    mVibEnv.lengths()[1] = getInternalParameterValue("vibRise");
+    mVibEnv.lengths()[3] = getInternalParameterValue("vibRise");
   }
   void updateWaveform(){
         // Map table number to table in memory
@@ -260,7 +285,7 @@ class OscEnv : public SynthVoice {
 // We make an app.
 class MyApp : public App, public MIDIMessageHandler {
  public:
-  OscEnv oscenv;
+  Vib vib;
   RtMidiIn midiIn; // MIDI input carrier
   Mesh mSpectrogram;
   vector<float> spectrum;
@@ -299,7 +324,7 @@ class MyApp : public App, public MIDIMessageHandler {
     gam::sampleRate(audioIO().framesPerSecond());
 
     // Play example sequence. Comment this line to start from scratch
-    synthManager.synthSequencer().playSequence("synth2.synthSequence");
+    synthManager.synthSequencer().playSequence("synth3.synthSequence");
     synthManager.synthRecorder().verbose(true);
   }
 
@@ -327,7 +352,7 @@ class MyApp : public App, public MIDIMessageHandler {
     synthManager.drawSynthControlPanel();
     imguiEndFrame();
     // Map table number to table in memory
-    oscenv.mtable = int(synthManager.voice()->getInternalParameterValue("table"));
+    vib.mtable = int(synthManager.voice()->getInternalParameterValue("table"));
   }
 
   void onDraw(Graphics& g) override {
@@ -397,7 +422,7 @@ class MyApp : public App, public MIDIMessageHandler {
         if (midiNote > 0) {
           synthManager.voice()->setInternalParameterValue(
               "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
-          synthManager.voice()->setInternalParameterValue("table", oscenv.mtable);
+          synthManager.voice()->setInternalParameterValue("table", vib.mtable);
           synthManager.triggerOn(midiNote);
         }
       }
@@ -430,7 +455,7 @@ class MyApp : public App, public MIDIMessageHandler {
   // GUI manager for OscEnv voices
   // The name provided determines the name of the directory
   // where the presets and sequences are stored
-  SynthGUIManager<OscEnv> synthManager{"OscEnv"};
+  SynthGUIManager<Vib> synthManager{"Vib"};
 };
 
 int main() {  // Create app instance
