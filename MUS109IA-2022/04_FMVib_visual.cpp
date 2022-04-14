@@ -276,7 +276,7 @@ class MyApp : public App, public MIDIMessageHandler {
         synthManager.voice()->setInternalParameterValue(
             "freq", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
         synthManager.voice()->setInternalParameterValue(
-            "attackTime", 0.01/m.velocity());
+            "attackTime", 0.1/m.velocity());
         synthManager.triggerOn(midiNote);
       }
       else
