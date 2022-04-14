@@ -2,7 +2,8 @@
 // Spring 2022
 // Course Instrument 02. OscEnv (Mesh & Spectrum)
 // This example shows how to form the waveform and visualize through the spectrum
-// Press '[' or ']' to turn on & off GUI 
+// Press '[' or ']' to turn on & off GUI
+// Press '=' to use navigate using keyboard instead of using as a MIDI 
 // Able to play with MIDI device
 // Myungin Lee
 
@@ -265,6 +266,7 @@ class MyApp : public App, public MIDIMessageHandler {
   vector<float> spectrum;
   bool showGUI = true;
   bool showSpectro = true;
+  bool navi = false;
   gam::STFT stft = gam::STFT(FFT_SIZE, FFT_SIZE / 4, 0, gam::HANN, gam::MAG_FREQ);
 
   virtual void onInit() override {
@@ -291,7 +293,7 @@ class MyApp : public App, public MIDIMessageHandler {
   void onCreate() override {
     imguiInit();
     nav().pos(2, 0, 17);  
-    navControl().active(false);  // Disable navigation via keyboard, since we
+    navControl().active(true);  // Disable navigation via keyboard, since we
                                  // will be using keyboard for note triggering
     // Set sampling rate for Gamma objects from app's audio
     gam::sampleRate(audioIO().framesPerSecond());
@@ -319,6 +321,7 @@ class MyApp : public App, public MIDIMessageHandler {
   }
 
   void onAnimate(double dt) override {
+    navControl().active(navi);  // Disable navigation via keyboard, since we
     // Draw GUI
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
@@ -383,18 +386,20 @@ class MyApp : public App, public MIDIMessageHandler {
     if (ParameterGUI::usingKeyboard()) {  // Ignore keys if GUI is using them
       return true;
     }
-    if (k.shift()) {
-      // If shift pressed then keyboard sets preset
-      int presetNumber = asciiToIndex(k.key());
-      synthManager.recallPreset(presetNumber);
-    } else {
-      // Otherwise trigger note for polyphonic synth
-      int midiNote = asciiToMIDI(k.key());
-      if (midiNote > 0) {
-        synthManager.voice()->setInternalParameterValue(
-            "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
-        synthManager.voice()->setInternalParameterValue("table", oscenv.mtable);
-        synthManager.triggerOn(midiNote);
+    if(!navi){
+      if (k.shift()) {
+        // If shift pressed then keyboard sets preset
+        int presetNumber = asciiToIndex(k.key());
+        synthManager.recallPreset(presetNumber);
+      } else {
+        // Otherwise trigger note for polyphonic synth
+        int midiNote = asciiToMIDI(k.key());
+        if (midiNote > 0) {
+          synthManager.voice()->setInternalParameterValue(
+              "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+          synthManager.voice()->setInternalParameterValue("table", oscenv.mtable);
+          synthManager.triggerOn(midiNote);
+        }
       }
     }
     switch (k.key())
@@ -404,6 +409,9 @@ class MyApp : public App, public MIDIMessageHandler {
       break;
     case '[':
       showSpectro = !showSpectro;
+      break;
+    case '=':
+      navi = !navi;
       break;
     }
     return true;
