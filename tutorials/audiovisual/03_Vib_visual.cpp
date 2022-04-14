@@ -320,7 +320,7 @@ class MyApp : public App, public MIDIMessageHandler {
     gam::sampleRate(audioIO().framesPerSecond());
 
     // Play example sequence. Comment this line to start from scratch
-    synthManager.synthSequencer().playSequence("synth3.synthSequence");
+    // synthManager.synthSequencer().playSequence("synth3.synthSequence");
     synthManager.synthRecorder().verbose(true);
   }
 
