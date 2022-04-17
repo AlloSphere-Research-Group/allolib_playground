@@ -401,6 +401,14 @@ class MyApp : public App, public MIDIMessageHandler {
       }
       break;
     }
+    case MIDIByte::NOTE_OFF:
+    {
+      int midiNote = m.noteNumber();
+      printf("Note OFF %u, Vel %f", m.noteNumber(), m.velocity());
+      synthManager.triggerOff(midiNote);
+      break;
+    }
+    default:;    
     }
   }
   bool onKeyDown(Keyboard const& k) override {
