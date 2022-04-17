@@ -109,18 +109,17 @@ class Vib : public SynthVoice {
       float C[] = {1, 4, 7, 11, 15, 18, 0, 0 };
       gam::addSines(tb__1, A, C, 6);
       for (int i = 0; i < 7; i++){
-        addPrism(mMesh[5], scaler * A[i]*C[i], scaler * A[i+1]*C[i+1], 1, 100, 1 + 0.3*i);
-        addSphere(mMesh[5],scaler * A[i], 16, 30); // tb__1
+        addWireBox(mMesh[5], scaler * A[i]*C[i], scaler * A[i+1]*C[i+1], 1 + 0.3*i);
+
+        // addSphere(mMesh[5],scaler * A[i], 16, 30); // tb__1
       }
     }
     { // inharmonic partials
       float A[] = {0.5, 0.8, 0.7, 1, 0.3, 0.4, 0.2, 0.12};
       float C[] = {3, 4, 7, 8, 11, 12, 15, 16}; 
       gam::addSines(tb__2, A, C, 8); // tb__2
-      // addSphere(mMesh[6],scaler * A[0], 16, 100);
       for (int i = 0; i < 7; i++){
-        addPrism(mMesh[6], scaler * A[i]*C[i], scaler * A[i+1]*C[i+1], 1, 100, 1 + 0.4*i);
-        addSphere(mMesh[6],scaler * A[i], 16, 30); // tb__1
+        addWireBox(mMesh[6], scaler * A[i]*C[i], scaler * A[i+1]*C[i+1], 1 + 0.3*i);
       }
     }
     { // inharmonic partials
@@ -128,16 +127,14 @@ class Vib : public SynthVoice {
       float C[] = {10, 27, 54, 81, 108, 135, 0, 0};
       gam::addSines(tb__3, A, C, 6); // tb__3
       for (int i = 0; i < 7; i++){
-        addPrism(mMesh[7], scaler * A[i]*C[i], scaler * A[i+1]*C[i+1], 1, 100, 0.27*i);
-        addSphere(mMesh[7],scaler * A[i], 16, 30); // tb__1
+        addWireBox(mMesh[7], scaler * A[i]*C[i], scaler * A[i+1]*C[i+1], 1 + 0.3*i);
       }
     }
   { // harmonics 20-27
       float A[] = {0.2, 0.4, 0.6, 1, 0.7, 0.5, 0.3, 0.1};
       gam::addSines(tb__4, A, 8, 20); // tb__4
       for (int i = 0; i < 7; i++){
-        addPrism(mMesh[8], hscaler * A[i], hscaler * A[i+1], 1, 100, i);
-        addSphere(mMesh[8],hscaler * A[i], 16, 30); // tb__1
+        addWireBox(mMesh[8], hscaler * A[i], hscaler * A[i+1], 1 + 0.3*i);
       }
     }
     // { // Write your own waveform!
