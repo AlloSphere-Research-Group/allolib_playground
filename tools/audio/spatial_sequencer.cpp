@@ -55,10 +55,6 @@ public:
     mSequencer << mPresetHandler; // For morphing
     mPresetHandler << azimuth << elevation << distance;
 
-    mSequencer.setSequencerStepTime(
-        (float)static_cast<AudioObjectData *>(userData())->audioBlockSize /
-        static_cast<AudioObjectData *>(userData())->audioSampleRate);
-
     azimuth.setSynchronousCallbacks(false);
     elevation.setSynchronousCallbacks(false);
     distance.setSynchronousCallbacks(false);
@@ -119,6 +115,11 @@ public:
       std::cerr << "ERROR: opening audio file: "
                 << File::conformPathToOS(rootPath) + file.get() << std::endl;
     }
+
+    mSequencer.setSequencerStepTime(
+        (float)static_cast<AudioObjectData *>(userData())->audioBlockSize /
+        static_cast<AudioObjectData *>(userData())->audioSampleRate);
+
     mSequencer.playSequence(File::conformPathToOS(rootPath) + automation.get());
   }
 
@@ -160,6 +161,13 @@ public:
     auto guiDomain = GUIDomain::enableGUI(defaultWindowDomain());
     auto &gui = guiDomain->newGUI();
     gui << play << mSequencer << audioDomain()->parameters()[0];
+    gui.drawFunction = [&]() {
+      if (ParameterGUI::drawAudioIO(audioIO())) {
+        scene.prepare(audioIO());
+        mObjectData.audioSampleRate = audioIO().framesPerSecond();
+        mObjectData.audioBlockSize = audioIO().framesPerBuffer();
+      }
+    };
     registerDynamicScene(scene);
 
     // Parameter callbacks
