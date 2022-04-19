@@ -1,6 +1,6 @@
 // MUS109IA & MAT276IA.
 // Spring 2022
-// Course Instrument 02. OscEnv (Mesh & Spectrum)
+// Course Instrument 03. Vibrato (Mesh & Spectrum)
 // This example shows how to form the waveform and visualize through the spectrum
 // Press '[' or ']' to turn on & off GUI
 // Press '=' to use navigate using keyboard instead of using as a MIDI 
