@@ -168,6 +168,8 @@ public:
         mSequencer.playSequence("session");
       }
     });
+
+    audioIO().print();
   }
 
   void onCreate() override {
@@ -203,53 +205,6 @@ int main() {
   SpatialSequencer app;
 
   app.setPath("Morris Allosphere piece");
-  /* Load configuration from text file. Config file should look like:
-
-rootDir = "files/"
-[[file]]
-name = "test.wav"
-outChannels = [0, 1]
-gain = 0.9
-[[file]]
-name = "test_mono.wav"
-outChannels = [1]
-gain = 1.2
-    */
-
-  //  TomlLoader appConfig("multichannel_playback.toml");
-  //  //  appConfig.writeFile();
-
-  //  if (appConfig.hasKey<std::string>("rootDir")) {
-  //    app.rootDir = appConfig.gets("rootDir");
-  //  }
-  //  if (appConfig.hasKey<double>("globalGain")) {
-  //    assert(app.audioDomain()->parameters()[0]->getName() == "gain");
-  //    app.audioDomain()->parameters()[0]->fromFloat(appConfig.getd("globalGain"));
-  //  }
-  //  auto nodesTable = appConfig.root->get_table_array("file");
-  //  std::vector<std::string> filesToLoad;
-  //  if (nodesTable) {
-  //    for (const auto &table : *nodesTable) {
-  //      std::string name = *table->get_as<std::string>("name");
-  //      auto outChannelsToml = *table->get_array_of<int64_t>("outChannels");
-  //      std::vector<size_t> outChannels;
-  //      float gain = 1.0f;
-  //      bool loop = false;
-  //      if (table->contains("gain")) {
-  //        gain = *table->get_as<double>("gain");
-  //      }
-  //      if (table->contains("loop")) {
-  //        loop = *table->get_as<bool>("loop");
-  //      }
-  //      for (auto channel : outChannelsToml) {
-  //        outChannels.push_back(channel);
-  //      }
-  //      // Load requested file into app. If any file fails, abort.
-  //      if (!app.loadFile(name, outChannels, gain, loop)) {
-  //        return -1;
-  //      }
-  //    }
-  //  }
 
   app.start();
   return 0;
