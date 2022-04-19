@@ -1,11 +1,11 @@
 // MUS109IA & MAT276IA.
 // Spring 2022
 // Course Instrument 04. FM Vib-Visual (Mesh & Spectrum)
-// Press '[' or ']' to turn on & off GUI 
+// Press '[' or ']' to turn on & off GUI
 // Able to play with MIDI device
 // Myungin Lee
 
-#include <cstdio>  // for printing to stdout
+#include <cstdio> // for printing to stdout
 
 #include "Gamma/Analysis.h"
 #include "Gamma/Effects.h"
@@ -27,8 +27,9 @@ using namespace al;
 using namespace std;
 #define FFT_SIZE 4048
 
-class FM : public SynthVoice {
- public:
+class FM : public SynthVoice
+{
+public:
   // Unit generators
   gam::Pan<> mPan;
   gam::ADSR<> mAmpEnv;
@@ -36,7 +37,7 @@ class FM : public SynthVoice {
   gam::EnvFollow<> mEnvFollow;
   gam::ADSR<> mVibEnv;
 
-  gam::Sine<> car, mod, mVib;  // carrier, modulator sine oscillators
+  gam::Sine<> car, mod, mVib; // carrier, modulator sine oscillators
   double a = 0;
   double b = 0;
   double timepose = 10;
@@ -49,7 +50,8 @@ class FM : public SynthVoice {
   float mVibDepth;
   float mVibRise;
 
-  void init() override {
+  void init() override
+  {
     //      mAmpEnv.curve(0); // linear segments
     mAmpEnv.levels(0, 1, 1, 0);
     mModEnv.levels(0, 1, 1, 0);
@@ -83,7 +85,8 @@ class FM : public SynthVoice {
   }
 
   //
-  void onProcess(AudioIOData& io) override {
+  void onProcess(AudioIOData &io) override
+  {
     updateFromParameters();
     mVib.freq(mVibEnv());
     float carBaseFreq =
@@ -91,7 +94,8 @@ class FM : public SynthVoice {
     float modScale =
         getInternalParameterValue("freq") * getInternalParameterValue("modMul");
     float amp = getInternalParameterValue("amplitude");
-    while (io()) {
+    while (io())
+    {
       mVib.freq(mVibEnv());
       car.freq((1 + mVib() * mVibDepth) * carBaseFreq +
                mod() * mModEnv() * modScale);
@@ -102,28 +106,30 @@ class FM : public SynthVoice {
       io.out(0) += s1;
       io.out(1) += s2;
     }
-    if (mAmpEnv.done() && (mEnvFollow.value() < 0.001)) free();
+    if (mAmpEnv.done() && (mEnvFollow.value() < 0.001))
+      free();
   }
 
-  void onProcess(Graphics& g) override {
+  void onProcess(Graphics &g) override
+  {
     a += 0.29;
     b += 0.23;
     timepose -= 0.06;
     g.pushMatrix();
     g.depthTesting(true);
     g.lighting(true);
-    g.translate( timepose, getInternalParameterValue("freq") / 200 - 3 , -4);
+    g.translate(timepose, getInternalParameterValue("freq") / 200 - 3, -4);
     g.rotate(mVib() + a, Vec3f(0, 1, 0));
     g.rotate(mVibDepth + b, Vec3f(1));
-    float scaling = getInternalParameterValue("amplitude") / 10 ;
-    g.scale(scaling + getInternalParameterValue("modMul") / 10, scaling + getInternalParameterValue("carMul") / 30 , scaling + mEnvFollow.value() * 5);
+    float scaling = getInternalParameterValue("amplitude") / 10;
+    g.scale(scaling + getInternalParameterValue("modMul") / 10, scaling + getInternalParameterValue("carMul") / 30, scaling + mEnvFollow.value() * 5);
     g.color(HSV(getInternalParameterValue("modMul") / 20, getInternalParameterValue("carMul") / 20, 0.5 + getInternalParameterValue("attackTime")));
     g.draw(ball);
     g.popMatrix();
-
   }
 
-  void onTriggerOn() override {
+  void onTriggerOn() override
+  {
     timepose = 10;
     updateFromParameters();
     float modFreq =
@@ -136,13 +142,15 @@ class FM : public SynthVoice {
     mVibEnv.reset();
     mModEnv.reset();
   }
-  void onTriggerOff() override {
+  void onTriggerOff() override
+  {
     mAmpEnv.triggerRelease();
     mModEnv.triggerRelease();
     mVibEnv.triggerRelease();
   }
 
-  void updateFromParameters() {
+  void updateFromParameters()
+  {
     mModEnv.levels()[0] = getInternalParameterValue("idx1");
     mModEnv.levels()[1] = getInternalParameterValue("idx2");
     mModEnv.levels()[2] = getInternalParameterValue("idx2");
@@ -164,12 +172,12 @@ class FM : public SynthVoice {
     mVibDepth = getInternalParameterValue("vibDepth");
     mVibRise = getInternalParameterValue("vibRise");
     mPan.pos(getInternalParameterValue("pan"));
-
   }
 };
 
-class MyApp : public App, public MIDIMessageHandler {
- public:
+class MyApp : public App, public MIDIMessageHandler
+{
+public:
   SynthGUIManager<FM> synthManager{"synth4Vib"};
   RtMidiIn midiIn; // MIDI input carrier
   //    ParameterMIDI parameterMIDI;
@@ -182,17 +190,20 @@ class MyApp : public App, public MIDIMessageHandler {
   vector<float> spectrum;
   bool showGUI = true;
   bool showSpectro = true;
+  bool navi = false;
   gam::STFT stft = gam::STFT(FFT_SIZE, FFT_SIZE / 4, 0, gam::HANN, gam::MAG_FREQ);
 
-  void onInit() override {
+  void onInit() override
+  {
     imguiInit();
 
-    navControl().active(false);  // Disable navigation via keyboard, since we
-                                 // will be using keyboard for note triggering
+    navControl().active(false); // Disable navigation via keyboard, since we
+                                // will be using keyboard for note triggering
     // Set sampling rate for Gamma objects from app's audio
     gam::sampleRate(audioIO().framesPerSecond());
     // Check for connected MIDI devices
-    if (midiIn.getPortCount() > 0) {
+    if (midiIn.getPortCount() > 0)
+    {
       // Bind ourself to the RtMidiIn object, to have the onMidiMessage()
       // callback called whenever a MIDI message is received
       MIDIMessageHandler::bindTo(midiIn);
@@ -201,22 +212,26 @@ class MyApp : public App, public MIDIMessageHandler {
       unsigned int port = midiIn.getPortCount() - 1;
       midiIn.openPort(port);
       printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
-    } else {
+    }
+    else
+    {
       printf("Error: No MIDI devices found.\n");
     }
-    // Declare the size of the spectrum 
+    // Declare the size of the spectrum
     spectrum.resize(FFT_SIZE / 2 + 1);
   }
 
-  void onCreate() override {
+  void onCreate() override
+  {
     // Play example sequence. Comment this line to start from scratch
     //    synthManager.synthSequencer().playSequence("synth2.synthSequence");
     synthManager.synthRecorder().verbose(true);
-    nav().pos(3, 0, 17);  
+    nav().pos(3, 0, 17);
   }
 
-  void onSound(AudioIOData& io) override {
-    synthManager.render(io);  // Render audio
+  void onSound(AudioIOData &io) override
+  {
+    synthManager.render(io); // Render audio
     // STFT
     while (io())
     {
@@ -225,20 +240,23 @@ class MyApp : public App, public MIDIMessageHandler {
         for (unsigned k = 0; k < stft.numBins(); ++k)
         {
           // Here we simply scale the complex sample
-          spectrum[k] = tanh(pow(stft.bin(k).real(), 1.3) );
-          //spectrum[k] = stft.bin(k).real();
+          spectrum[k] = tanh(pow(stft.bin(k).real(), 1.3));
+          // spectrum[k] = stft.bin(k).real();
         }
       }
     }
   }
 
-  void onAnimate(double dt) override {
+  void onAnimate(double dt) override
+  {
+    navControl().active(navi); // Disable navigation via keyboard, since we
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
     imguiEndFrame();
   }
 
-  void onDraw(Graphics& g) override {
+  void onDraw(Graphics &g) override
+  {
     g.clear();
     synthManager.render(g);
     // // Draw Spectrum
@@ -276,7 +294,7 @@ class MyApp : public App, public MIDIMessageHandler {
         synthManager.voice()->setInternalParameterValue(
             "freq", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
         synthManager.voice()->setInternalParameterValue(
-            "attackTime", 0.01/m.velocity());
+            "attackTime", 0.01 / m.velocity());
         synthManager.triggerOn(midiNote);
       }
       else
@@ -292,24 +310,33 @@ class MyApp : public App, public MIDIMessageHandler {
       synthManager.triggerOff(midiNote);
       break;
     }
-    default:;    
-    }    
+    default:;
+    }
   }
-  bool onKeyDown(Keyboard const& k) override {
-    if (ParameterGUI::usingKeyboard()) {  // Ignore keys if GUI is using them
+  bool onKeyDown(Keyboard const &k) override
+  {
+    if (ParameterGUI::usingKeyboard())
+    { // Ignore keys if GUI is using them
       return true;
     }
-    if (k.shift()) {
-      // If shift pressed then keyboard sets preset
-      int presetNumber = asciiToIndex(k.key());
-      synthManager.recallPreset(presetNumber);
-    } else {
-      // Otherwise trigger note for polyphonic synth
-      int midiNote = asciiToMIDI(k.key());
-      if (midiNote > 0) {
-        synthManager.voice()->setInternalParameterValue(
-            "freq", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
-        synthManager.triggerOn(midiNote);
+    if (!navi)
+    {
+      if (k.shift())
+      {
+        // If shift pressed then keyboard sets preset
+        int presetNumber = asciiToIndex(k.key());
+        synthManager.recallPreset(presetNumber);
+      }
+      else
+      {
+        // Otherwise trigger note for polyphonic synth
+        int midiNote = asciiToMIDI(k.key());
+        if (midiNote > 0)
+        {
+          synthManager.voice()->setInternalParameterValue(
+              "freq", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+          synthManager.triggerOn(midiNote);
+        }
       }
     }
     switch (k.key())
@@ -325,14 +352,19 @@ class MyApp : public App, public MIDIMessageHandler {
       break;
     case '+':
       tscale += 0.1;
-    break;
+      break;
+    case '=':
+      navi = !navi;
+      break;
     }
     return true;
   }
 
-  bool onKeyUp(Keyboard const& k) override {
+  bool onKeyUp(Keyboard const &k) override
+  {
     int midiNote = asciiToMIDI(k.key());
-    if (midiNote > 0) {
+    if (midiNote > 0)
+    {
       synthManager.triggerOff(midiNote);
     }
     return true;
@@ -341,7 +373,8 @@ class MyApp : public App, public MIDIMessageHandler {
   void onExit() override { imguiShutdown(); }
 };
 
-int main() {
+int main()
+{
   MyApp app;
 
   // Set up audio
