@@ -384,9 +384,14 @@ public:
       lens().eyeSep(0);
       stereo.setSynchronousCallbacks(false);
       stereo.registerChangeCallback([&](auto value) {
-        if (omniRendering) {
-          omniRendering->stereo(value == 1.0);
+        if (value == 1.0) {
+          lens().eyeSep(0.02);
+        } else {
+          lens().eyeSep(0);
         }
+        // if (omniRendering) {
+        //   omniRendering->stereo(value == 1.0);
+        // }
       });
     }
     parameterServer() << bgColor << stereo;

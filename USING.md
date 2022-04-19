@@ -24,7 +24,7 @@ Installing VS Code is optional, but if you don't have experience setting up an I
 - Once it is downloaded, run the installer (`VSCodeUserSetup-{version}.exe`). This will only take a minute.
 - By default, VS Code is installed under `C:\users\{username}\AppData\Local\Programs\Microsoft VS Code`.
 
-More details at [here](https://code.visualstudio.com/docs/setup/windows).
+More details [here](https://code.visualstudio.com/docs/setup/windows).
 
 <br>
 
@@ -36,7 +36,7 @@ More details at [here](https://code.visualstudio.com/docs/setup/windows).
 - Drag `Visual Studio Code.app` to the `Applications` folder, making it available in the macOS Launchpad.
 - Add VS Code to your Dock by right-clicking on the icon to bring up the context menu and choosing **Options**, **Keep in Dock**.
 
-More details at [here](https://code.visualstudio.com/docs/setup/mac).
+More details [here](https://code.visualstudio.com/docs/setup/mac).
 
 <br>
 
@@ -58,7 +58,7 @@ This step is optional, only necessary if you will use VS Code to edit source cod
   - Install "Individual Components": **C++/CLI support**, **Git for Windows**, **C++ CMake tools for Windows**. (These components are necessary for allolib. See [here](https://github.com/AlloSphere-Research-Group/allolib/blob/master/readme.md) in details.)
 - Restart your computer after the installation is done.
 
-More details at [here](https://code.visualstudio.com/docs/cpp/config-msvc).
+More details [here](https://code.visualstudio.com/docs/cpp/config-msvc).
 
 <br>
 
@@ -84,10 +84,9 @@ xcode-select --install
 ```
 
 - You need to install [Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12) form App Store if you can't run the above command.
-- **Note**: If you can't download Xcode from App Store because your macOS version is old, you can download it from [the Apple Developer downloads page](https://developer.apple.com/download/more/) with your Apple account. Please check both your macOS version and a supported Xcode version from [here](https://en.wikipedia.org/wiki/Xcode).
-  - Alternatively, you can just download and install the Command Line Tools from the same page.
+- **Note**: If you can't download Xcode from App Store because your macOS version is old, you can download it from [the Apple Developer downloads page](https://developer.apple.com/download/more/) with your Apple account. Please check both your macOS version and a supported Xcode version [here](https://developer.apple.com/support/xcode/).
 
-More details at [here](https://code.visualstudio.com/docs/cpp/config-clang-mac).
+More details [here](https://code.visualstudio.com/docs/cpp/config-clang-mac).
 
 <br>
 
@@ -118,6 +117,21 @@ First, to install git, run the command below in Terminal:
 ```shell
 brew install git
 ```
+
+- If you are having an error like below:
+
+  ```shell
+  fatal: Could not resolve HEAD to a revision
+  ```
+
+- Run the commands below one by one in Terminal:
+
+  ```shell
+  rm -rf $(brew --repo homebrew/core)
+  brew tap homebrew/core
+  ```
+
+- And re-run `brew install git`.
 
 To test the git installation, enter the command below in Terminal and if you can see a version for git, it is okay to move on to the next.
 
@@ -227,6 +241,10 @@ git clone https://github.com/AlloSphere-Research-Group/allolib_playground
 
 ### 6. Install Submodules<a name="6"></a>
 
+Your Windows should open bash script files (init.sh or run.sh) with Git Bash. Please make sure a default program for .sh files is Git Bash on your Windows.
+
+<br>
+
 Open Terminal by clicking **Terminal > New Terminal** on the menu on VS Code. 
 
 Run the init.sh file:
@@ -264,8 +282,6 @@ To compile and build c++ source code files with VS Code, it requires to set thre
 #### tasks.json
 
 - Open `01_SineEnv.cpp`  file under the `synthesis` folder with VS Code.
-
-- When you open It will ask ""
 
 - Select **Terminal** > **Configure Default Build Task** from the VS Code menu. and choose "**create tasks.json from the default template**". If you cannot see this item from a template list, choose any item in the list because you will replace the contents of `tasks.json`. Then it will open `tasks.json`. Change it as below:
 
@@ -308,16 +324,42 @@ To compile and build c++ source code files with VS Code, it requires to set thre
 
 <br>
 
-#### c_cpp_properties.json (macOS only)
+#### c_cpp_properties.json
 
 - When you first open the example code file above, it will ask **"Configure your IntelliSense settings to help find missing headers."** Click **"Configure (JSON)"**. 
-
 - It will open `c_cpp_properties.json`. If the message above didn't appear or was dismissed, create the file under `.vscode` folder in the `allolib_playground` directory.
 
-- Change it as below:
+- If you don't have `c_cpp_properties.json` in the `.vscode` folder, you can manually create it:
+  - On the menu, click **View > Command Palette** (Windows:Ctrl+Shift+P, macOS: ⇧⌘P)
+  - Click **Add Configuration** under the Configuration name section (don't need to give a file name for it).
+- When you open `c_cpp_properties.json`, it should look something like below:
 
-  ```json
-  {
+For Windows
+
+```json
+{
+    "configurations": [
+          {
+            "name": "Win32",
+            "includePath": ["${workspaceFolder}/**"],
+            "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
+            "windowsSdkVersion": "10.0.18362.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "msvc-x64"
+          }
+    ],
+    "version": 4
+}
+```
+
+- See [here](https://code.visualstudio.com/docs/cpp/config-msvc#_cc-configurations) in details.
+
+For macOS
+
+```json
+{
     "configurations": [
           {
               "name": "Mac",
@@ -333,10 +375,12 @@ To compile and build c++ source code files with VS Code, it requires to set thre
               "cppStandard": "c++14",
               "intelliSenseMode": "clang-x64"
           }
-      ],
-      "version": 4
-  }
-  ```
+    ],
+    "version": 4
+}
+```
+
+- See [here](https://code.visualstudio.com/docs/cpp/config-clang-mac#_cc-configuration) in details.
 
 <br>
 
