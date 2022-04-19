@@ -137,18 +137,6 @@ class Vib : public SynthVoice {
         addWireBox(mMesh[8], hscaler * A[i], hscaler * A[i+1], 1 + 0.3*i);
       }
     }
-    // { // Write your own waveform!
-    //   float A[] = {1, 1, 1, 1, 1, 1};
-    //   float C[] = {2, 3, 5, 7, 11, 13}; // prime numbers?
-    //   gam::addSines(tb__3, A, C, 6);
-    //   addPrism(mMesh[7], scaler * A[0]*C[0], scaler * A[1]*C[1], 1, 100, 27);// tb__2
-    //   addPrism(mMesh[7], scaler * A[2]*C[2], scaler * A[3]*C[3], 2, 100, 27*2);// tb__2
-    //   addPrism(mMesh[7], scaler * A[4]*C[4], scaler * A[5]*C[5], 3, 100, 27*3); // tb__3
-    // }
-
-
-//int addSurfaceLoop(Mesh& m, int Nx, int Ny, int loopMode, double width, double height, double x, double y) 
-
 
     // Scale and generate normals
     for (int i = 0; i < numb_waveform; ++i) {
