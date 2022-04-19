@@ -7,6 +7,7 @@
 #include "al/graphics/al_Shapes.hpp"
 #include "al/io/al_PersistentConfig.hpp"
 #include "al/scene/al_DistributedScene.hpp"
+#include "al/sound/al_Lbap.hpp"
 #include "al/sound/al_SpeakerAdjustment.hpp"
 #include "al/sphere/al_AlloSphereSpeakerLayout.hpp"
 #include "al/sphere/al_SphereUtils.hpp"
@@ -176,6 +177,11 @@ public:
         mSequencer.playSequence("session");
       }
     });
+
+    if (al::sphere::isSimulatorMachine()) {
+      auto sl = al::AlloSphereSpeakerLayout();
+      scene.setSpatializer<Lbap>(sl);
+    }
 
     audioIO().print();
   }
