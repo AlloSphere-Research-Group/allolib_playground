@@ -202,6 +202,7 @@ class Vib : public SynthVoice {
 
   virtual void onTriggerOn() override {
     mAmpEnv.reset();
+    mVibEnv.reset();
     updateFromParameters();
     updateWaveform();
     timepose = 10;

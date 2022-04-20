@@ -44,7 +44,6 @@ public:
   Mesh ball;
 
   // Additional members
-  float mDur;
   float mModAmt = 50;
   float mVibFrq;
   float mVibDepth;
@@ -136,8 +135,9 @@ public:
         getInternalParameterValue("freq") * getInternalParameterValue("modMul");
     mod.freq(modFreq);
 
-    mVibEnv.lengths()[0] = mDur * (1 - mVibRise);
-    mVibEnv.lengths()[1] = mDur * mVibRise;
+    mVibEnv.lengths()[0] = getInternalParameterValue("vibRise");
+    mVibEnv.lengths()[1] = getInternalParameterValue("vibRise");
+    mVibEnv.lengths()[3] = getInternalParameterValue("vibRise");
     mAmpEnv.reset();
     mVibEnv.reset();
     mModEnv.reset();
