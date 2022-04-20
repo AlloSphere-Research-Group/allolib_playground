@@ -15,6 +15,8 @@
 #include "al/ui/al_ParameterGUI.hpp"
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
 
+#include "Gamma/scl.h"
+
 using namespace al;
 
 struct MappedAudioFile {
@@ -59,6 +61,15 @@ public:
     azimuth.setSynchronousCallbacks(false);
     elevation.setSynchronousCallbacks(false);
     distance.setSynchronousCallbacks(false);
+    registerParameter(parameterPose());
+    parameterPose().registerChangeCallback([&](auto val) {
+      if (val.z() == 0) {
+        azimuth = val.x() > 0 ? M_PI : -M_PI;
+      } else {
+        azimuth = gam::scl::wrap(atan(val.x() / -val.z()), M_PI, -M_PI);
+      }
+      std::cout << azimuth.get() << std::endl;
+    });
   }
 
   void onProcess(AudioIOData &io) override {
