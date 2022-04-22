@@ -180,21 +180,24 @@ public:
     scene.setDefaultUserData(&mObjectData);
 
     mSequencer << scene;
+
+    registerDynamicScene(scene);
     scene.registerSynthClass<AudioObject>(); // Allow AudioObject in sequences
     scene.allocatePolyphony<AudioObject>(16);
 
     // Prepare GUI
-    auto guiDomain = GUIDomain::enableGUI(defaultWindowDomain());
-    auto &gui = guiDomain->newGUI();
-    gui << play << mSequencer << audioDomain()->parameters()[0];
-    gui.drawFunction = [&]() {
-      if (ParameterGUI::drawAudioIO(audioIO())) {
-        scene.prepare(audioIO());
-        mObjectData.audioSampleRate = audioIO().framesPerSecond();
-        mObjectData.audioBlockSize = audioIO().framesPerBuffer();
-      }
-    };
-    registerDynamicScene(scene);
+    if (isPrimary()) {
+      auto guiDomain = GUIDomain::enableGUI(defaultWindowDomain());
+      auto &gui = guiDomain->newGUI();
+      gui << play << mSequencer << audioDomain()->parameters()[0];
+      gui.drawFunction = [&]() {
+        if (ParameterGUI::drawAudioIO(audioIO())) {
+          scene.prepare(audioIO());
+          mObjectData.audioSampleRate = audioIO().framesPerSecond();
+          mObjectData.audioBlockSize = audioIO().framesPerBuffer();
+        }
+      };
+    }
 
     // Parameter callbacks
     play.registerChangeCallback([&](auto v) {
