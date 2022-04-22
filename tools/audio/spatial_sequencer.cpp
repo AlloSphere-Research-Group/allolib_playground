@@ -15,6 +15,7 @@
 #include "al/ui/al_ParameterGUI.hpp"
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
 
+#include "Gamma/Analysis.h"
 #include "Gamma/scl.h"
 
 using namespace al;
@@ -49,26 +50,27 @@ public:
   Parameter azimuth{"azimuth", "", 0, -M_PI, M_PI};
   Parameter elevation{"elevation", "", 0, -M_PI_2, M_PI_2};
   Parameter distance{"distance", "", 1.0, 0.00001, 10};
+  Parameter env{"env", "", 1.0, 0.00001, 10};
 
   void init() override {
     registerTriggerParameters(file, automation, gain);
-    registerParameters(azimuth, elevation, distance);
-    mSequencer << azimuth << elevation << distance;
+    registerParameters(env); // Propagate from audio rendering node
+    mSequencer << azimuth << elevation << distance << parameterPose();
 
+    mPresetHandler << azimuth << elevation << distance << parameterPose();
     mSequencer << mPresetHandler; // For morphing
-    mPresetHandler << azimuth << elevation << distance;
 
     azimuth.setSynchronousCallbacks(false);
     elevation.setSynchronousCallbacks(false);
     distance.setSynchronousCallbacks(false);
-    registerParameter(parameterPose());
     parameterPose().registerChangeCallback([&](auto val) {
       if (val.z() == 0) {
         azimuth = val.x() > 0 ? M_PI : -M_PI;
       } else {
         azimuth = gam::scl::wrap(atan(val.x() / -val.z()), M_PI, -M_PI);
       }
-      std::cout << azimuth.get() << std::endl;
+      //      std::cout << val.x() << "," << val.y() << "," << val.z() <<
+      //      std::endl;
     });
   }
 
@@ -88,15 +90,14 @@ public:
         changed = true;
       }
       if (changed) {
-        float d = distance.get();
-        float az = azimuth.get();
-        float el = elevation.get();
-        float x, y, z;
-        x = d * std::sin(az) * std::cos(el);
-        y = d * std::sin(el);
-        z = d * -std::cos(az) * std::cos(el);
-        std::cout << x << "," << y << "," << z << std::endl;
-        mPose.setPos({x, y, z});
+        //        float d = distance.get();
+        //        float az = azimuth.get();
+        //        float el = elevation.get();
+        //        float x, y, z;
+        //        x = d * std::sin(az) * std::cos(el);
+        //        y = d * std::sin(el);
+        //        z = d * -std::cos(az) * std::cos(el);
+        //        mPose.setPos({x, y, z});
       }
     }
     float buffer[2048 * 60];
@@ -110,29 +111,39 @@ public:
       for (size_t sample = 0; sample < framesRead; sample++) {
         io.outBuffer(outIndex)[sample] +=
             gain * buffer[sample * numChannels + inChannel];
+        mEnvFollow(buffer[sample * numChannels + inChannel]);
       }
     }
   }
 
   void onProcess(Graphics &g) override {
     auto &mesh = *static_cast<AudioObjectData *>(userData())->mesh;
+    if (isPrimary()) {
+      env = mEnvFollow.value();
+    }
+    g.scale(0.5);
+    g.scale(0.1 + gain + env * 10);
+    g.color(c);
+    g.polygonLine();
     g.draw(mesh);
   }
 
   void onTriggerOn() override {
+    auto objData = static_cast<AudioObjectData *>(userData());
 
-    auto &rootPath = static_cast<AudioObjectData *>(userData())->rootPath;
+    auto &rootPath = objData->rootPath;
     soundfile.open(File::conformPathToOS(rootPath) + file.get());
     if (!soundfile.opened()) {
       std::cerr << "ERROR: opening audio file: "
                 << File::conformPathToOS(rootPath) + file.get() << std::endl;
     }
 
-    mSequencer.setSequencerStepTime(
-        (float)static_cast<AudioObjectData *>(userData())->audioBlockSize /
-        static_cast<AudioObjectData *>(userData())->audioSampleRate);
+    float seqStep = (float)objData->audioBlockSize / objData->audioSampleRate;
+    mSequencer.setSequencerStepTime(seqStep);
 
     mSequencer.playSequence(File::conformPathToOS(rootPath) + automation.get());
+    auto colorIndex = automation.get()[0] - 'A';
+    c = HSV(colorIndex / 6.0f, 1.0f, 1.0f);
   }
 
   void onFree() override { soundfile.close(); }
@@ -141,6 +152,9 @@ private:
   PresetSequencer mSequencer;
   PresetHandler mPresetHandler{""};
   SoundFileBuffered soundfile;
+  Color c;
+
+  gam::EnvFollow<> mEnvFollow;
 };
 
 class SpatialSequencer : public DistributedApp {
@@ -208,8 +222,19 @@ public:
   void onDraw(Graphics &g) override {
     g.clear(0, 0, 0);
     g.pushMatrix();
-    g.translate(0, 0, -4);
-    g.scale(3);
+    if (isPrimary()) {
+      // For simulator view from outside
+      g.translate(0.5, 0, -4);
+    }
+    {
+      g.pushMatrix();
+      g.polygonLine();
+      g.scale(10);
+      g.color(0.5);
+      g.draw(mObjectMesh);
+      g.popMatrix();
+    }
+
     mSequencer.render(g);
     g.popMatrix();
   }
