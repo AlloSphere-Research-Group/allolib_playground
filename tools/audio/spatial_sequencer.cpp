@@ -47,59 +47,18 @@ public:
   ParameterBool mute{"mute", "", 0.0};
 
   // Internal
-  Parameter azimuth{"azimuth", "", 0, -M_PI, M_PI};
-  Parameter elevation{"elevation", "", 0, -M_PI_2, M_PI_2};
-  Parameter distance{"distance", "", 1.0, 0.00001, 10};
   Parameter env{"env", "", 1.0, 0.00001, 10};
 
   void init() override {
     registerTriggerParameters(file, automation, gain);
     registerParameters(env); // Propagate from audio rendering node
-    mSequencer << azimuth << elevation << distance << parameterPose();
 
-    mPresetHandler << azimuth << elevation << distance << parameterPose();
+    mSequencer << parameterPose();
+    mPresetHandler << parameterPose();
     mSequencer << mPresetHandler; // For morphing
-
-    azimuth.setSynchronousCallbacks(false);
-    elevation.setSynchronousCallbacks(false);
-    distance.setSynchronousCallbacks(false);
-    parameterPose().registerChangeCallback([&](auto val) {
-      if (val.z() == 0) {
-        azimuth = val.x() > 0 ? M_PI : -M_PI;
-      } else {
-        azimuth = gam::scl::wrap(atan(val.x() / -val.z()), M_PI, -M_PI);
-      }
-      //      std::cout << val.x() << "," << val.y() << "," << val.z() <<
-      //      std::endl;
-    });
   }
 
   void onProcess(AudioIOData &io) override {
-    { // update position from azimuth, elevation and distance parameters
-      bool changed = false;
-      if (azimuth.hasChange()) {
-        azimuth.processChange();
-        changed = true;
-      }
-      if (elevation.hasChange()) {
-        elevation.processChange();
-        changed = true;
-      }
-      if (distance.hasChange()) {
-        distance.processChange();
-        changed = true;
-      }
-      if (changed) {
-        //        float d = distance.get();
-        //        float az = azimuth.get();
-        //        float el = elevation.get();
-        //        float x, y, z;
-        //        x = d * std::sin(az) * std::cos(el);
-        //        y = d * std::sin(el);
-        //        z = d * -std::cos(az) * std::cos(el);
-        //        mPose.setPos({x, y, z});
-      }
-    }
     float buffer[2048 * 60];
     int numChannels = soundfile.channels();
     assert(io.framesPerBuffer() < INT32_MAX);
@@ -131,17 +90,20 @@ public:
   void onTriggerOn() override {
     auto objData = static_cast<AudioObjectData *>(userData());
 
-    auto &rootPath = objData->rootPath;
-    soundfile.open(File::conformPathToOS(rootPath) + file.get());
-    if (!soundfile.opened()) {
-      std::cerr << "ERROR: opening audio file: "
-                << File::conformPathToOS(rootPath) + file.get() << std::endl;
+    if (isPrimary()) {
+      auto &rootPath = objData->rootPath;
+      soundfile.open(File::conformPathToOS(rootPath) + file.get());
+      if (!soundfile.opened()) {
+        std::cerr << "ERROR: opening audio file: "
+                  << File::conformPathToOS(rootPath) + file.get() << std::endl;
+      }
+
+      float seqStep = (float)objData->audioBlockSize / objData->audioSampleRate;
+      mSequencer.setSequencerStepTime(seqStep);
+
+      mSequencer.playSequence(File::conformPathToOS(rootPath) +
+                              automation.get());
     }
-
-    float seqStep = (float)objData->audioBlockSize / objData->audioSampleRate;
-    mSequencer.setSequencerStepTime(seqStep);
-
-    mSequencer.playSequence(File::conformPathToOS(rootPath) + automation.get());
     auto colorIndex = automation.get()[0] - 'A';
     c = HSV(colorIndex / 6.0f, 1.0f, 1.0f);
   }
