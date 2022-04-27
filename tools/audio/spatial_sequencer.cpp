@@ -51,7 +51,8 @@ public:
 
   void init() override {
     registerTriggerParameters(file, automation, gain);
-    registerParameters(env); // Propagate from audio rendering node
+    registerParameters(env);             // Propagate from audio rendering node
+    registerParameters(parameterPose()); // Update position in secondary nodes
 
     mSequencer << parameterPose();
     mPresetHandler << parameterPose();
