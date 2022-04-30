@@ -50,8 +50,10 @@ public:
 
   void init() override
   {
-    //      mAmpEnv.curve(0); // linear segments
+    mAmpEnv.curve(0); // linear segments
     mAmpEnv.levels(0, 1, 1, 0);
+    mAmpEnv.sustainPoint(2);
+ 
     mModEnv.levels(0, 1, 1, 0);
     mVibEnv.levels(0, 1, 1, 0);
     //      mVibEnv.curve(0);
@@ -61,10 +63,10 @@ public:
 
     // We have the mesh be a sphere
     createInternalTriggerParameter("freq", 440, 10, 4000.0);
-    createInternalTriggerParameter("amplitude", 0.1, 0.0, 1.0);
+    createInternalTriggerParameter("amplitude", 0.05, 0.0, 1.0);
     createInternalTriggerParameter("attackTime", 0.1, 0.01, 3.0);
-    createInternalTriggerParameter("releaseTime", 0.1, 0.1, 10.0);
-    createInternalTriggerParameter("sustain", 0.75, 0.1, 1.0);
+    createInternalTriggerParameter("releaseTime", 0.5, 0.1, 10.0);
+    createInternalTriggerParameter("sustain", 0.65, 0.1, 1.0);
 
     // FM index
     createInternalTriggerParameter("idx1", 0.01, 0.0, 10.0);
@@ -128,17 +130,16 @@ public:
   void onTriggerOn() override
   {
     timepose = 10;
-    updateFromParameters();
-    float modFreq =
-        getInternalParameterValue("freq") * getInternalParameterValue("modMul");
-    mod.freq(modFreq);
-
-    mVibEnv.lengths()[0] = getInternalParameterValue("vibRise");
-    mVibEnv.lengths()[1] = getInternalParameterValue("vibRise");
-    mVibEnv.lengths()[3] = getInternalParameterValue("vibRise");
     mAmpEnv.reset();
     mVibEnv.reset();
     mModEnv.reset();
+    mVib.phase(0);
+    mod.phase(0);
+    updateFromParameters();
+
+    float modFreq =
+        getInternalParameterValue("freq") * getInternalParameterValue("modMul");
+    mod.freq(modFreq);
   }
   void onTriggerOff() override
   {
@@ -154,20 +155,22 @@ public:
     mModEnv.levels()[2] = getInternalParameterValue("idx2");
     mModEnv.levels()[3] = getInternalParameterValue("idx3");
 
-    mAmpEnv.levels()[1] = 1.0;
-    mAmpEnv.levels()[2] = getInternalParameterValue("sustain");
+    mAmpEnv.attack(getInternalParameterValue("attackTime"));
+    mAmpEnv.release(getInternalParameterValue("releaseTime"));
+    mAmpEnv.sustain(getInternalParameterValue("sustain"));
 
-    mAmpEnv.lengths()[0] = getInternalParameterValue("attackTime");
     mModEnv.lengths()[0] = getInternalParameterValue("attackTime");
-
-    mAmpEnv.lengths()[3] = getInternalParameterValue("releaseTime");
     mModEnv.lengths()[3] = getInternalParameterValue("releaseTime");
 
-    mModEnv.lengths()[1] = mAmpEnv.lengths()[1];
-    mVibEnv.levels()[1] = getInternalParameterValue("vibRate1");
-    mVibEnv.levels()[2] = getInternalParameterValue("vibRate2");
+    mVibEnv.levels(getInternalParameterValue("vibRate1"),
+                   getInternalParameterValue("vibRate2"),
+                   getInternalParameterValue("vibRate2"),
+                   getInternalParameterValue("vibRate1"));
+    mVibEnv.lengths()[0] = getInternalParameterValue("vibRise");
+    mVibEnv.lengths()[1] = getInternalParameterValue("vibRise");
+    mVibEnv.lengths()[3] = getInternalParameterValue("vibRise");
     mVibDepth = getInternalParameterValue("vibDepth");
-    mVibRise = getInternalParameterValue("vibRise");
+    
     mPan.pos(getInternalParameterValue("pan"));
   }
 };
