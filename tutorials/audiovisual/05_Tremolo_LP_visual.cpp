@@ -1,5 +1,4 @@
 
-#include <cstdio> // for printing to stdout
 // MUS109IA & MAT276IA.
 // Spring 2022
 // Course Instrument 05. Tremolo_LP-Visual (Mesh & Spectrum)
@@ -8,6 +7,7 @@
 // Able to play with MIDI device
 // Myungin Lee
 
+#include <cstdio> // for printing to stdout
 #include "Gamma/Analysis.h"
 #include "Gamma/Effects.h"
 #include "Gamma/Envelope.h"
@@ -46,12 +46,11 @@ public:
     gam::Sine<> mTrm;
     gam::Osc<> mOsc;
     gam::ADSR<> mTrmEnv;
-    // gam::Env<2> mTrmEnv;
     gam::ADSR<> mAmpEnv;
     gam::EnvFollow<> mEnvFollow; // envelope follower to connect audio output to graphics
 
     // Additional members
-    // Mesh mMesh;
+    int mtable;
     static const int numb_waveform = 9;
     Mesh mMesh[numb_waveform];
     bool wireframe = false;
@@ -62,21 +61,16 @@ public:
     // Initialize voice. This function will nly be called once per voice
     virtual void init()
     {
-
         // Intialize envelope
         mAmpEnv.curve(0);               // make segments lines
         mAmpEnv.levels(0, 0.3, 0.3, 0); // These tables are not normalized, so scale to 0.3
-                                        //        mAmpEnv.sustainPoint(1); // Make point 2 sustain until a release is issued
-
         mTrmEnv.curve(0);
         mTrmEnv.levels(0, 1, 1, 0);
-        //        mTrmEnv.sustainPoint(1); // Make point 2 sustain until a release is issued
-
         createInternalTriggerParameter("amplitude", 0.03, 0.0, 1.0);
         createInternalTriggerParameter("frequency", 60, 20, 5000);
         createInternalTriggerParameter("attackTime", 0.1, 0.01, 3.0);
-        createInternalTriggerParameter("releaseTime", 3.0, 0.1, 10.0);
-        createInternalTriggerParameter("sustain", 0.7, 0.0, 1.0);
+        createInternalTriggerParameter("releaseTime", 2.0, 0.1, 10.0);
+        createInternalTriggerParameter("sustain", 0.6, 0.0, 1.0);
         createInternalTriggerParameter("curve", 4.0, -10.0, 10.0);
         createInternalTriggerParameter("pan", 0.0, -1.0, 1.0);
         createInternalTriggerParameter("table", 0, 0, 8);
@@ -224,11 +218,13 @@ public:
 
     virtual void onTriggerOn() override
     {
+        // Rest all the envelopes from previous triggers
+        mAmpEnv.reset();
+        mTrmEnv.reset();
+        mTrm.phase(0); 
         updateFromParameters();
         updateWaveform();
         timepose = 10;
-        mAmpEnv.reset();
-        mTrmEnv.reset();
     }
 
     virtual void onTriggerOff() override
@@ -366,6 +362,8 @@ public:
         imguiBeginFrame();
         synthManager.drawSynthControlPanel();
         imguiEndFrame();
+        // Map table number to table in memory
+        osctrm.mtable = int(synthManager.voice()->getInternalParameterValue("table"));
     }
 
     void onDraw(Graphics &g) override
@@ -440,6 +438,7 @@ public:
                 {
                     synthManager.voice()->setInternalParameterValue(
                         "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+                    synthManager.voice()->setInternalParameterValue("table", osctrm.mtable);
                     synthManager.triggerOn(midiNote);
                 }
             }
