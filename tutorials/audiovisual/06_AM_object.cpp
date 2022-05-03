@@ -103,10 +103,10 @@ public:
     createInternalTriggerParameter("sustain", 0.3, 0.1, 1.0);
     createInternalTriggerParameter("pan", 0.0, -1.0, 1.0);
     createInternalTriggerParameter("amFunc", 0.0, 0.0, 3.0);
-    createInternalTriggerParameter("am1", 0.75, 0.1, 1.0);
-    createInternalTriggerParameter("am2", 0.75, 0.1, 1.0);
+    createInternalTriggerParameter("am1", 0.75, 0.0, 1.0);
+    createInternalTriggerParameter("am2", 0.75, 0.0, 1.0);
     createInternalTriggerParameter("amRise", 0.75, 0.1, 1.0);
-    createInternalTriggerParameter("amRatio", 0.75, 0.1, 2.0);
+    createInternalTriggerParameter("amRatio", 0.75, 0.0, 2.0);
   }
 
   virtual void onProcess(AudioIOData &io) override
@@ -123,7 +123,7 @@ public:
 
       float s1 = mOsc();                            // non-modulated signal
       s1 = s1 * (1 - amAmt) + (s1 * mAM()) * amAmt; // mix modulated and non-modulated
-
+      // s1 = (s1 * mAM()) * amAmt; // Ring modulation
       s1 *= mAmpEnv() * amp;
 
       float s2;
