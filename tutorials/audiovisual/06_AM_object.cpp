@@ -3,6 +3,8 @@
 // Course Instrument 06. FM Vib-Visual (Object & Spectrum)
 // Press '[' or ']' to turn on & off GUI
 // Able to play with MIDI device
+// ***MacOS may require manual installation of assets3D. 
+// https://github.com/assimp/assimp/blob/master/Build.md
 // Myungin Lee
 
 #include <cstdio> // for printing to stdout
