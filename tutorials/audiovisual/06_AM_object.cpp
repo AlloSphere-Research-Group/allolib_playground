@@ -4,6 +4,7 @@
 // Press '[' or ']' to turn on & off GUI
 // Able to play with MIDI device
 // ***MacOS may require manual installation of assets3D. 
+// brew install assimp
 // https://github.com/assimp/assimp/blob/master/Build.md
 // Myungin Lee
 
