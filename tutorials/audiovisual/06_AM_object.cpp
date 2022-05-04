@@ -366,12 +366,10 @@ public:
         synthManager.voice()->setInternalParameterValue(
             "attackTime", 1 / m.velocity());
         synthManager.triggerOn(midiNote);
-        printf("On Note %u, Vel %f", m.noteNumber(), m.velocity());
       }
       else
       {
         synthManager.triggerOff(midiNote);
-        printf("Off Note %u, Vel %f", m.noteNumber(), m.velocity());
       }
       break;
     }
