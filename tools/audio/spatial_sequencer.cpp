@@ -6,8 +6,10 @@
 
 #include "al/graphics/al_Shapes.hpp"
 #include "al/io/al_PersistentConfig.hpp"
+#include "al/math/al_Spherical.hpp"
 #include "al/scene/al_DistributedScene.hpp"
 #include "al/sound/al_Lbap.hpp"
+#include "al/sound/al_Speaker.hpp"
 #include "al/sound/al_SpeakerAdjustment.hpp"
 #include "al/sphere/al_AlloSphereSpeakerLayout.hpp"
 #include "al/sphere/al_SphereUtils.hpp"
@@ -34,6 +36,68 @@ struct AudioObjectData {
   uint16_t audioSampleRate;
   uint16_t audioBlockSize;
   Mesh *mesh;
+};
+
+class Meter {
+public:
+  void init(const Speakers &sl) {
+    addCube(mMesh);
+    mSl = sl;
+    //    mMesh.update();
+  }
+
+  void processSound(AudioIOData &io) {
+
+    if (tempValues.size() != io.channelsOut()) {
+      tempValues.resize(io.channelsOut());
+      values.resize(io.channelsOut());
+    }
+    io.frame(0);
+    while (io()) {
+      for (int i = 0; i < io.channelsOut(); i++) {
+        tempValues[i] = 0.0f;
+        for (int samp = 0; samp < io.framesPerBuffer(); samp++) {
+          tempValues[i] += io.out(i);
+        }
+        tempValues[i] = tempValues[i] / io.framesPerBuffer();
+        if (values[i] > tempValues[i]) {
+          values[i] = values[i] - 0.003 * (values[i] - tempValues[i]);
+        } else {
+          values[i] = tempValues[i];
+        }
+      }
+    }
+  }
+
+  void draw(Graphics &g) {
+    g.polygonLine();
+    int index = 0;
+    auto spkrIt = mSl.begin();
+    g.color(1);
+    for (const auto &v : values) {
+      if (spkrIt != mSl.end()) {
+        // FIXME assumes speakers are sorted by device channel index
+        if (spkrIt->deviceChannel == index) {
+          g.pushMatrix();
+          g.scale(1 / 5.0f);
+          g.translate(spkrIt->vecGraphics());
+          g.scale(0.1 + v * 5);
+          g.draw(mMesh);
+          g.popMatrix();
+          spkrIt++;
+        }
+      } else {
+        spkrIt = mSl.begin();
+      }
+      index++;
+    }
+  }
+
+private:
+  Mesh mMesh;
+  std::vector<float> values;
+  std::vector<float> tempValues;
+  Speakers mSl;
 };
 
 class AudioObject : public PositionedVoice {
@@ -142,6 +206,14 @@ public:
     mObjectData.audioBlockSize = audioIO().framesPerBuffer();
     scene.setDefaultUserData(&mObjectData);
 
+    if (al::sphere::isSimulatorMachine()) {
+    }
+    auto sl = al::AlloSphereSpeakerLayout();
+    mSpatializer = scene.setSpatializer<Lbap>(sl);
+
+    audioIO().channelsOut(60);
+    audioIO().print();
+
     mSequencer << scene;
 
     registerDynamicScene(scene);
@@ -168,13 +240,6 @@ public:
         mSequencer.playSequence("session");
       }
     });
-
-    if (al::sphere::isSimulatorMachine()) {
-      auto sl = al::AlloSphereSpeakerLayout();
-      scene.setSpatializer<Lbap>(sl);
-    }
-
-    audioIO().print();
   }
 
   void onCreate() override {
@@ -182,7 +247,9 @@ public:
     addSphere(mObjectMesh);
     mObjectMesh.scale(0.1f);
     mObjectMesh.update();
+    mMeter.init(mSpatializer->speakerLayout());
   }
+
   void onAnimate(double dt) override { mSequencer.update(dt); }
 
   void onDraw(Graphics &g) override {
@@ -200,12 +267,16 @@ public:
       g.draw(mObjectMesh);
       g.popMatrix();
     }
+    mMeter.draw(g);
 
     mSequencer.render(g);
     g.popMatrix();
   }
 
-  void onSound(AudioIOData &io) override { mSequencer.render(io); }
+  void onSound(AudioIOData &io) override {
+    mSequencer.render(io);
+    mMeter.processSound(io);
+  }
 
   void onExit() override {}
 
@@ -215,6 +286,8 @@ private:
   SynthSequencer mSequencer{TimeMasterMode::TIME_MASTER_CPU};
   AudioObjectData mObjectData;
   SpeakerDistanceGainAdjustmentProcessor gainAdjustment;
+  Meter mMeter;
+  std::shared_ptr<Spatializer> mSpatializer;
 };
 
 int main() {
