@@ -153,7 +153,8 @@ public:
     g.pushMatrix();
     g.depthTesting(true);
     g.lighting(true);
-    g.translate(note_position + note_direction * timepose);
+    g.translate(note_position);
+    // g.translate(note_position + note_direction * timepose);
     g.rotate(a, Vec3f(0, 1, 0));
     g.rotate(b, Vec3f(1));
     g.scale(0.3 + mEnvStri() * 0.2, 0.3 + mEnvStri() * 0.5, 1);
@@ -161,7 +162,7 @@ public:
     g.draw(ball);
     g.popMatrix();
   }
-  
+
   virtual void onTriggerOn() override
   {
 
@@ -192,7 +193,6 @@ public:
     timepose = 0;
     note_position = {0, 0, -15};
     note_direction = {sin(angle), cos(angle), 0};
-
   }
 
   virtual void onTriggerOff() override
@@ -219,6 +219,7 @@ public:
   vector<float> spectrum;
   bool showGUI = true;
   bool showSpectro = true;
+  bool navi = false;
   gam::STFT stft = gam::STFT(FFT_SIZE, FFT_SIZE / 4, 0, gam::HANN, gam::MAG_FREQ);
 
   virtual void onInit() override
@@ -269,14 +270,16 @@ public:
         for (unsigned k = 0; k < stft.numBins(); ++k)
         {
           // Here we simply scale the complex sample
-          spectrum[k] = tanh(pow(stft.bin(k).real(), 1.3) );
-          //spectrum[k] = stft.bin(k).real();
+          spectrum[k] = tanh(pow(stft.bin(k).real(), 1.3));
+          // spectrum[k] = stft.bin(k).real();
         }
       }
-    }  }
+    }
+  }
 
   void onAnimate(double dt) override
   {
+    navControl().active(navi); // Disable navigation via keyboard, since we
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
     imguiEndFrame();
@@ -342,21 +345,24 @@ public:
     { // Ignore keys if GUI is using them
       return true;
     }
-    if (k.shift())
+    if (!navi)
     {
-      // If shift pressed then keyboard sets preset
-      int presetNumber = asciiToIndex(k.key());
-      synthManager.recallPreset(presetNumber);
-    }
-    else
-    {
-      // Otherwise trigger note for polyphonic synth
-      int midiNote = asciiToMIDI(k.key());
-      if (midiNote > 0)
+      if (k.shift())
       {
-        synthManager.voice()->setInternalParameterValue(
-            "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
-        synthManager.triggerOn(midiNote);
+        // If shift pressed then keyboard sets preset
+        int presetNumber = asciiToIndex(k.key());
+        synthManager.recallPreset(presetNumber);
+      }
+      else
+      {
+        // Otherwise trigger note for polyphonic synth
+        int midiNote = asciiToMIDI(k.key());
+        if (midiNote > 0)
+        {
+          synthManager.voice()->setInternalParameterValue(
+              "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+          synthManager.triggerOn(midiNote);
+        }
       }
     }
     switch (k.key())
@@ -366,6 +372,9 @@ public:
       break;
     case '[':
       showSpectro = !showSpectro;
+      break;
+    case '=':
+      navi = !navi;
       break;
     }
     return true;
