@@ -252,8 +252,6 @@ public:
 
   void onCreate() override
   {
-    initScaleToHarmonicSeries();
-    initScaleTo12TET(110);
     // Play example sequence. Comment this line to start from scratch
     //    synthManager.synthSequencer().playSequence("synth7.synthSequence");
     synthManager.synthRecorder().verbose(true);
@@ -324,19 +322,25 @@ public:
       if (midiNote > 0 && m.velocity() > 0.001)
       {
         synthManager.voice()->setInternalParameterValue(
-            "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+            "freq", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
         synthManager.voice()->setInternalParameterValue(
-            "attackTime", m.velocity());
+            "attackTime", 0.01 / m.velocity());
         synthManager.triggerOn(midiNote);
-        printf("On Note %u, Vel %f \n", m.noteNumber(), m.velocity());
       }
       else
       {
         synthManager.triggerOff(midiNote);
-        printf("Off Note %u, Vel %f \n", m.noteNumber(), m.velocity());
       }
       break;
     }
+    case MIDIByte::NOTE_OFF:
+    {
+      int midiNote = m.noteNumber();
+      printf("Note OFF %u, Vel %f", m.noteNumber(), m.velocity());
+      synthManager.triggerOff(midiNote);
+      break;
+    }
+    default:;
     }
   }
   bool onKeyDown(Keyboard const &k) override
@@ -391,69 +395,6 @@ public:
   }
 
   void onExit() override { imguiShutdown(); }
-
-  void initScaleToHarmonicSeries()
-  {
-    for (int i = 0; i < 20; ++i)
-    {
-      harmonicSeriesScale[i] = 100 * i;
-    }
-  }
-
-  void initScaleTo12TET(float lowest)
-  {
-    float f = lowest;
-    for (int i = 0; i < 20; ++i)
-    {
-      halfStepScale[i] = f;
-      f *= halfStepInterval;
-    }
-  }
-
-  float randomFrom12TET()
-  {
-    int index = gam::rnd::uni(0, 20);
-    // std::cout << "index " << index << " is " << myScale[index] << std::endl;
-    return halfStepScale[index];
-  }
-
-  float randomFromHarmonicSeries()
-  {
-    int index = gam::rnd::uni(0, 20);
-    // std::cout << "index " << index << " is " << myScale[index] << std::endl;
-    return harmonicSeriesScale[index];
-  }
-
-  void fillTime(float from, float to, float minattackStri, float minattackLow, float minattackUp, float maxattackStri, float maxattackLow, float maxattackUp, float minFreq, float maxFreq)
-  {
-    while (from <= to)
-    {
-      float nextAtt = gam::rnd::uni((minattackStri + minattackLow + minattackUp), (maxattackStri + maxattackLow + maxattackUp));
-      auto *voice = synthManager.synth().getVoice<AddSyn>();
-      voice->setTriggerParams({0.03, 440, 0.5, 0.0001, 3.8, 0.3, 0.4, 0.0001, 6.0, 0.99, 0.3, 0.0001, 6.0, 0.9, 2, 3, 4.07, 0.56, 0.92, 1.19, 1.7, 2.75, 3.36, 0.0});
-      voice->setInternalParameterValue("attackStr", nextAtt);
-      voice->setInternalParameterValue("freq", gam::rnd::uni(minFreq, maxFreq));
-      synthManager.synthSequencer().addVoiceFromNow(voice, from, 0.2);
-      std::cout << "old from " << from << " plus nextnextAtt " << nextAtt << std::endl;
-      from += nextAtt;
-    }
-  }
-
-  void fillTimeWith12TET(float from, float to, float minattackStri, float minattackLow, float minattackUp, float maxattackStri, float maxattackLow, float maxattackUp)
-  {
-    while (from <= to)
-    {
-
-      float nextAtt = gam::rnd::uni((minattackStri + minattackLow + minattackUp), (maxattackStri + maxattackLow + maxattackUp));
-      auto *voice = synthManager.synth().getVoice<AddSyn>();
-      voice->setTriggerParams({0.03, 440, 0.5, 0.0001, 3.8, 0.3, 0.4, 0.0001, 6.0, 0.99, 0.3, 0.0001, 6.0, 0.9, 2, 3, 4.07, 0.56, 0.92, 1.19, 1.7, 2.75, 3.36, 0.0});
-      voice->setInternalParameterValue("attackStr", nextAtt);
-      voice->setInternalParameterValue("freq", randomFrom12TET());
-      synthManager.synthSequencer().addVoiceFromNow(voice, from, 0.2);
-      std::cout << "12 old from " << from << " plus nextAtt " << nextAtt << std::endl;
-      from += nextAtt;
-    }
-  }
 };
 
 int main()
