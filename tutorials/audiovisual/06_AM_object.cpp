@@ -363,9 +363,9 @@ public:
       if (midiNote > 0 && m.velocity() > 0.001)
       {
         synthManager.voice()->setInternalParameterValue(
-            "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+            "freq", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
         synthManager.voice()->setInternalParameterValue(
-            "attackTime", 1 / m.velocity());
+            "attackTime", 0.01 / m.velocity());
         synthManager.triggerOn(midiNote);
       }
       else
@@ -374,6 +374,14 @@ public:
       }
       break;
     }
+    case MIDIByte::NOTE_OFF:
+    {
+      int midiNote = m.noteNumber();
+      printf("Note OFF %u, Vel %f", m.noteNumber(), m.velocity());
+      synthManager.triggerOff(midiNote);
+      break;
+    }
+    default:;
     }
   }
   bool onKeyDown(Keyboard const &k) override
