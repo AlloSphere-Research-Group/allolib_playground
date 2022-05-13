@@ -11,6 +11,68 @@
 
 using namespace al;
 
+/**
+ *  DownMixer uses buses in AudioIOData. If you are using buses in your
+application, ensure that they have been created before running DownMixer.
+Downmixer will create append new buses that it needs to the existing buses
+on the first buffer it processes.
+
+DownMixer will downmix to buffers, and can optionally copy the buses to outputs
+using the setOutputs() function.
+*/
+class DownMixer {
+public:
+  void set5_1toStereo(AudioIOData &io) {
+    uint32_t leftChannel = 0;
+    uint32_t rightChannel = 1;
+    mRoutingMap.clear();
+
+    const float threeDbDown = std::pow(10, -3.0 / 20.0);
+    const float sixDbDown = std::pow(10, -6.0 / 20.0);
+    // L C R Ls Rs LFE
+    mRoutingMap[0] = {{leftChannel, 1.0}};
+    mRoutingMap[1] = {{leftChannel, threeDbDown}, {rightChannel, threeDbDown}};
+    mRoutingMap[2] = {{rightChannel, 1.0}};
+
+    mRoutingMap[3] = {{leftChannel, sixDbDown}};
+    mRoutingMap[4] = {{rightChannel, sixDbDown}};
+    mRoutingMap[5] = {{leftChannel, sixDbDown}, {rightChannel, sixDbDown}};
+    if (mBusStartNumber == -1) {
+      mBusStartNumber = io.channelsBus();
+      // FIXME set number of busses from routing
+      io.channelsBus(io.channelsBus() + 2);
+    }
+  }
+
+  void setOutputs(std::vector<uint32_t> outs) { mOuts = outs; }
+
+  void downMix(AudioIOData &io) {
+    // Zero bus buffers
+    for (int i = mBusStartNumber; i < io.channelsBus(); i++) {
+      memset(io.busBuffer(i), 0, io.framesPerBuffer() * sizeof(float));
+    }
+    io.frame(0);
+    while (io()) {
+      for (const auto &mapEntry : mRoutingMap) {
+        for (const auto &routing : mapEntry.second) {
+          io.bus(routing.first) += io.out(mapEntry.first) * routing.second;
+        }
+      }
+    }
+    for (size_t i = 0; i < mOuts.size(); i++) {
+      if (mOuts[i] != UINT32_MAX) {
+        memcpy(io.outBuffer(mOuts[i]), io.busBuffer(i),
+               io.framesPerBuffer() * sizeof(float));
+      }
+    }
+  }
+
+private:
+  std::map<uint32_t, std::vector<std::pair<uint32_t, float>>> mRoutingMap;
+  std::vector<uint32_t> mOuts;
+  int mBusStartNumber = -1;
+};
+
 struct MappedAudioFile {
   std::unique_ptr<SoundFileBuffered> soundfile;
   std::vector<size_t> outChannelMap;
@@ -21,17 +83,20 @@ struct MappedAudioFile {
 };
 
 class AudioPlayerApp : public App {
- public:
+public:
   std::string rootDir{""};
 
   ParameterBool play{"play", "", 0.0};
+  ParameterBool downmixStereo{"downmixStereo", "", 0.0};
   Trigger rewind{"rewind"};
+  Trigger fw{"fw"};
+  Trigger back{"back"};
 
   bool loadFile(std::string fileName, std::vector<size_t> channelMap,
                 float gain, bool loop) {
     soundfiles.push_back(MappedAudioFile());
     soundfiles.back().soundfile = std::make_unique<SoundFileBuffered>(
-        File::conformPathToOS(rootDir) + fileName);
+        File::conformPathToOS(rootDir) + fileName, false, 4096);
     soundfiles.back().soundfile->loop(loop);
     if (!soundfiles.back().soundfile->opened()) {
       std::cerr << "ERROR: opening "
@@ -60,12 +125,27 @@ class AudioPlayerApp : public App {
   }
 
   // App callbacks
-
   void onInit() override {
     rewind.registerChangeCallback([&](float /*value*/) {
       play = 0.0;
       for (auto &sf : soundfiles) {
         sf.soundfile->seek(0);
+      }
+      play = 1.0;
+    });
+    fw.registerChangeCallback([&](float /*value*/) {
+      play = 0.0;
+      for (auto &sf : soundfiles) {
+        sf.soundfile->seek(sf.soundfile->currentPosition() +
+                           5 * sf.soundfile->frameRate());
+      }
+      play = 1.0;
+    });
+    back.registerChangeCallback([&](float /*value*/) {
+      play = 0.0;
+      for (auto &sf : soundfiles) {
+        sf.soundfile->seek(sf.soundfile->currentPosition() -
+                           5 * sf.soundfile->frameRate());
       }
       play = 1.0;
     });
@@ -79,18 +159,45 @@ class AudioPlayerApp : public App {
                    dev.channelsOutMax(), 0);
 
     audioIO().append(gainAdjustment);
+
+    int highestChannel = 0;
+    for (const auto &sf : soundfiles) {
+      for (const auto entry : sf.outChannelMap) {
+        assert(entry <= INT32_MAX);
+        if (highestChannel < static_cast<int32_t>(entry)) {
+          highestChannel = static_cast<int32_t>(entry);
+        }
+      }
+    }
+    audioIO().channelsOut(highestChannel + 1);
+    if (soundfiles.size() == 6) {
+      // assume 5.1 to stereo
+      mDownMixer.set5_1toStereo(audioIO());
+      mDownMixer.setOutputs({0, 1});
+    }
   }
 
   void onCreate() override { imguiInit(); }
+
   void onDraw(Graphics &g) override {
     imguiBeginFrame();
 
     ImGui::Begin("Multichannel Player");
     ParameterGUI::draw(&play);
+    ParameterGUI::draw(&downmixStereo);
     ParameterGUI::draw(&rewind);
+
+    ParameterGUI::draw(&back);
+    ImGui::SameLine(0, 20);
+    ParameterGUI::draw(&fw);
+
     ParameterGUI::drawParameterMeta(audioDomain()->parameters(),
                                     " (Global)##AudioIO");
     ParameterGUI::drawAudioIO(audioIO());
+    if (soundfiles.size() > 0) {
+      ImGui::Text("Time: %f", soundfiles[0].soundfile->currentPosition() /
+                                  soundfiles[0].soundfile->frameRate());
+    }
     ImGui::Separator();
     for (auto &sf : soundfiles) {
       ImGui::Text("*** %s", sf.fileName.c_str());
@@ -113,6 +220,9 @@ class AudioPlayerApp : public App {
       for (auto &sf : soundfiles) {
         int numChannels = sf.soundfile->channels();
         int framesRead = sf.soundfile->read(buffer, io.framesPerBuffer());
+        if (framesRead != io.framesPerBuffer()) {
+          std::cout << "short buffer " << framesRead << std::endl;
+        }
         for (size_t i = 0; i < sf.outChannelMap.size(); i++) {
           size_t outIndex = sf.outChannelMap[i];
           if (!sf.mute) {
@@ -122,6 +232,9 @@ class AudioPlayerApp : public App {
             }
           }
         }
+      }
+      if (downmixStereo.get() == 1.0) {
+        mDownMixer.downMix(io);
       }
     }
   }
@@ -133,9 +246,10 @@ class AudioPlayerApp : public App {
     imguiShutdown();
   }
 
- private:
+private:
   std::vector<MappedAudioFile> soundfiles;
   SpeakerDistanceGainAdjustmentProcessor gainAdjustment;
+  DownMixer mDownMixer;
 };
 
 int main() {
@@ -187,6 +301,8 @@ gain = 1.2
         return -1;
       }
     }
+  } else {
+    return -1;
   }
 
   app.start();
