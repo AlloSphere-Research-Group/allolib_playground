@@ -56,7 +56,8 @@ public:
     {
         // Declare the size of the spectrum
         spectrum.resize(FFT_SIZE / 2 + 1);
-        mSpectrogram.primitive(Mesh::POINTS);
+        // mSpectrogram.primitive(Mesh::POINTS);
+        mSpectrogram.primitive(Mesh::LINE_STRIP);
         mAmpEnv.levels(0, 1, 1, 0);
         mPanEnv.curve(4);
         env.decay(0.1);
@@ -125,7 +126,7 @@ public:
 
         for (int i = 0; i < FFT_SIZE / 2; i++)
         {
-            mSpectrogram.color(HSV(0.5 - spectrum[i] * 100));
+            mSpectrogram.color(HSV(spectrum[i] * 1000 + al::rnd::uniform()));
             mSpectrogram.vertex(i, spectrum[i], 0.0);
         }
         g.meshColor(); // Use the color in the mesh
@@ -134,7 +135,6 @@ public:
         g.rotate(a, Vec3f(0, 1, 0));
         g.rotate(b, Vec3f(1));
         g.scale(10.0 / FFT_SIZE, 500, 1.0);
-        g.pointSize(1);
         g.draw(mSpectrogram);
         g.popMatrix();
     }
@@ -171,11 +171,18 @@ public:
     }
 };
 
-class MyApp : public App
+class MyApp : public App, public MIDIMessageHandler
 {
 public:
     SynthGUIManager<PluckedString> synthManager{"plunk"};
     //    ParameterMIDI parameterMIDI;
+    RtMidiIn midiIn; // MIDI input carrier
+    Mesh mSpectrogram;
+    vector<float> spectrum;
+    bool showGUI = true;
+    bool showSpectro = true;
+    bool navi = false;
+    gam::STFT stft = gam::STFT(FFT_SIZE, FFT_SIZE / 4, 0, gam::HANN, gam::MAG_FREQ);
 
     virtual void onInit() override
     {
@@ -184,6 +191,24 @@ public:
                                     // will be using keyboard for note triggering
         // Set sampling rate for Gamma objects from app's audio
         gam::sampleRate(audioIO().framesPerSecond());
+        // Check for connected MIDI devices
+        if (midiIn.getPortCount() > 0)
+        {
+            // Bind ourself to the RtMidiIn object, to have the onMidiMessage()
+            // callback called whenever a MIDI message is received
+            MIDIMessageHandler::bindTo(midiIn);
+
+            // Open the last device found
+            unsigned int port = midiIn.getPortCount() - 1;
+            midiIn.openPort(port);
+            printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
+        }
+        else
+        {
+            printf("Error: No MIDI devices found.\n");
+        }
+        // Declare the size of the spectrum
+        spectrum.resize(FFT_SIZE / 2 + 1);
     }
 
     void onCreate() override
@@ -196,10 +221,24 @@ public:
     void onSound(AudioIOData &io) override
     {
         synthManager.render(io); // Render audio
+        // STFT
+        while (io())
+        {
+            if (stft(io.out(0)))
+            { // Loop through all the frequency bins
+                for (unsigned k = 0; k < stft.numBins(); ++k)
+                {
+                    // Here we simply scale the complex sample
+                    spectrum[k] = tanh(pow(stft.bin(k).real(), 1.3));
+                    // spectrum[k] = stft.bin(k).real();
+                }
+            }
+        }        
     }
 
     void onAnimate(double dt) override
     {
+        navControl().active(navi); // Disable navigation via keyboard, since we
         imguiBeginFrame();
         synthManager.drawSynthControlPanel();
         imguiEndFrame();
@@ -209,11 +248,58 @@ public:
     {
         g.clear();
         synthManager.render(g);
-
+        // // Draw Spectrum
+        mSpectrogram.reset();
+        mSpectrogram.primitive(Mesh::LINE_STRIP);
+        if (showSpectro)
+        {
+            for (int i = 0; i < FFT_SIZE / 2; i++)
+            {
+                mSpectrogram.color(HSV(0.5 - spectrum[i] * 100));
+                mSpectrogram.vertex(i, spectrum[i], 0.0);
+            }
+            g.meshColor(); // Use the color in the mesh
+            g.pushMatrix();
+            g.translate(-3, -3, 0);
+            g.scale(20.0 / FFT_SIZE, 100, 1.0);
+            g.draw(mSpectrogram);
+            g.popMatrix();
+        }
         // Draw GUI
         imguiDraw();
     }
-
+  // This gets called whenever a MIDI message is received on the port
+  void onMIDIMessage(const MIDIMessage &m)
+  {
+    switch (m.type())
+    {
+    case MIDIByte::NOTE_ON:
+    {
+      int midiNote = m.noteNumber();
+      if (midiNote > 0 && m.velocity() > 0.001)
+      {
+        synthManager.voice()->setInternalParameterValue(
+            "freq", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+        synthManager.voice()->setInternalParameterValue(
+            "attackTime", 0.01 / m.velocity());
+        synthManager.triggerOn(midiNote);
+      }
+      else
+      {
+        synthManager.triggerOff(midiNote);
+      }
+      break;
+    }
+    case MIDIByte::NOTE_OFF:
+    {
+      int midiNote = m.noteNumber();
+      printf("Note OFF %u, Vel %f", m.noteNumber(), m.velocity());
+      synthManager.triggerOff(midiNote);
+      break;
+    }
+    default:;
+    }
+  }
     bool onKeyDown(Keyboard const &k) override
     {
         if (ParameterGUI::usingKeyboard())
@@ -236,6 +322,18 @@ public:
                     "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
                 synthManager.triggerOn(midiNote);
             }
+        }
+        switch (k.key())
+        {
+        case ']':
+        showGUI = !showGUI;
+        break;
+        case '[':
+        showSpectro = !showSpectro;
+        break;
+        case '=':
+        navi = !navi;
+        break;
         }
         return true;
     }
