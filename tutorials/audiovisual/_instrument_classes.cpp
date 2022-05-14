@@ -1,4 +1,4 @@
-// Just Classes
+// Just Instrument Classes
 
 #include <cstdio> // for printing to stdout
 

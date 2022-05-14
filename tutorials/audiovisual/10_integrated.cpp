@@ -1,6 +1,6 @@
 // MUS109IA & MAT276IA.
 // Spring 2022
-// Course Instrument 10. Integrated Instrument from 01 to 08 Synth with Visaul (Meshs and Spectrum)
+// Course Instrument 10. Integrated Instrument from 01 to 09 Synth with Visaul (Meshs and Spectrum)
 // Myungin Lee
 
 // Press '[' or ']' to turn on & off GUI
