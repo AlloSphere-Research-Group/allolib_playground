@@ -1,0 +1,19 @@
+::chiptune lead
+/amplitude f 0.270000 
+/attackTime f 0.010000 
+/bw1 f 2648.690918 
+/bw2 f 10.000000 
+/bwRise f 0.590000 
+/cf1 f 10.000000 
+/cf2 f 1362.003052 
+/cfRise f 0.421000 
+/curve f -7.276000 
+/envDur f 0.105000 
+/frequency f 342.878632 
+/hmamp f 1.000000 
+/hmnum f 20.000000 
+/noise f 0.056000 
+/pan f 0.000000 
+/releaseTime f 0.100000 
+/sustain f 0.752000 
+::

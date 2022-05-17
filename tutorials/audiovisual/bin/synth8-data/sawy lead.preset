@@ -1,0 +1,19 @@
+::sawy lead
+/amplitude f 0.300000 
+/attackTime f 0.010000 
+/bw1 f 1750.913940 
+/bw2 f 987.518982 
+/bwRise f 1.546000 
+/cf1 f 484.795013 
+/cf2 f 400.000000 
+/cfRise f 0.313000 
+/curve f 4.000000 
+/envDur f 1.000000 
+/frequency f 432.000000 
+/hmamp f 1.000000 
+/hmnum f 18.433001 
+/noise f 0.000000 
+/pan f 0.000000 
+/releaseTime f 0.377000 
+/sustain f 0.396000 
+::

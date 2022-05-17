@@ -1,0 +1,19 @@
+::less short pluck 2
+/amplitude f 0.136000 
+/attackTime f 0.010000 
+/bw1 f 5000.000000 
+/bw2 f 5000.000000 
+/bwRise f 0.100000 
+/cf1 f 4242.355957 
+/cf2 f 10.000000 
+/cfRise f 1.447000 
+/curve f -7.276000 
+/envDur f 0.105000 
+/frequency f 85.719666 
+/hmamp f 1.000000 
+/hmnum f 20.000000 
+/noise f 0.056000 
+/pan f 0.000000 
+/releaseTime f 0.100000 
+/sustain f 0.752000 
+::

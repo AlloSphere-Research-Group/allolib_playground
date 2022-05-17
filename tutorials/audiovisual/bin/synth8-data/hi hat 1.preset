@@ -1,0 +1,19 @@
+::hi hat 1
+/amplitude f 0.300000 
+/attackTime f 0.010000 
+/bw1 f 5000.000000 
+/bw2 f 2393.282959 
+/bwRise f 0.153000 
+/cf1 f 5000.000000 
+/cf2 f 140.335999 
+/cfRise f 1.337000 
+/curve f -7.276000 
+/envDur f 0.037000 
+/frequency f 407.753693 
+/hmamp f 1.000000 
+/hmnum f 20.000000 
+/noise f 1.000000 
+/pan f 0.000000 
+/releaseTime f 0.100000 
+/sustain f 0.752000 
+::

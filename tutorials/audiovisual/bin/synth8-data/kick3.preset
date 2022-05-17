@@ -1,0 +1,19 @@
+::kick3
+/amplitude f 1.000000 
+/attackTime f 0.010000 
+/bw1 f 10.000000 
+/bw2 f 4202.807129 
+/bwRise f 0.100000 
+/cf1 f 10.000000 
+/cf2 f 3429.260986 
+/cfRise f 0.116000 
+/curve f 9.396000 
+/envDur f 0.017000 
+/frequency f 171.439316 
+/hmamp f 0.336000 
+/hmnum f 19.681000 
+/noise f 0.028000 
+/pan f 0.000000 
+/releaseTime f 0.168000 
+/sustain f 1.000000 
+::

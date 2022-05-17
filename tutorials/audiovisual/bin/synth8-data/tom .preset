@@ -1,0 +1,19 @@
+::tom 
+/amplitude f 0.880000 
+/attackTime f 0.010000 
+/bw1 f 4653.834961 
+/bw2 f 3863.533936 
+/bwRise f 0.359000 
+/cf1 f 3987.631104 
+/cf2 f 10.000000 
+/cfRise f 1.447000 
+/curve f -7.984000 
+/envDur f 0.039000 
+/frequency f 272.142944 
+/hmamp f 0.033000 
+/hmnum f 5.000000 
+/noise f 0.050000 
+/pan f 0.000000 
+/releaseTime f 0.100000 
+/sustain f 0.752000 
+::
