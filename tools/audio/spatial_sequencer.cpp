@@ -8,6 +8,7 @@
 #include "al/io/al_PersistentConfig.hpp"
 #include "al/math/al_Spherical.hpp"
 #include "al/scene/al_DistributedScene.hpp"
+#include "al/sound/al_DownMixer.hpp"
 #include "al/sound/al_Lbap.hpp"
 #include "al/sound/al_Speaker.hpp"
 #include "al/sound/al_SpeakerAdjustment.hpp"
@@ -21,6 +22,10 @@
 #include "Gamma/scl.h"
 
 using namespace al;
+
+struct SharedState {
+  float meterValues[64] = {0};
+};
 
 struct MappedAudioFile {
   std::unique_ptr<SoundFileBuffered> soundfile;
@@ -43,7 +48,6 @@ public:
   void init(const Speakers &sl) {
     addCube(mMesh);
     mSl = sl;
-    //    mMesh.update();
   }
 
   void processSound(AudioIOData &io) {
@@ -51,20 +55,33 @@ public:
     if (tempValues.size() != io.channelsOut()) {
       tempValues.resize(io.channelsOut());
       values.resize(io.channelsOut());
+      std::cout << "Resizing Meter buffers" << std::endl;
     }
-    io.frame(0);
-    while (io()) {
-      for (int i = 0; i < io.channelsOut(); i++) {
-        tempValues[i] = 0.0f;
-        for (int samp = 0; samp < io.framesPerBuffer(); samp++) {
-          tempValues[i] += io.out(i);
+    for (int i = 0; i < io.channelsOut(); i++) {
+      tempValues[i] = FLT_MIN;
+      auto *outBuf = io.outBuffer(i);
+      auto fpb = io.framesPerBuffer();
+      for (int samp = 0; samp < fpb; samp++) {
+        float val = fabs(*outBuf);
+        if (tempValues[i] < val) {
+          tempValues[i] = val;
         }
-        tempValues[i] = tempValues[i] / io.framesPerBuffer();
-        if (values[i] > tempValues[i]) {
-          values[i] = values[i] - 0.003 * (values[i] - tempValues[i]);
+        outBuf++;
+      }
+      if (tempValues[i] == 0) {
+        tempValues[i] = 0.01;
+      } else {
+        float db = 20.0 * log10(tempValues[i]);
+        if (db < -60) {
+          tempValues[i] = 0.01;
         } else {
-          values[i] = tempValues[i];
+          tempValues[i] = 0.01 + 0.005 * (60 + db);
         }
+      }
+      if (values[i] > tempValues[i]) {
+        values[i] = values[i] - 0.05 * (values[i] - tempValues[i]);
+      } else {
+        values[i] = tempValues[i];
       }
     }
   }
@@ -77,6 +94,7 @@ public:
     for (const auto &v : values) {
       if (spkrIt != mSl.end()) {
         // FIXME assumes speakers are sorted by device channel index
+        // Should sort inside init()
         if (spkrIt->deviceChannel == index) {
           g.pushMatrix();
           g.scale(1 / 5.0f);
@@ -90,6 +108,21 @@ public:
         spkrIt = mSl.begin();
       }
       index++;
+    }
+  }
+
+  const std::vector<float> &getMeterValues() { return values; }
+
+  void setMeterValues(float *newValues, size_t count) {
+    if (tempValues.size() != count) {
+      tempValues.resize(count);
+      values.resize(count);
+      std::cout << "Resizing Meter buffers" << std::endl;
+    }
+    count = values.size();
+    for (int i = 0; i < count; i++) {
+      values[i] = *newValues;
+      newValues++;
     }
   }
 
@@ -178,20 +211,23 @@ public:
 private:
   PresetSequencer mSequencer;
   PresetHandler mPresetHandler{""};
-  SoundFileBuffered soundfile;
+  SoundFileBuffered soundfile{8192};
   Color c;
 
   gam::EnvFollow<> mEnvFollow;
 };
 
-class SpatialSequencer : public DistributedApp {
+class SpatialSequencer : public DistributedAppWithState<SharedState> {
 public:
   std::string rootDir{""};
 
   DistributedScene scene{"spatial_sequencer"};
 
   Trigger play{"play", ""};
+  ParameterBool downMix{"downMix"};
+
   PersistentConfig config;
+  DownMixer downMixer;
 
   void setPath(std::string path) {
     rootDir = path;
@@ -214,6 +250,9 @@ public:
     audioIO().channelsOut(60);
     audioIO().print();
 
+    downMixer.layoutToStereo(sl, audioIO());
+    downMixer.setStereoOutput();
+
     mSequencer << scene;
 
     registerDynamicScene(scene);
@@ -224,7 +263,7 @@ public:
     if (isPrimary()) {
       auto guiDomain = GUIDomain::enableGUI(defaultWindowDomain());
       auto &gui = guiDomain->newGUI();
-      gui << play << mSequencer << audioDomain()->parameters()[0];
+      gui << play << downMix << mSequencer << audioDomain()->parameters()[0];
       gui.drawFunction = [&]() {
         if (ParameterGUI::drawAudioIO(audioIO())) {
           scene.prepare(audioIO());
@@ -244,13 +283,23 @@ public:
 
   void onCreate() override {
     // Prepare mesh
-    addSphere(mObjectMesh);
-    mObjectMesh.scale(0.1f);
+    addSphere(mSphereMesh, 0.1);
+    mSphereMesh.update();
+    addSphere(mObjectMesh, 0.1, 8, 4);
     mObjectMesh.update();
     mMeter.init(mSpatializer->speakerLayout());
   }
 
-  void onAnimate(double dt) override { mSequencer.update(dt); }
+  void onAnimate(double dt) override {
+    mSequencer.update(dt);
+    if (isPrimary()) {
+      auto &values = mMeter.getMeterValues();
+      assert(values.size() < 65);
+      memcpy(state().meterValues, values.data(), values.size() * sizeof(float));
+    } else {
+      mMeter.setMeterValues(state().meterValues, 64);
+    }
+  }
 
   void onDraw(Graphics &g) override {
     g.clear(0, 0, 0);
@@ -264,7 +313,7 @@ public:
       g.polygonLine();
       g.scale(10);
       g.color(0.5);
-      g.draw(mObjectMesh);
+      g.draw(mSphereMesh);
       g.popMatrix();
     }
     mMeter.draw(g);
@@ -276,12 +325,16 @@ public:
   void onSound(AudioIOData &io) override {
     mSequencer.render(io);
     mMeter.processSound(io);
+    if (downMix) {
+      downMixer.downMix(io);
+    }
   }
 
   void onExit() override {}
 
 private:
   VAOMesh mObjectMesh;
+  VAOMesh mSphereMesh;
 
   SynthSequencer mSequencer{TimeMasterMode::TIME_MASTER_CPU};
   AudioObjectData mObjectData;

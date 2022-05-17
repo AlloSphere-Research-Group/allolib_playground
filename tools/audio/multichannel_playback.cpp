@@ -2,6 +2,7 @@
 #include "al/io/al_File.hpp"
 #include "al/io/al_Imgui.hpp"
 #include "al/io/al_Toml.hpp"
+#include "al/sound/al_DownMixer.hpp"
 #include "al/sound/al_SpeakerAdjustment.hpp"
 #include "al/sphere/al_AlloSphereSpeakerLayout.hpp"
 #include "al/sphere/al_SphereUtils.hpp"
@@ -10,68 +11,6 @@
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
 
 using namespace al;
-
-/**
- *  DownMixer uses buses in AudioIOData. If you are using buses in your
-application, ensure that they have been created before running DownMixer.
-Downmixer will create append new buses that it needs to the existing buses
-on the first buffer it processes.
-
-DownMixer will downmix to buffers, and can optionally copy the buses to outputs
-using the setOutputs() function.
-*/
-class DownMixer {
-public:
-  void set5_1toStereo(AudioIOData &io) {
-    uint32_t leftChannel = 0;
-    uint32_t rightChannel = 1;
-    mRoutingMap.clear();
-
-    const float threeDbDown = std::pow(10, -3.0 / 20.0);
-    const float sixDbDown = std::pow(10, -6.0 / 20.0);
-    // L C R Ls Rs LFE
-    mRoutingMap[0] = {{leftChannel, 1.0}};
-    mRoutingMap[1] = {{leftChannel, threeDbDown}, {rightChannel, threeDbDown}};
-    mRoutingMap[2] = {{rightChannel, 1.0}};
-
-    mRoutingMap[3] = {{leftChannel, sixDbDown}};
-    mRoutingMap[4] = {{rightChannel, sixDbDown}};
-    mRoutingMap[5] = {{leftChannel, sixDbDown}, {rightChannel, sixDbDown}};
-    if (mBusStartNumber == -1) {
-      mBusStartNumber = io.channelsBus();
-      // FIXME set number of busses from routing
-      io.channelsBus(io.channelsBus() + 2);
-    }
-  }
-
-  void setOutputs(std::vector<uint32_t> outs) { mOuts = outs; }
-
-  void downMix(AudioIOData &io) {
-    // Zero bus buffers
-    for (int i = mBusStartNumber; i < io.channelsBus(); i++) {
-      memset(io.busBuffer(i), 0, io.framesPerBuffer() * sizeof(float));
-    }
-    io.frame(0);
-    while (io()) {
-      for (const auto &mapEntry : mRoutingMap) {
-        for (const auto &routing : mapEntry.second) {
-          io.bus(routing.first) += io.out(mapEntry.first) * routing.second;
-        }
-      }
-    }
-    for (size_t i = 0; i < mOuts.size(); i++) {
-      if (mOuts[i] != UINT32_MAX) {
-        memcpy(io.outBuffer(mOuts[i]), io.busBuffer(i),
-               io.framesPerBuffer() * sizeof(float));
-      }
-    }
-  }
-
-private:
-  std::map<uint32_t, std::vector<std::pair<uint32_t, float>>> mRoutingMap;
-  std::vector<uint32_t> mOuts;
-  int mBusStartNumber = -1;
-};
 
 struct MappedAudioFile {
   std::unique_ptr<SoundFileBuffered> soundfile;

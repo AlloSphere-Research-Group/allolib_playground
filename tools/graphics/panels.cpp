@@ -20,7 +20,7 @@
 using namespace al;
 
 #include <iostream> // cout
-#include <vector>   // vector
+#include <vector> // vector
 
 const size_t numPictures = 7;
 const size_t numVideos = 1;
@@ -37,6 +37,10 @@ struct State {
 
 static const char *imagePath = "Sensorium/images/";
 static const char *videoPath = "Sensorium/videos/";
+
+struct VoiceSharedData {
+  std::string *dataRoot{nullptr};
+};
 
 class Panel : public PositionedVoice {
 public:
@@ -122,9 +126,10 @@ public:
 
     file.registerChangeCallback([&](std::string value) {
       if (value != currentlyLoadedFile) {
-        std::string *rootPath = static_cast<std::string *>(userData());
+        auto data = static_cast<VoiceSharedData *>(userData());
+        std::string rootPath = *(data->dataRoot);
 
-        std::string filename = *rootPath + imagePath + value;
+        std::string filename = rootPath + imagePath + value;
 
         auto imageData = Image(filename);
 
@@ -168,9 +173,10 @@ public:
         videoDecoder.stop();
 
         videoDecoder.init();
-        std::string *rootPath = static_cast<std::string *>(userData());
+        auto data = static_cast<VoiceSharedData *>(userData());
+        std::string rootPath = *(data->dataRoot);
 
-        std::string filename = *rootPath + videoPath + value;
+        std::string filename = rootPath + videoPath + value;
 
         if (!videoDecoder.load(filename.c_str())) {
           std::cerr << "Error loading video file: " << filename << std::endl;
@@ -277,18 +283,11 @@ public:
   PresetHandler presets;
   ControlGUI *gui;
 
-  void onInit() override {
+  VoiceSharedData voiceData;
 
-    if (!sphere::isSphereMachine()) {
-      // dataRoot = "c:/Users/Andres/Downloads/";
-      dataRoot = "/Users/cannedstar/code/allolib_playground/";
-    } else {
-      if (sphere::isRendererMachine()) {
-        dataRoot += "/data/";
-      } else {
-        dataRoot = "/Volumes/Data/";
-      }
-    }
+  void onInit() override {
+    voiceData.dataRoot = &this->dataRoot;
+    assert(voiceData.dataRoot);
 
     // Enable cuttlebone for state distribution
     auto cuttleboneDomain =
@@ -308,7 +307,7 @@ public:
       pictures[i].init();
       pictures[i].id(i);
       scene.registerVoiceParameters(&pictures[i]);
-      scene.triggerOn(&pictures[i], 0, i, &dataRoot);
+      scene.triggerOn(&pictures[i], 0, i, &voiceData);
       if (!isPrimary()) {
         pictures[i].markAsReplica();
       }
@@ -318,7 +317,7 @@ public:
       videos[i].init();
       videos[i].id(i);
       scene.registerVoiceParameters(&videos[i]);
-      scene.triggerOn(&videos[i], 0, 100 + i, &dataRoot);
+      scene.triggerOn(&videos[i], 0, 100 + i, &voiceData);
       if (!isPrimary()) {
         videos[i].markAsReplica();
       }
@@ -326,9 +325,6 @@ public:
 
     // Skybox
     {
-      addSphereWithTexcoords(sphereMesh, 50, 50, true);
-      sphereMesh.update();
-
       skyboxFile.setSynchronousCallbacks(false);
 
       skyboxFile.registerChangeCallback([&](std::string value) {
@@ -361,25 +357,7 @@ public:
       config.registerParameter(bgColor);
       config.read();
 
-      // GUI
-      auto guiDomain = GUIDomain::enableGUI(defaultWindowDomain());
-      gui = &guiDomain->newGUI();
-      *gui << bgColor;
-      *gui << presets;
-
-      *gui << skybox << skyboxFile << skyboxPose << rotateSpeed;
-      *gui << stereo;
-
       presets << bgColor << skyboxFile << skybox << skyboxPose << rotateSpeed;
-
-      for (size_t i = 0; i < numPictures; i++) {
-        *gui << pictures[i].bundle;
-        presets.registerParameterBundle(pictures[i].bundle);
-      }
-      for (size_t i = 0; i < numVideos; i++) {
-        *gui << videos[i].bundle;
-        presets.registerParameterBundle(videos[i].bundle);
-      }
     } else {
       lens().eyeSep(0);
       stereo.setSynchronousCallbacks(false);
@@ -400,7 +378,28 @@ public:
     videoFiles = fileListFromDir(dataRoot + videoPath);
   }
 
-  //  void onCreate() override {}
+  void onCreate() override {
+    addSphereWithTexcoords(sphereMesh, 50, 50, true);
+    sphereMesh.update();
+
+    // GUI
+    auto guiDomain = GUIDomain::enableGUI(defaultWindowDomain());
+    gui = &guiDomain->newGUI();
+    *gui << bgColor;
+    *gui << presets;
+
+    *gui << skybox << skyboxFile << skyboxPose << rotateSpeed;
+    *gui << stereo;
+
+    for (size_t i = 0; i < numPictures; i++) {
+      *gui << pictures[i].bundle;
+      presets.registerParameterBundle(pictures[i].bundle);
+    }
+    for (size_t i = 0; i < numVideos; i++) {
+      *gui << videos[i].bundle;
+      presets.registerParameterBundle(videos[i].bundle);
+    }
+  }
 
   void onAnimate(double dt) override {
     skyboxFile.processChange();
@@ -558,6 +557,17 @@ public:
 
 int main() {
   PanelViewer viewer;
+
+  if (!sphere::isSphereMachine()) {
+    viewer.dataRoot = "c:/Users/Andres/Downloads/";
+    //      dataRoot = "/Users/cannedstar/code/allolib_playground/";
+  } else {
+    if (sphere::isRendererMachine()) {
+      viewer.dataRoot += "/data/";
+    } else {
+      viewer.dataRoot = "/Volumes/Data/";
+    }
+  }
   viewer.start();
   return 0;
 }
