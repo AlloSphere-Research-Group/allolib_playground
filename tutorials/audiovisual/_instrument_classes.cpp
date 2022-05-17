@@ -634,7 +634,7 @@ public:
     ball.generateNormals();
 
     // We have the mesh be a sphere
-    createInternalTriggerParameter("freq", 440, 10, 4000.0);
+    createInternalTriggerParameter("frequency", 440, 10, 4000.0);
     createInternalTriggerParameter("amplitude", 0.05, 0.0, 1.0);
     createInternalTriggerParameter("attackTime", 0.1, 0.01, 3.0);
     createInternalTriggerParameter("releaseTime", 0.5, 0.1, 10.0);
@@ -661,9 +661,9 @@ public:
   {
     mVib.freq(mVibEnv());
     float carBaseFreq =
-        getInternalParameterValue("freq") * getInternalParameterValue("carMul");
+        getInternalParameterValue("frequency") * getInternalParameterValue("carMul");
     float modScale =
-        getInternalParameterValue("freq") * getInternalParameterValue("modMul");
+        getInternalParameterValue("frequency") * getInternalParameterValue("modMul");
     float amp = getInternalParameterValue("amplitude");
     while (io())
     {
@@ -689,7 +689,7 @@ public:
     g.pushMatrix();
     g.depthTesting(true);
     g.lighting(true);
-    g.translate(timepose, getInternalParameterValue("freq") / 200 - 3, -15);
+    g.translate(timepose, getInternalParameterValue("frequency") / 200 - 3, -15);
     g.rotate(mVib() + a, Vec3f(0, 1, 0));
     g.rotate(mVibDepth + b, Vec3f(1));
     float scaling = getInternalParameterValue("amplitude") / 10;
@@ -710,7 +710,7 @@ public:
     updateFromParameters();
 
     float modFreq =
-        getInternalParameterValue("freq") * getInternalParameterValue("modMul");
+        getInternalParameterValue("frequency") * getInternalParameterValue("modMul");
     mod.freq(modFreq);
   }
   void onTriggerOff() override
@@ -782,7 +782,7 @@ public:
     mAmpEnv.sustainPoint(2);
 
     // We have the mesh be a sphere
-    createInternalTriggerParameter("freq", 440, 10, 4000.0);
+    createInternalTriggerParameter("frequency", 440, 10, 4000.0);
     createInternalTriggerParameter("amplitude", 0.1, 0.0, 1.0);
     createInternalTriggerParameter("attackTime", 0.1, 0.01, 3.0);
     createInternalTriggerParameter("releaseTime", 0.3, 0.1, 10.0);
@@ -888,8 +888,8 @@ public:
   {
     mVib.freq(mVibEnv());
     float carBaseFreq =
-        getInternalParameterValue("freq") * getInternalParameterValue("carMul");
-    float modScale = getInternalParameterValue("freq") * getInternalParameterValue("modMul");
+        getInternalParameterValue("frequency") * getInternalParameterValue("carMul");
+    float modScale = getInternalParameterValue("frequency") * getInternalParameterValue("modMul");
     float amp = getInternalParameterValue("amplitude") * 0.01;
     while (io())
     {
@@ -919,7 +919,7 @@ public:
     g.pushMatrix();
     g.depthTesting(true);
     g.lighting(true);
-    g.translate(timepose, getInternalParameterValue("freq") / 200 - 3, -15);
+    g.translate(timepose, getInternalParameterValue("frequency") / 200 - 3, -15);
     g.rotate(mVib() + a, Vec3f(0, 1, 0));
     g.rotate(mVib() * mVibDepth + b, Vec3f(1));
     float scaling = getInternalParameterValue("amplitude") * 10;
@@ -941,7 +941,7 @@ public:
     updateWaveform();
 
     float modFreq =
-        getInternalParameterValue("freq") * getInternalParameterValue("modMul");
+        getInternalParameterValue("frequency") * getInternalParameterValue("modMul");
     mod.freq(modFreq);
   }
   void onTriggerOff() override
