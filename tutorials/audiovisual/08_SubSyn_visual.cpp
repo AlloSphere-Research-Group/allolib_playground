@@ -292,7 +292,7 @@ public:
             if (midiNote > 0 && m.velocity() > 0.001)
             {
                 synthManager.voice()->setInternalParameterValue(
-                    "freq", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+                    "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
                 synthManager.voice()->setInternalParameterValue(
                     "attackTime", 0.01 / m.velocity());
                 synthManager.triggerOn(midiNote);
