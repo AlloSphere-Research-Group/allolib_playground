@@ -35,7 +35,7 @@ using namespace std;
 class MyApp : public App, public MIDIMessageHandler
 {
 public:
-  SynthGUIManager<AddSyn> synthManager{"Integrated"};
+  SynthGUIManager<FMWT> synthManager{"Integrated"};
   //    ParameterMIDI parameterMIDI;
   int midiNote;
   float harmonicSeriesScale[20];
@@ -88,10 +88,10 @@ public:
         synthManager.synth().registerSynthClass<OscEnv>();
         synthManager.synth().registerSynthClass<Vib>();
         synthManager.synth().registerSynthClass<FM>();
-        synthManager.synth().registerSynthClass<FMWT>();
+        // synthManager.synth().registerSynthClass<FMWT>();
         synthManager.synth().registerSynthClass<OscAM>();
        synthManager.synth().registerSynthClass<OscTrm>();
-        // synthManager.synth().registerSynthClass<AddSyn>();
+        synthManager.synth().registerSynthClass<AddSyn>();
         synthManager.synth().registerSynthClass<Sub>();
         synthManager.synth().registerSynthClass<PluckedString>();
   }
