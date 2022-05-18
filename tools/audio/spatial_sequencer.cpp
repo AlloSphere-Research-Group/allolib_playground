@@ -206,6 +206,14 @@ public:
     c = HSV(colorIndex / 6.0f, 1.0f, 1.0f);
   }
 
+  void onTriggerOff() override {
+    if (isPrimary()) {
+      mPresetHandler.stopMorphing();
+      mSequencer.stopSequence();
+      soundfile.close();
+    }
+  }
+
   void onFree() override { soundfile.close(); }
 
 private:
@@ -223,7 +231,6 @@ public:
 
   DistributedScene scene{"spatial_sequencer"};
 
-  Trigger play{"play", ""};
   ParameterBool downMix{"downMix"};
 
   PersistentConfig config;
@@ -263,7 +270,7 @@ public:
     if (isPrimary()) {
       auto guiDomain = GUIDomain::enableGUI(defaultWindowDomain());
       auto &gui = guiDomain->newGUI();
-      gui << play << downMix << mSequencer << audioDomain()->parameters()[0];
+      gui << downMix << mSequencer << audioDomain()->parameters()[0];
       gui.drawFunction = [&]() {
         if (ParameterGUI::drawAudioIO(audioIO())) {
           scene.prepare(audioIO());
@@ -272,13 +279,6 @@ public:
         }
       };
     }
-
-    // Parameter callbacks
-    play.registerChangeCallback([&](auto v) {
-      if (v == 1.0) {
-        mSequencer.playSequence("session");
-      }
-    });
   }
 
   void onCreate() override {
