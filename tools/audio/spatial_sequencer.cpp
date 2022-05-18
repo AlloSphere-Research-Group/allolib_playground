@@ -229,7 +229,8 @@ class SpatialSequencer : public DistributedAppWithState<SharedState> {
 public:
   std::string rootDir{""};
 
-  DistributedScene scene{"spatial_sequencer"};
+  DistributedScene scene{"spatial_sequencer", 0,
+                         TimeMasterMode::TIME_MASTER_UPDATE};
 
   ParameterBool downMix{"downMix"};
 
