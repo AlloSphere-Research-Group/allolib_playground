@@ -35,7 +35,8 @@ using namespace std;
 class MyApp : public App, public MIDIMessageHandler
 {
 public:
-  SynthGUIManager<FMWT> synthManager{"Integrated"};
+  // ***** This is the only line to change the default instrument
+  SynthGUIManager<OscTrm> synthManager{"Integrated"}; // Change FMWT to something else if you want to use another default instrument GUI
   //    ParameterMIDI parameterMIDI;
   int midiNote;
   float harmonicSeriesScale[20];
@@ -88,7 +89,7 @@ public:
         synthManager.synth().registerSynthClass<OscEnv>();
         synthManager.synth().registerSynthClass<Vib>();
         synthManager.synth().registerSynthClass<FM>();
-        // synthManager.synth().registerSynthClass<FMWT>();
+        synthManager.synth().registerSynthClass<FMWT>();
         synthManager.synth().registerSynthClass<OscAM>();
        synthManager.synth().registerSynthClass<OscTrm>();
         synthManager.synth().registerSynthClass<AddSyn>();
