@@ -91,7 +91,7 @@ public:
         synthManager.synth().registerSynthClass<FM>();
         synthManager.synth().registerSynthClass<FMWT>();
         synthManager.synth().registerSynthClass<OscAM>();
-       synthManager.synth().registerSynthClass<OscTrm>();
+        synthManager.synth().registerSynthClass<OscTrm>();
         synthManager.synth().registerSynthClass<AddSyn>();
         synthManager.synth().registerSynthClass<Sub>();
         synthManager.synth().registerSynthClass<PluckedString>();
