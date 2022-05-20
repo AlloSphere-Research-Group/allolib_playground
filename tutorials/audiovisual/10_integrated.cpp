@@ -180,7 +180,6 @@ public:
     case MIDIByte::NOTE_OFF:
     {
       int midiNote = m.noteNumber();
-      printf("Note OFF %u, Vel %f", m.noteNumber(), m.velocity());
       synthManager.triggerOff(midiNote);
       break;
     }
