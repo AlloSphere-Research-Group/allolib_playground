@@ -6,6 +6,8 @@
 // Press '[' or ']' to turn on & off GUI
 // '=' to navigate pov
 // Able to play with MIDI device
+// To change the default instrument, change <FMWT> in line 43 to .. 
+// <SineEnv>, <OscEnv>, <Vib>, <FM>, <OscAM>, <OscTrm>, <AddSyn>, <Sub>, or <PluckedString>
 
 #include <cstdio> // for printing to stdout
 
@@ -35,8 +37,10 @@ using namespace std;
 class MyApp : public App, public MIDIMessageHandler
 {
 public:
+  // To change the default instrument, change <FMWT> to .. 
+  // <SineEnv>, <OscEnv>, <Vib>, <FM>, <OscAM>, <OscTrm>, <AddSyn>, <Sub>, or <PluckedString>
   // ***** This is the only line to change the default instrument
-  SynthGUIManager<OscTrm> synthManager{"Integrated"}; // Change FMWT to something else if you want to use another default instrument GUI
+  SynthGUIManager<FMWT> synthManager{"Integrated"}; 
   //    ParameterMIDI parameterMIDI;
   int midiNote;
   float harmonicSeriesScale[20];
