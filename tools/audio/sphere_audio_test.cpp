@@ -18,6 +18,7 @@
 #include "al/ui/al_FileSelector.hpp"
 #include "al/ui/al_ParameterGUI.hpp"
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
+#include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 
 #include "Gamma/Analysis.h"
 #include "Gamma/Envelope.h"
@@ -241,6 +242,8 @@ public:
     audioIO().print();
 
     mSequencer << scene;
+    CuttleboneStateSimulationDomain<SharedState>::enableCuttlebone(this);
+
 
     registerDynamicScene(scene);
     scene.registerSynthClass<AudioObject>(); // Allow AudioObject in sequences
@@ -318,8 +321,11 @@ public:
   }
 
   void onSound(AudioIOData &io) override {
+    if (isPrimary()) {
     mSequencer.render(io);
     mMeter.processSound(io);
+    }
+
   }
 
   void onExit() override {}
