@@ -133,11 +133,15 @@ public:
   Parameter azimuth{"azimuth", "", 0, 0, M_2PI};
   Parameter elev{"elevation", "", 0, -M_PI_2, M_PI_2};
 
+  Parameter rotationSpeed{"rotSpeed", "", 0, 0, 5};
+  Parameter elevationWobble{"elevWobble", "", 0, 0, 2};
+
   // Internal
   Parameter env{"env", "", 1.0, 0.00001, 10};
 
   gam::NoiseWhite<> noise;
   gam::Decay<> mEnv;
+  float mWobblePhase = 0.0;
 
   void init() override {
     registerTriggerParameters(gain);
@@ -153,6 +157,26 @@ public:
           Vec3f(std::sin(azimuth), std::sin(value), std::cos(azimuth));
       setPose({newPos, Quatf()});
     });
+  }
+
+  void update(double dt) override {
+    if (rotationSpeed > 0) {
+      auto newAzimuth = azimuth + M_2PI * dt * rotationSpeed;
+      if (newAzimuth > M_2PI) {
+        newAzimuth -= M_2PI;
+      }
+      azimuth = newAzimuth;
+    }
+    if (elevationWobble > 0) {
+      Vec3f newPos =
+          Vec3f(std::sin(azimuth), std::sin(elev * cos(mWobblePhase)),
+                std::cos(azimuth));
+      setPose({newPos, Quatf()});
+      mWobblePhase += M_2PI * dt * elevationWobble;
+      if (mWobblePhase > M_2PI) {
+        mWobblePhase -= M_2PI;
+      }
+    }
   }
 
   void onProcess(AudioIOData &io) override {
@@ -236,6 +260,9 @@ public:
         while (voice) {
           ParameterGUI::draw(&static_cast<AudioObject *>(voice)->azimuth);
           ParameterGUI::draw(&static_cast<AudioObject *>(voice)->elev);
+          ParameterGUI::draw(&static_cast<AudioObject *>(voice)->rotationSpeed);
+          ParameterGUI::draw(
+              &static_cast<AudioObject *>(voice)->elevationWobble);
           //          ParameterGUI::draw(
           //              &static_cast<AudioObject *>(voice)->parameterPose());
           voice = voice->next;
