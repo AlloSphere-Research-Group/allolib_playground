@@ -18,6 +18,7 @@
 #include "al/ui/al_FileSelector.hpp"
 #include "al/ui/al_ParameterGUI.hpp"
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
+#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 
 #include "Gamma/Analysis.h"
 #include "Gamma/Envelope.h"
@@ -28,6 +29,7 @@ using namespace al;
 
 struct SharedState {
   float meterValues[64] = {0};
+  Pose pose;
 };
 
 struct AudioObjectData {
@@ -136,18 +138,22 @@ public:
   Parameter rotationSpeed{"rotSpeed", "", 0, 0, 5};
   Parameter elevationWobble{"elevWobble", "", 0, 0, 2};
 
+  ParameterColor c{"color"};
+
   // Internal
   Parameter env{"env", "", 1.0, 0.00001, 10};
+  Parameter hue{"hue", "", 0.0, 0.0, 1.0};
 
   gam::NoiseWhite<> noise;
   gam::Decay<> mEnv;
   float mWobblePhase = 0.0;
 
   void init() override {
-    registerTriggerParameters(gain);
-    registerParameters(env);             // Propagate from audio rendering node
+    registerTriggerParameters(gain, hue, parameterPose());
+    registerParameters(env, c);          // Propagate from audio rendering node
     registerParameters(parameterPose()); // Update position in secondary nodes
     mEnv.decay(0.5);
+    hue.setSynchronousCallbacks(false);
     azimuth.registerChangeCallback([this](float value) {
       Vec3f newPos = Vec3f(std::sin(value), std::sin(elev), std::cos(value));
       setPose({newPos, Quatf()});
@@ -160,6 +166,11 @@ public:
   }
 
   void update(double dt) override {
+    if (hue.hasChange()) { // Hack because color can't be put as trigger
+                           // parameter...
+      hue.processChange();
+      c = Color(HSV(hue.get(), 1.0f, 1.0f));
+    }
     if (rotationSpeed > 0) {
       auto newAzimuth = azimuth + M_2PI * dt * rotationSpeed;
       if (newAzimuth > M_2PI) {
@@ -201,13 +212,13 @@ public:
     g.draw(mesh);
   }
 
-  void onTriggerOn() override { c = HSV(al::rnd::uniform(1), 1.0f, 1.0f); }
-
-  void onTriggerOff() override {}
+  void onTriggerOn() override {
+    if (isPrimary()) {
+      hue = al::rnd::uniform(1.0);
+    }
+  }
 
 private:
-  Color c;
-
   gam::EnvFollow<> mEnvFollow;
 };
 
@@ -232,8 +243,6 @@ public:
     mObjectData.audioBlockSize = audioIO().framesPerBuffer();
     scene.setDefaultUserData(&mObjectData);
 
-    if (al::sphere::isSimulatorMachine()) {
-    }
     auto sl = al::AlloSphereSpeakerLayout();
     mSpatializer = scene.setSpatializer<Lbap>(sl);
 
@@ -245,8 +254,6 @@ public:
     registerDynamicScene(scene);
     scene.registerSynthClass<AudioObject>(); // Allow AudioObject in sequences
     scene.allocatePolyphony<AudioObject>(16);
-    auto *voice = scene.getVoice<AudioObject>();
-    scene.triggerOn(voice);
     mSequencer.setGraphicsFrameRate(graphicsDomain()->fps());
 
     // Prepare GUI
@@ -257,23 +264,29 @@ public:
       gui << audioDomain()->parameters()[0];
       gui.drawFunction = [&]() {
         auto voice = mSequencer.synth().getActiveVoices();
+        if (!voice) {
+          ImGui::Text("Press 'p' to add a source, 'o' to remove");
+        }
         while (voice) {
+          ImGui::PushID(voice->id());
+          ImGui::Text("Voice %i", voice->id());
+          ParameterGUI::draw(&static_cast<AudioObject *>(voice)->c);
+          ParameterGUI::draw(&static_cast<AudioObject *>(voice)->gain);
           ParameterGUI::draw(&static_cast<AudioObject *>(voice)->azimuth);
           ParameterGUI::draw(&static_cast<AudioObject *>(voice)->elev);
           ParameterGUI::draw(&static_cast<AudioObject *>(voice)->rotationSpeed);
           ParameterGUI::draw(
               &static_cast<AudioObject *>(voice)->elevationWobble);
+
+          ImGui::PopID();
           //          ParameterGUI::draw(
           //              &static_cast<AudioObject *>(voice)->parameterPose());
           voice = voice->next;
         }
-        if (ParameterGUI::drawAudioIO(audioIO())) {
-          scene.prepare(audioIO());
-          mObjectData.audioSampleRate = audioIO().framesPerSecond();
-          mObjectData.audioBlockSize = audioIO().framesPerBuffer();
-        }
       };
     }
+
+    CuttleboneDomain<SharedState>::enableCuttlebone(this);
   }
 
   void onCreate() override {
@@ -291,8 +304,10 @@ public:
       auto &values = mMeter.getMeterValues();
       assert(values.size() < 65);
       memcpy(state().meterValues, values.data(), values.size() * sizeof(float));
+      state().pose = nav();
     } else {
       mMeter.setMeterValues(state().meterValues, 64);
+      nav().set(state().pose);
     }
   }
 
@@ -320,6 +335,19 @@ public:
   void onSound(AudioIOData &io) override {
     mSequencer.render(io);
     mMeter.processSound(io);
+  }
+
+  bool onKeyDown(Keyboard const &k) override {
+    if (k.key() == 'p') {
+      auto *voice = scene.getVoice<AudioObject>();
+      scene.triggerOn(voice);
+    } else if (k.key() == 'o') {
+      auto *voice = scene.getActiveVoices();
+      if (voice) {
+        scene.triggerOff(voice->id());
+      }
+    }
+    return true;
   }
 
   void onExit() override {}
