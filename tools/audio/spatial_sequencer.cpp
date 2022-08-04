@@ -346,10 +346,16 @@ private:
   std::shared_ptr<Spatializer> mSpatializer;
 };
 
-int main() {
+int main(int argc, char *argv[]) {
   SpatialSequencer app;
 
-  app.setPath("Morris Allosphere piece");
+  std::string folder;
+  if (argc > 1) {
+    folder = argv[1];
+  } else {
+    folder = "Morris Allosphere piece";
+  }
+  app.setPath(folder);
 
   app.start();
   return 0;
