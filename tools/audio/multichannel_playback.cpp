@@ -191,7 +191,7 @@ private:
   DownMixer mDownMixer;
 };
 
-int main() {
+int main(int argc, char *argv[]) {
   AudioPlayerApp app;
 
   /* Load configuration from text file. Config file should look like:
@@ -207,8 +207,14 @@ outChannels = [1]
 gain = 1.2
     */
 
-  TomlLoader appConfig("multichannel_playback.toml");
-  //  appConfig.writeFile();
+  std::string configFile;
+  if (argc > 1) {
+    configFile = argv[1];
+  } else {
+    configFile = "multichannel_playback.toml";
+  }
+
+  TomlLoader appConfig(configFile);
 
   if (appConfig.hasKey<std::string>("rootDir")) {
     app.rootDir = appConfig.gets("rootDir");
@@ -241,6 +247,7 @@ gain = 1.2
       }
     }
   } else {
+    std::cout << "Error loading file. Aborting" << std::endl;
     return -1;
   }
 
