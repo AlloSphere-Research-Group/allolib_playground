@@ -1,4 +1,4 @@
-rootDir = "/Volumes/Data/code/andres/allolib_playground/tools/audio/bin/Last Whispers"
+rootDir = "/Volumes/Data/code/andres/allolib_playground/tools/audio/bin/Last Whispers/"
 [[file]]
 name = "Last Whispers 54.1 Allosphere Mix track 00 LFE Spkr 48.wav"
 outChannels = [47]
