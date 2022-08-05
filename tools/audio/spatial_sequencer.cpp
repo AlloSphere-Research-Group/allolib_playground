@@ -17,6 +17,7 @@
 #include "al/ui/al_FileSelector.hpp"
 #include "al/ui/al_ParameterGUI.hpp"
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
+#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 
 #include "Gamma/Analysis.h"
 #include "Gamma/scl.h"
@@ -280,6 +281,7 @@ public:
         }
       };
     }
+    CuttleboneDomain<SharedState>::enableCuttlebone(this);
   }
 
   void onCreate() override {
