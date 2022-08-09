@@ -150,8 +150,8 @@ public:
   DownMixer downMixer;
 
   void setPath(std::string path) {
-    rootDir = path;
-    mSequencer.setDirectory(path);
+    rootDir = al::File::conformDirectory(path);
+    mSequencer.setDirectory(rootDir);
   }
 
   void onInit() override {
@@ -164,7 +164,7 @@ public:
 
     if (al::sphere::isSimulatorMachine()) {
     }
-    auto sl = al::AlloSphereSpeakerLayout();
+    auto sl = al::AlloSphereSpeakerLayoutCompensated();
     mSpatializer = scene.setSpatializer<Lbap>(sl);
 
     audioIO().channelsOut(60);
