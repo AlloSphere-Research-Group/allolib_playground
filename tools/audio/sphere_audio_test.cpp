@@ -244,7 +244,7 @@ public:
     mObjectData.audioBlockSize = audioIO().framesPerBuffer();
     scene.setDefaultUserData(&mObjectData);
 
-    auto sl = al::AlloSphereSpeakerLayout();
+    auto sl = al::AlloSphereSpeakerLayoutCompensated();
     mSpatializer = scene.setSpatializer<Lbap>(sl);
 
     audioIO().channelsOut(60);
