@@ -92,7 +92,7 @@ public:
     AudioDevice dev = AudioDevice::defaultOutput();
     if (sphere::isSphereMachine()) {
       dev = AudioDevice("ECHO X5");
-      gainAdjustment.configure(AlloSphereSpeakerLayout(), 1.82);
+      gainAdjustment.configure(AlloSphereSpeakerLayoutCompensated(), 1.82);
     }
     configureAudio(dev, soundfiles.back().soundfile->frameRate(), 1024,
                    dev.channelsOutMax(), 0);
