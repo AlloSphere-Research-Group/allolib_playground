@@ -1,0 +1,278 @@
+rootDir = "/Volumes/Data/code/andres/allolib_playground/tools/audio/bin/Last Whispers/"
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 00 LFE Spkr 48.wav"
+outChannels = [47]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 01 Spkr 49.wav"
+outChannels = [48]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 02 Spkr 50.wav"
+outChannels = [49]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 03 Spkr 51.wav"
+outChannels = [50]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 04 Spkr 52.wav"
+outChannels = [51]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 05 Spkr 53.wav"
+outChannels = [52]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 06 Spkr 54.wav"
+outChannels = [53]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 07 Spkr 55.wav"
+outChannels = [54]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 08 Spkr 56.wav"
+outChannels = [55]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 09 Spkr 57.wav"
+outChannels = [56]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 10 Spkr 58.wav"
+outChannels = [57]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 11 Spkr 59.wav"
+outChannels = [58]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 12 Spkr 60.wav"
+outChannels = [59]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 13 Spkr 17.wav"
+outChannels = [16]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 14 Spkr 18.wav"
+outChannels = [17]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 15 Spkr 19.wav"
+outChannels = [18]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 16 Spkr 20.wav"
+outChannels = [19]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 17 Spkr 21.wav"
+outChannels = [20]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 18 Spkr 22.wav"
+outChannels = [21]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 19 Spkr 23.wav"
+outChannels = [22]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 20 Spkr 24.wav"
+outChannels = [23]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 21 Spkr 25.wav"
+outChannels = [24]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 22 Spkr 26.wav"
+outChannels = [25]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 23 Spkr 27.wav"
+outChannels = [26]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 24 Spkr 28.wav"
+outChannels = [27]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 25 Spkr 29.wav"
+outChannels = [29]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 26 Spkr 30.wav"
+outChannels = [29]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 27 Spkr 31.wav"
+outChannels = [30]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 28 Spkr 32.wav"
+outChannels = [31]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 29 Spkr 33.wav"
+outChannels = [32]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 30 Spkr 34.wav"
+outChannels = [33]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 31 Spkr 35.wav"
+outChannels = [34]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 32 Spkr 36.wav"
+outChannels = [35]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 33 Spkr 37.wav"
+outChannels = [36]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 34 Spkr 38.wav"
+outChannels = [37]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 35 Spkr 39.wav"
+outChannels = [38]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 36 Spkr 40.wav"
+outChannels = [39]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 37 Spkr 41.wav"
+outChannels = [40]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 38 Spkr 42.wav"
+outChannels = [41]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 39 Spkr 43.wav"
+outChannels = [42]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 40 Spkr 44.wav"
+outChannels = [43]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 41 Spkr 45.wav"
+outChannels = [44]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 42 Spkr 46.wav"
+outChannels = [45]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 43 Spkr 01.wav"
+outChannels = [0]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 44 Spkr 02.wav"
+outChannels = [1]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 45 Spkr 03.wav"
+outChannels = [2]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 46 Spkr 04.wav"
+outChannels = [3]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 47 Spkr 05.wav"
+outChannels = [4]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 48 Spkr 06.wav"
+outChannels = [5]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 49 Spkr 07.wav"
+outChannels = [6]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 50 Spkr 08.wav"
+outChannels = [7]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 51 Spkr 09.wav"
+outChannels = [8]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 52 Spkr 10.wav"
+outChannels = [9]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 53 Spkr 11.wav"
+outChannels = [10]
+gain = 1.0
+
+[[file]]
+name = "Last Whispers 54.1 Allosphere Mix track 54 Spkr 12.wav"
+outChannels = [11]
+gain = 1.0
+
+

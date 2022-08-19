@@ -1,4 +1,4 @@
-﻿#include <cstdio>  // for printing to stdout
+﻿#include <cstdio> // for printing to stdout
 
 #include "Gamma/Analysis.h"
 #include "Gamma/Effects.h"
@@ -21,7 +21,7 @@ using namespace al;
 // processes in the onProcess() functions.
 
 class SineEnv : public SynthVoice {
- public:
+public:
   // Unit generators
   gam::Pan<> mPan;
   gam::Sine<> mOsc;
@@ -36,9 +36,9 @@ class SineEnv : public SynthVoice {
   // it is created. Voices will be reused if they are idle.
   void init() override {
     // Intialize envelope
-    mAmpEnv.curve(0);  // make segments lines
+    mAmpEnv.curve(0); // make segments lines
     mAmpEnv.levels(0, 1, 1, 0);
-    mAmpEnv.sustainPoint(2);  // Make point 2 sustain until a release is issued
+    mAmpEnv.sustainPoint(2); // Make point 2 sustain until a release is issued
 
     // We have the mesh be a sphere
     addDisc(mMesh, 1.0, 30);
@@ -57,7 +57,7 @@ class SineEnv : public SynthVoice {
   }
 
   // The audio processing function
-  void onProcess(AudioIOData& io) override {
+  void onProcess(AudioIOData &io) override {
     // Get the values from the parameters and apply them to the corresponding
     // unit generators. You could place these lines in the onTrigger() function,
     // but placing them here allows for realtime prototyping on a running
@@ -79,19 +79,24 @@ class SineEnv : public SynthVoice {
     // We need to let the synth know that this voice is done
     // by calling the free(). This takes the voice out of the
     // rendering chain
-    if (mAmpEnv.done() && (mEnvFollow.value() < 0.001f)) free();
+    if (mAmpEnv.done() && (mEnvFollow.value() < 0.001f))
+      free();
   }
 
   // The graphics processing function
-  void onProcess(Graphics& g) override {
+  void onProcess(Graphics &g) override {
     // Get the paramter values on every video frame, to apply changes to the
     // current instance
     float frequency = getInternalParameterValue("frequency");
     float amplitude = getInternalParameterValue("amplitude");
     // Now draw
     g.pushMatrix();
+    // Move x according to frequency, y according to amplitude
     g.translate(frequency / 200 - 3, amplitude, -8);
+    // Scale in the x and y directions according to amplitude
     g.scale(1 - amplitude, amplitude, 1);
+    // Set the color. Red and Blue according to sound amplitude and Green
+    // according to frequency. Alpha fixed to 0.4
     g.color(mEnvFollow.value(), frequency / 1000, mEnvFollow.value() * 10, 0.4);
     g.draw(mMesh);
     g.popMatrix();
@@ -107,7 +112,7 @@ class SineEnv : public SynthVoice {
 
 // We make an app.
 class MyApp : public App {
- public:
+public:
   // GUI manager for SineEnv voices
   // The name provided determines the name of the directory
   // where the presets and sequences are stored
@@ -118,8 +123,8 @@ class MyApp : public App {
   // It's also a good place to put things that should
   // happen once at startup.
   void onCreate() override {
-    navControl().active(false);  // Disable navigation via keyboard, since we
-                                 // will be using keyboard for note triggering
+    navControl().active(false); // Disable navigation via keyboard, since we
+                                // will be using keyboard for note triggering
 
     // Set sampling rate for Gamma objects from app's audio
     gam::sampleRate(audioIO().framesPerSecond());
@@ -132,8 +137,8 @@ class MyApp : public App {
   }
 
   // The audio callback function. Called when audio hardware requires data
-  void onSound(AudioIOData& io) override {
-    synthManager.render(io);  // Render audio
+  void onSound(AudioIOData &io) override {
+    synthManager.render(io); // Render audio
   }
 
   void onAnimate(double dt) override {
@@ -145,7 +150,7 @@ class MyApp : public App {
   }
 
   // The graphics callback function.
-  void onDraw(Graphics& g) override {
+  void onDraw(Graphics &g) override {
     g.clear();
     // Render the synth's graphics
     synthManager.render(g);
@@ -155,9 +160,9 @@ class MyApp : public App {
   }
 
   // Whenever a key is pressed, this function is called
-  bool onKeyDown(Keyboard const& k) override {
-    if (ParameterGUI::usingKeyboard()) {  // Ignore keys if GUI is using
-                                          // keyboard
+  bool onKeyDown(Keyboard const &k) override {
+    if (ParameterGUI::usingKeyboard()) { // Ignore keys if GUI is using
+                                         // keyboard
       return true;
     }
     if (k.shift()) {
@@ -177,7 +182,7 @@ class MyApp : public App {
   }
 
   // Whenever a key is released this function is called
-  bool onKeyUp(Keyboard const& k) override {
+  bool onKeyUp(Keyboard const &k) override {
     int midiNote = asciiToMIDI(k.key());
     if (midiNote > 0) {
       synthManager.triggerOff(midiNote);
