@@ -239,8 +239,16 @@ public:
   void onSound(AudioIOData &io) override {
     mSequencer.render(io);
     mMeter.processSound(io);
+    // downmix to stereo to bus 0 and 1
+    downMixer.downMixToBus(io);
+    // This can be used to create a global reverb
+    while (io()) {
+      float lfeLevel = 0.1;
+      io.out(47) += io.bus(0) * lfeLevel;
+      io.out(47) += io.bus(1) * lfeLevel;
+    }
     if (downMix) {
-      downMixer.downMix(io);
+      downMixer.copyBusToOuts(io);
     }
   }
 
