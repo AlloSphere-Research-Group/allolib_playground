@@ -102,7 +102,17 @@ elif [ $(uname -s) != MINGW64* ] && [ "${GENERATOR_PLATFORM}" != "x86" ]; then
     # WINDOWS_FLAGS=-DCMAKE_GENERATOR_PLATFORM=x64
     echo Building for Visual Studio
       if [ ! -d "C:\Program Files (x86)\Microsoft Visual Studio\2017" ] && [ ! -d "C:\Program Files (x86)\Microsoft Visual Studio\2019" ]; then
-        echo You must install Visual Studio 2017 or 2019 to use allolib
+        echo You must install Visual Studio 2017, 2019, or 2022 to use allolib
+    fi
+    if [ ! -f "${CMAKE_BINARY}" ]; then
+      CMAKE_BINARY="C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
+      GENERATOR="Visual Studio 17 2022"
+      echo Tryng VS 2022 build.
+    fi
+    if [ ! -f "${CMAKE_BINARY}" ]; then
+      CMAKE_BINARY="C:/Program Files (x86)/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
+      GENERATOR="Visual Studio 17 2022"
+      echo Tryng VS 2022 x86 build.
     fi
     if [ ! -f "${CMAKE_BINARY}" ]; then
       CMAKE_BINARY="C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"

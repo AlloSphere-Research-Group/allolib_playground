@@ -2,6 +2,7 @@
 #include "al/io/al_File.hpp"
 #include "al/io/al_Imgui.hpp"
 #include "al/io/al_Toml.hpp"
+#include "al/sound/al_DownMixer.hpp"
 #include "al/sound/al_SpeakerAdjustment.hpp"
 #include "al/sphere/al_AlloSphereSpeakerLayout.hpp"
 #include "al/sphere/al_SphereUtils.hpp"
@@ -21,17 +22,20 @@ struct MappedAudioFile {
 };
 
 class AudioPlayerApp : public App {
- public:
+public:
   std::string rootDir{""};
 
   ParameterBool play{"play", "", 0.0};
+  ParameterBool downmixStereo{"downmixStereo", "", 0.0};
   Trigger rewind{"rewind"};
+  Trigger fw{"fw"};
+  Trigger back{"back"};
 
   bool loadFile(std::string fileName, std::vector<size_t> channelMap,
                 float gain, bool loop) {
     soundfiles.push_back(MappedAudioFile());
     soundfiles.back().soundfile = std::make_unique<SoundFileBuffered>(
-        File::conformPathToOS(rootDir) + fileName);
+        File::conformPathToOS(rootDir) + fileName, false, 4096);
     soundfiles.back().soundfile->loop(loop);
     if (!soundfiles.back().soundfile->opened()) {
       std::cerr << "ERROR: opening "
@@ -60,7 +64,6 @@ class AudioPlayerApp : public App {
   }
 
   // App callbacks
-
   void onInit() override {
     rewind.registerChangeCallback([&](float /*value*/) {
       play = 0.0;
@@ -69,28 +72,71 @@ class AudioPlayerApp : public App {
       }
       play = 1.0;
     });
+    fw.registerChangeCallback([&](float /*value*/) {
+      play = 0.0;
+      for (auto &sf : soundfiles) {
+        sf.soundfile->seek(sf.soundfile->currentPosition() +
+                           5 * sf.soundfile->frameRate());
+      }
+      play = 1.0;
+    });
+    back.registerChangeCallback([&](float /*value*/) {
+      play = 0.0;
+      for (auto &sf : soundfiles) {
+        sf.soundfile->seek(sf.soundfile->currentPosition() -
+                           5 * sf.soundfile->frameRate());
+      }
+      play = 1.0;
+    });
 
     AudioDevice dev = AudioDevice::defaultOutput();
     if (sphere::isSphereMachine()) {
       dev = AudioDevice("ECHO X5");
-      gainAdjustment.configure(AlloSphereSpeakerLayout(), 1.82);
+      gainAdjustment.configure(AlloSphereSpeakerLayoutCompensated(), 1.82);
     }
     configureAudio(dev, soundfiles.back().soundfile->frameRate(), 1024,
                    dev.channelsOutMax(), 0);
 
     audioIO().append(gainAdjustment);
+
+    int highestChannel = 0;
+    for (const auto &sf : soundfiles) {
+      for (const auto entry : sf.outChannelMap) {
+        assert(entry <= INT32_MAX);
+        if (highestChannel < static_cast<int32_t>(entry)) {
+          highestChannel = static_cast<int32_t>(entry);
+        }
+      }
+    }
+    audioIO().channelsOut(highestChannel + 1);
+    if (soundfiles.size() == 6) {
+      // assume 5.1 to stereo
+      mDownMixer.set5_1toStereo(audioIO());
+      mDownMixer.setOutputs({0, 1});
+    }
   }
 
   void onCreate() override { imguiInit(); }
+
   void onDraw(Graphics &g) override {
     imguiBeginFrame();
 
     ImGui::Begin("Multichannel Player");
     ParameterGUI::draw(&play);
+    ParameterGUI::draw(&downmixStereo);
     ParameterGUI::draw(&rewind);
+
+    ParameterGUI::draw(&back);
+    ImGui::SameLine(0, 20);
+    ParameterGUI::draw(&fw);
+
     ParameterGUI::drawParameterMeta(audioDomain()->parameters(),
                                     " (Global)##AudioIO");
     ParameterGUI::drawAudioIO(audioIO());
+    if (soundfiles.size() > 0) {
+      ImGui::Text("Time: %f", soundfiles[0].soundfile->currentPosition() /
+                                  soundfiles[0].soundfile->frameRate());
+    }
     ImGui::Separator();
     for (auto &sf : soundfiles) {
       ImGui::Text("*** %s", sf.fileName.c_str());
@@ -113,6 +159,9 @@ class AudioPlayerApp : public App {
       for (auto &sf : soundfiles) {
         int numChannels = sf.soundfile->channels();
         int framesRead = sf.soundfile->read(buffer, io.framesPerBuffer());
+        if (framesRead != io.framesPerBuffer()) {
+          std::cout << "short buffer " << framesRead << std::endl;
+        }
         for (size_t i = 0; i < sf.outChannelMap.size(); i++) {
           size_t outIndex = sf.outChannelMap[i];
           if (!sf.mute) {
@@ -122,6 +171,9 @@ class AudioPlayerApp : public App {
             }
           }
         }
+      }
+      if (downmixStereo.get() == 1.0) {
+        mDownMixer.downMix(io);
       }
     }
   }
@@ -133,12 +185,13 @@ class AudioPlayerApp : public App {
     imguiShutdown();
   }
 
- private:
+private:
   std::vector<MappedAudioFile> soundfiles;
   SpeakerDistanceGainAdjustmentProcessor gainAdjustment;
+  DownMixer mDownMixer;
 };
 
-int main() {
+int main(int argc, char *argv[]) {
   AudioPlayerApp app;
 
   /* Load configuration from text file. Config file should look like:
@@ -154,8 +207,14 @@ outChannels = [1]
 gain = 1.2
     */
 
-  TomlLoader appConfig("multichannel_playback.toml");
-  //  appConfig.writeFile();
+  std::string configFile;
+  if (argc > 1) {
+    configFile = argv[1];
+  } else {
+    configFile = "multichannel_playback.toml";
+  }
+
+  TomlLoader appConfig(configFile);
 
   if (appConfig.hasKey<std::string>("rootDir")) {
     app.rootDir = appConfig.gets("rootDir");
@@ -187,6 +246,9 @@ gain = 1.2
         return -1;
       }
     }
+  } else {
+    std::cout << "Error loading file. Aborting" << std::endl;
+    return -1;
   }
 
   app.start();

@@ -28,3 +28,7 @@ For more complex projects follow the template provided in allotemplate
 some knowledge of Cmake but allows more complex workflows and multifile
 applications or multiple target binaries.
 
+## Allolib API documentation
+
+You can find the allolib API doxygen documentation at:
+[https://allosphere-research-group.github.io/allolib-doc/]()
