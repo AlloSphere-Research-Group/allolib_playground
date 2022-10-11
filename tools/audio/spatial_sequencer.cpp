@@ -58,7 +58,7 @@ public:
 
   // Internal
   Parameter env{"env", "", 1.0, 0.00001, 10};
-  float global_time, time_step;
+  // float global_time, time_step;
 
   void init() override {
     registerTriggerParameters(file, automation, gain);
@@ -68,7 +68,7 @@ public:
     mSequencer << parameterPose();
     mPresetHandler << parameterPose();
     mSequencer << mPresetHandler; // For morphing
-    global_time = 0; // Timer init
+    // global_time = 0; // Timer init
   }
 
   void onProcess(AudioIOData &io) override {
@@ -86,7 +86,7 @@ public:
         mEnvFollow(buffer[sample * numChannels + inChannel]);
       }
     }
-    global_time += time_step;
+    // global_time += time_step;
   }
 
   void onProcess(Graphics &g) override {
@@ -99,12 +99,12 @@ public:
     g.color(c);
     g.polygonLine();
     g.draw(mesh);
-    cout << global_time << endl;
+    // cout << global_time << endl;
   }
 
   void onTriggerOn() override {
     auto objData = static_cast<AudioObjectData *>(userData());
-    global_time = 0; // Timer init
+    // global_time = 0; // Timer init
     if (isPrimary()) {
       auto &rootPath = objData->rootPath;
       soundfile.open(File::conformPathToOS(rootPath) + file.get());
@@ -115,7 +115,7 @@ public:
 
       float seqStep = (float)objData->audioBlockSize / objData->audioSampleRate;
       mSequencer.setSequencerStepTime(seqStep);
-      time_step = seqStep;
+      // time_step = seqStep;
 
       mSequencer.playSequence(File::conformPathToOS(rootPath) +
                               automation.get());
@@ -245,13 +245,13 @@ public:
   void onSound(AudioIOData &io) override {
     mSequencer.render(io);
     mMeter.processSound(io);
-    // downmix to stereo to bus 0 and 1
-    downMixer.downMix(io);
+    // downmix to stereo to bus 0 and 1 
+    // downMixer.downMix(io); // Commented out to make it spatialized in the sphere. Especially for Morris 
     // This can be used to create a global reverb
     while (io()) {
-      float lfeLevel = 0.1;
-      io.out(47) += io.bus(0) * lfeLevel;
-      io.out(47) += io.bus(1) * lfeLevel;
+      // float lfeLevel = 0.1;
+      // io.out(47) += io.bus(0) * lfeLevel;
+      // io.out(47) += io.bus(1) * lfeLevel;
     }
     // if (downMix) {
     //   downMixer.copyBusToOuts(io);
@@ -275,11 +275,12 @@ int main(int argc, char *argv[]) {
   SpatialSequencer app;
 
   std::string folder;
-  if (argc > 1) {
-    folder = argv[1];
-  } else {
-    folder = "Morris Allosphere piece";
-  }
+  folder = "/Volumes/Data/media/Morris_Allosphere_piece/";
+  // if (argc > 1) {
+  //   folder = argv[1];
+  // } else {
+  //   folder = "Morris Allosphere piece";
+  // }
   app.setPath(folder);
 
   app.start();
