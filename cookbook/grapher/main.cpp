@@ -42,7 +42,8 @@ struct TCC {
     instance = tcc_new();
     assert(instance != nullptr);
 
-    tcc_set_options(instance, "-nostdinc -nostdlib -Wall -Werror");
+    tcc_set_options(instance, "-nostdinc -Wall -Werror");
+    // tcc_set_options(instance, "-nostdinc -nostdlib -Wall -Werror");
     tcc_set_error_func(instance, this, tcc_error_handler);
     tcc_set_output_type(instance, TCC_OUTPUT_MEMORY);
 
