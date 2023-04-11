@@ -4,4 +4,3 @@ rm -rf allolib
 rm -rf al_ext
 
 git submodule update --init --recursive
-rm init.sh
