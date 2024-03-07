@@ -1,8 +1,6 @@
 #include "al/app/al_DistributedApp.hpp"
 #include "al/app/al_GUIDomain.hpp"
 #include "al/ui/al_ParameterGUI.hpp"
-#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
-
 
 using namespace al;
 

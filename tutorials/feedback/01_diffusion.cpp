@@ -1,7 +1,6 @@
 #include "al/app/al_DistributedApp.hpp"
 #include "al/app/al_GUIDomain.hpp"
 #include "al/ui/al_ParameterGUI.hpp"
-#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 
 
 using namespace al;
@@ -18,8 +17,6 @@ struct DiffusionApp : public App {
   FBO fbo0;
 
   ShaderProgram diffusionShader;
-
-  VAOMesh quad;
 
   // we will watch and auto reload shader files on change
   SearchPaths searchPaths;
@@ -93,14 +90,6 @@ struct DiffusionApp : public App {
     tex0 = new Texture();
     tex1 = new Texture();
     updateFBO(fbWidth(), fbHeight());
-
-    // initialize quad mesh
-    quad.primitive(Mesh::TRIANGLE_STRIP);
-    quad.vertex(-1, -1, 0);
-    quad.vertex(1, -1, 0);
-    quad.vertex(-1, 1, 0);
-    quad.vertex(1, 1, 0);
-    quad.update();
 
     // Initialize GUI and Parameter callbacks
     auto guiDomain = GUIDomain::enableGUI(defaultWindowDomain());

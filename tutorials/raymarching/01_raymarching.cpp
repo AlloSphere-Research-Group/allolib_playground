@@ -1,7 +1,7 @@
 #include "al/app/al_DistributedApp.hpp"
 #include "al/app/al_GUIDomain.hpp"
 #include "al/ui/al_ParameterGUI.hpp"
-#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
+#include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 
 
 using namespace al;
@@ -43,7 +43,7 @@ struct RayApp : public DistributedAppWithState<State> {
 
 
   // for distributed App state synchronization
-  std::shared_ptr<CuttleboneDomain<State>> cuttleboneDomain;
+  std::shared_ptr<CuttleboneStateSimulationDomain<State>> cuttleboneDomain;
 
 
   void onInit() override {
@@ -54,7 +54,7 @@ struct RayApp : public DistributedAppWithState<State> {
   }
 
   void onCreate() override {
-    cuttleboneDomain = CuttleboneDomain<State>::enableCuttlebone(this);
+    cuttleboneDomain = CuttleboneStateSimulationDomain<State>::enableCuttlebone(this);
     if (!cuttleboneDomain) {
       std::cerr << "ERROR: Could not start Cuttlebone" << std::endl;
       quit();

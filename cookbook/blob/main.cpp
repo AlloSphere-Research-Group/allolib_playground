@@ -4,7 +4,6 @@
 
 #include "al/app/al_GUIDomain.hpp"
 
-#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 #include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 
 #include <Gamma/Noise.h>

@@ -8,7 +8,6 @@
 #include "al/app/al_GUIDomain.hpp"
 #include "al/graphics/al_Image.hpp"
 
-#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 #include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 
 #ifdef AL_EXT_LIBAV
