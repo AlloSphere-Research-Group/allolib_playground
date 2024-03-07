@@ -34,18 +34,12 @@
 // using namespace gam;
 using namespace al;
 using namespace std;
+#define FFT_SIZE 4048
 
 // This example shows how to use SynthVoice and SynthManagerto create an audio
 // visual synthesizer. In a class that inherits from SynthVoice you will
 // define the synth's voice parameters and the sound and graphic generation
 // processes in the onProcess() functions.
-
-Vec3f randomVec3f(float scale)
-{
-  return Vec3f(al::rnd::uniformS(), al::rnd::uniformS(), al::rnd::uniformS()) * scale;
-}
-
-#define FFT_SIZE 4048
 
 class SineEnv : public SynthVoice
 {
@@ -58,8 +52,9 @@ public:
   gam::EnvFollow<> mEnvFollow;
   // Draw parameters
   Mesh mMesh;
-  double a = 0;
-  double b = 0;
+  double a;
+  double b;
+  double spin = al::rnd::uniformS();
   double timepose = 0;
   Vec3f note_position;
   Vec3f note_direction;
@@ -126,8 +121,8 @@ public:
   // The graphics processing function
   void onProcess(Graphics &g) override
   {
-    a += 0.29;
-    b += 0.23;
+    a += spin;
+    b += spin;
     timepose += 0.02;
     // Get the paramter values on every video frame, to apply changes to the
     // current instance
@@ -176,6 +171,7 @@ public:
   vector<float> spectrum;
   bool showGUI = true;
   bool showSpectro = true;
+  bool navi = false;
 
   // STFT variables
   // Window size
@@ -252,6 +248,7 @@ public:
     // Draw a window that contains the synth control panel
     synthManager.drawSynthControlPanel();
     imguiEndFrame();
+    navControl().active(navi);
   }
 
   // The graphics callback function.
@@ -326,19 +323,24 @@ public:
       // keyboard
       return true;
     }
-    if (k.shift())
+    if (!navi)
     {
-      // If shift pressed then keyboard sets preset
-      int presetNumber = asciiToIndex(k.key());
-      synthManager.recallPreset(presetNumber);
-    } else {
-      // Otherwise trigger note for polyphonic synth
-      int midiNote = asciiToMIDI(k.key());
-      if (midiNote > 0)
+      if (k.shift())
       {
-        synthManager.voice()->setInternalParameterValue(
-            "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
-        synthManager.triggerOn(midiNote);
+        // If shift pressed then keyboard sets preset
+        int presetNumber = asciiToIndex(k.key());
+        synthManager.recallPreset(presetNumber);
+      }
+      else
+      {
+        // Otherwise trigger note for polyphonic synth
+        int midiNote = asciiToMIDI(k.key());
+        if (midiNote > 0)
+        {
+          synthManager.voice()->setInternalParameterValue(
+              "frequency", ::pow(2.f, (midiNote - 69.f) / 12.f) * 432.f);
+          synthManager.triggerOn(midiNote);
+        }
       }
     }
     switch (k.key())
@@ -348,6 +350,9 @@ public:
       break;
     case '[':
       showSpectro = !showSpectro;
+      break;
+    case '=':
+      navi = !navi;
       break;
     }
     return true;

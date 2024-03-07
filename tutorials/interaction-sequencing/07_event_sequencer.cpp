@@ -163,6 +163,10 @@ int main() {
   app.sequencer().add<MyVoice>(1.4, 2).set(0.1, 0.2, 0.7, 620, 1.0, 2.0);
   app.sequencer().add<MyVoice>(1.5, 2).set(0.0, 0.2, 0.7, 610, 1.0, 2.0);
   app.sequencer().add<MyVoice>(1.6, 2).set(-0.1, 0.1, 0.7, 600, 1.0, 2.0);
+  app.sequencer().add<MyVoice>(1.7, 2).set(-0.2, 0.0, 0.7, 590, 1.0, 2.0);
+  app.sequencer().add<MyVoice>(1.8, 2).set(-0.3, -0.1, 0.7, 580, 1.0, 2.0);
+  app.sequencer().add<MyVoice>(1.9, 2).set(-0.4, -0.2, 0.7, 570, 1.0, 2.0);
+  app.sequencer().add<MyVoice>(2.0, 2).set(-0.5, -0.3, 0.7, 560, 1.0, 2.0);
 
   app.start();
   return 0;

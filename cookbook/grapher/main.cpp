@@ -2,6 +2,8 @@
 #include "al/io/al_Imgui.hpp"
 using namespace al;
 
+#include "TextEditor.cpp"
+
 using std::cout;
 using std::endl;
 using std::vector;
@@ -42,7 +44,8 @@ struct TCC {
     instance = tcc_new();
     assert(instance != nullptr);
 
-    tcc_set_options(instance, "-nostdinc -nostdlib -Wall -Werror");
+    tcc_set_options(instance, "-nostdinc -Wall -Werror");
+    // tcc_set_options(instance, "-nostdinc -nostdlib -Wall -Werror");
     tcc_set_error_func(instance, this, tcc_error_handler);
     tcc_set_output_type(instance, TCC_OUTPUT_MEMORY);
 
@@ -81,6 +84,7 @@ struct Appp : App {
   char buffer[10000];
   char error[10000];
   Mesh mesh;
+  TextEditor editor;
 
   Appp() { strcpy(buffer, starterCode); }
   void onExit() override { imguiShutdown(); }
@@ -99,25 +103,29 @@ struct Appp : App {
         vertex[i].y = tcc(vertex[i].x);
       }
     }
+    editor.SetText(starterCode);
   }
+
+  bool compile_error = false;
 
   void onAnimate(double dt) override {
     imguiBeginFrame();
+    ImGui::SetWindowFontScale(2.0);
 
-    ImGui::Text(tcc.error.c_str());
-    ImGui::Separator();
-
-    bool update =
-        ImGui::InputTextMultiline("", buffer, sizeof(buffer), ImVec2(420, 330));
-
-    if (update) {
-      if (tcc.compile(buffer)) {
-        vector<Vec3f>& vertex(mesh.vertices());
-        for (int i = 0; i < N; i++)  //
-          vertex[i].y = tcc(vertex[i].x);
-      }
+    if (editor.IsTextChanged()) {
+      compile_error = !tcc.compile(editor.GetText());
     }
 
+    if (compile_error) {
+      ImGui::Text("%s", tcc.error.c_str());
+      ImGui::Separator();
+    } else {
+      vector<Vec3f>& vertex(mesh.vertices());
+      for (int i = 0; i < N; i++)  //
+        vertex[i].y = tcc(vertex[i].x);
+    }
+
+    editor.Render("Text Editor");
     imguiEndFrame();
   }
 

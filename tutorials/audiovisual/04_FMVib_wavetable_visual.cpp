@@ -356,6 +356,8 @@ public:
     // STFT
     while (io())
     {
+      io.out(0) = tanh(io.out(0));
+      io.out(1) = tanh(io.out(1));
       if (stft(io.out(0)))
       { // Loop through all the frequency bins
         for (unsigned k = 0; k < stft.numBins(); ++k)
@@ -429,6 +431,7 @@ public:
     case MIDIByte::NOTE_OFF:
     {
       int midiNote = m.noteNumber();
+      printf("Note OFF %u, Vel %f", m.noteNumber(), m.velocity());
       synthManager.triggerOff(midiNote);
       break;
     }
@@ -452,7 +455,7 @@ public:
       else
       {
         // Otherwise trigger note for polyphonic synth
-        int midiNote = asciiToMIDI(k.key()) - 24;
+        int midiNote = asciiToMIDI(k.key()) - 12;
         if (midiNote > 0)
         {
           synthManager.voice()->setInternalParameterValue(
@@ -485,7 +488,7 @@ public:
 
   bool onKeyUp(Keyboard const &k) override
   {
-    int midiNote = asciiToMIDI(k.key()) - 24;
+    int midiNote = asciiToMIDI(k.key()) - 12;
     if (midiNote > 0)
     {
       synthManager.triggerOff(midiNote);

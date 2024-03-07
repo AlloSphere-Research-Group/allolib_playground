@@ -120,7 +120,7 @@ class SineEnv : public SynthVoice {
     mAmpEnv.levels(0, 1, 1, 0);
     mAmpEnv.sustainPoint(2);  // Make point 2 sustain until a release is issued
 
-    addRect(mMesh, 0, 0, 1, 1);
+    addRect(mMesh, 1, 1, 0.5, 0.5);
     // This is a quick way to create parameters for the voice. Trigger
     // parameters are meant to be set only when the voice starts, i.e. they
     // are expected to be constant within a voice instance. (You can actually
@@ -241,7 +241,7 @@ class MyApp : public App {
     fontSize = keyWidth * 0.2;
 
     // Create a mesh that will be drawn as piano keys
-    addRect(meshKey, 0, 0, keyWidth, keyHeight);
+    addRect(meshKey, keyWidth, keyHeight, 58, 140);
 
     // Set the font renderer
     fontRender.load(Font::defaultFont().c_str(), 60, 1024);
@@ -278,7 +278,7 @@ class MyApp : public App {
       
       float c = 0.9;
       float x = (keyWidth + keyPadding * 2) * index + keyPadding;
-      float y = 0;
+      float y = 10;
 
       if(i >= 10) {
         y = keyHeight + keyPadding * 2;
@@ -401,7 +401,7 @@ class MyApp : public App {
     keyWidth = w / 10.f - keyPadding * 2.f;
     keyHeight = h / 2.f - keyPadding * 2.f;
     fontSize = keyWidth * 0.2;
-    addRect(meshKey, 0, 0, keyWidth, keyHeight);
+    addRect(meshKey, keyWidth, keyHeight, 58, 140);
   }
 
   void onExit() override { imguiShutdown(); }

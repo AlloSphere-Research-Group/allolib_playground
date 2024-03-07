@@ -70,8 +70,8 @@ public:
   virtual void init()
   {
     // Import .obj file for the mesh
-    // std::string fileName = "../obj/ducky.obj";
-    std::string fileName = "../obj/flower01.obj";
+    std::string fileName = "../obj/ducky.obj";
+    // std::string fileName = "../obj/flower01.obj";
 
     ascene = Scene::import(fileName);
     if (!ascene)
@@ -300,8 +300,8 @@ public:
     synthManager.render(io); // Render audio
     while (io())
     {
-      io.out(0) = log(io.out(0) + 1) / 3;
-      io.out(1) = log(io.out(1) + 1) / 3;
+      io.out(0) = tanh(io.out(0));
+      io.out(1) = tanh(io.out(1));
       if (stft(io.out(0)))
       { // Loop through all the frequency bins
         for (unsigned k = 0; k < stft.numBins(); ++k)

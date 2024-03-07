@@ -25,6 +25,7 @@
 #include "al/ui/al_ControlGUI.hpp"
 #include "al/ui/al_Parameter.hpp"
 #include "al/math/al_Random.hpp"
+#include "al/sound/al_Reverb.hpp"
 
 #include <algorithm> 
 #include <cstdint>   
@@ -52,6 +53,8 @@ public:
   gam::ADSR<> mAmpEnv;
   gam::EnvFollow<> mEnvFollow;
   gam::Pan<> mPan;
+  Reverb<float> reverb;
+
   int mtable;
   Mesh mMesh;
   float a = 0.f; // current rotation angle
@@ -87,7 +90,7 @@ public:
     createInternalTriggerParameter("am2", 0.75, 0.0, 1.0);
     createInternalTriggerParameter("amRise", 0.75, 0.1, 1.0);
     createInternalTriggerParameter("amRatio", 0.75, 0.0, 2.0);
-  }
+    createInternalTriggerParameter("reverberation", 0.1, 0.0, 1.0);  }
 
   virtual void onProcess(AudioIOData &io) override
   {
@@ -103,14 +106,17 @@ public:
 
       float s1 = mOsc();                            // non-modulated signal
       s1 = s1 * (1 - amAmt) + (s1 * mAM()) * amAmt; // mix modulated and non-modulated
+                          // cos(fc) * cos(fm) 
       // s1 = (s1 * mAM()) * amAmt; // Ring modulation
       s1 *= mAmpEnv() * amp;
-
       float s2;
-      mEnvFollow(s1);
-      mPan(s1, s1, s2);
-      io.out(0) += s1;
-      io.out(1) += s2;
+
+      float r1, r2;
+      reverb(s1, r1, r2);
+      mEnvFollow(r1);
+      // mPan(r1, r1, r2);
+      io.out(0) += r1;
+      io.out(1) += r2;
     }
     // We need to let the synth know that this voice is done
     // by calling the free(). This takes the voice out of the
@@ -148,8 +154,8 @@ public:
 
   virtual void onTriggerOn() override
   {
+    reverb.zero();
     mAmpEnv.attack(getInternalParameterValue("attackTime"));
-    mAmpEnv.lengths()[1] = 0.001;
     mAmpEnv.release(getInternalParameterValue("releaseTime"));
 
     mAmpEnv.levels()[1] = getInternalParameterValue("sustain");
@@ -164,6 +170,9 @@ public:
                    1 - getInternalParameterValue("amRise"));
 
     mPan.pos(getInternalParameterValue("pan"));
+
+
+    reverb.damping(1-getInternalParameterValue("reverberation"));     // Tail decay factor, in [0,1]
 
     mAmpEnv.reset();
     mAMEnv.reset();
@@ -262,8 +271,8 @@ public:
     synthManager.render(io); // Render audio
     while (io())
     {
-      io.out(0) = log(io.out(0) + 1) / 3;
-      io.out(1) = log(io.out(1) + 1) / 3;
+      io.out(0) = tanh(io.out(0));
+      io.out(1) = tanh(io.out(1));
       if (stft(io.out(0)))
       { // Loop through all the frequency bins
         for (unsigned k = 0; k < stft.numBins(); ++k)
@@ -298,7 +307,7 @@ public:
     {
       for (int i = 0; i < FFT_SIZE / 2; i++)
       {
-        mSpectrogram.color(HSV(0.5 - spectrum[i] * 100));
+        mSpectrogram.color(HSV(0.5 - spectrum[i] * 100,100.,100.));
         mSpectrogram.vertex(i, spectrum[i], 0.0);
       }
       g.meshColor(); // Use the color in the mesh
