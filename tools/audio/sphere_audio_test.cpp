@@ -18,7 +18,6 @@
 #include "al/ui/al_FileSelector.hpp"
 #include "al/ui/al_ParameterGUI.hpp"
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
-//#include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 #include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 
 #include "Gamma/Analysis.h"

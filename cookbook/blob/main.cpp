@@ -4,7 +4,7 @@
 
 #include "al/app/al_GUIDomain.hpp"
 
-#include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
+#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 
 #include <Gamma/Noise.h>
 
@@ -181,7 +181,7 @@ struct Blob : DistributedAppWithState<State> {
 
     // Enable cuttlebone for state distribution
     auto cuttleboneDomain =
-        CuttleboneStateSimulationDomain<State>::enableCuttlebone(this);
+        CuttleboneDomain<State>::enableCuttlebone(this);
     if (!cuttleboneDomain) {
       std::cerr << "ERROR: Could not start Cuttlebone. Quitting." << std::endl;
       quit();

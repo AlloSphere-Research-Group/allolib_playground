@@ -1,8 +1,7 @@
 #include "al/app/al_DistributedApp.hpp"
 #include "al/app/al_GUIDomain.hpp"
 #include "al/ui/al_ParameterGUI.hpp"
-#include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
-
+#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 
 using namespace al;
 
@@ -40,12 +39,6 @@ struct RayApp : public DistributedAppWithState<State> {
   Parameter translucent{"translucent", "Raymarching", 0.5, 0.0, 1.0};
   
 
-
-
-  // for distributed App state synchronization
-  std::shared_ptr<CuttleboneStateSimulationDomain<State>> cuttleboneDomain;
-
-
   void onInit() override {
     searchPaths.addSearchPath(".", false);
 		searchPaths.addAppPaths();
@@ -54,7 +47,7 @@ struct RayApp : public DistributedAppWithState<State> {
   }
 
   void onCreate() override {
-    cuttleboneDomain = CuttleboneStateSimulationDomain<State>::enableCuttlebone(this);
+    auto cuttleboneDomain = CuttleboneDomain<State>::enableCuttlebone(this);
     if (!cuttleboneDomain) {
       std::cerr << "ERROR: Could not start Cuttlebone" << std::endl;
       quit();

@@ -19,7 +19,7 @@
 #include "al/math/al_Random.hpp"
 
 #include "al_ext/soundfile/al_SoundfileBuffered.hpp"
-#include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
+#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 
 #include "Gamma/Analysis.h"
 #include "Gamma/scl.h"
@@ -198,7 +198,7 @@ public:
         }
       };
     }
-    CuttleboneStateSimulationDomain<SharedState>::enableCuttlebone(this);
+    CuttleboneDomain<SharedState>::enableCuttlebone(this);
   }
 
   void onCreate() override {

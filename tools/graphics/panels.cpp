@@ -8,7 +8,7 @@
 #include "al/app/al_GUIDomain.hpp"
 #include "al/graphics/al_Image.hpp"
 
-#include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
+#include "al_ext/statedistribution/al_CuttleboneDomain.hpp"
 
 #ifdef AL_EXT_LIBAV
 #include "al_ext/video/al_VideoDecoder.hpp"
@@ -290,7 +290,7 @@ public:
 
     // Enable cuttlebone for state distribution
     auto cuttleboneDomain =
-        CuttleboneStateSimulationDomain<State>::enableCuttlebone(this);
+        CuttleboneDomain<State>::enableCuttlebone(this);
     if (!cuttleboneDomain) {
       std::cerr << "ERROR: Could not start Cuttlebone. Quitting." << std::endl;
       quit();
