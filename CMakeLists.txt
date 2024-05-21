@@ -54,7 +54,7 @@ endif ()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/al_ext")
   add_subdirectory(al_ext "${al_path}/build/al_ext")
   get_target_property(AL_EXT_LIBRARIES al_ext AL_EXT_LIBRARIES)
-  message("al_ext linking to ${AL_EXT_LIBRARIES}")
+  message("[allolib_playground] al_ext linking to ${AL_EXT_LIBRARIES}")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -115,7 +115,7 @@ macro(BUILD_FILE  this_app_name this_app_path this_app_files_list)
       target_compile_options(${this_app_name} PRIVATE "-Wall")
     endif (AL_WINDOWS)
 
-    target_link_libraries(${this_app_name} PUBLIC al ${al_libs})
+    target_link_libraries(${this_app_name} PUBLIC alapp ${al_libs})
 
     foreach(include_dir IN LISTS app_include_dirs)
         if (IS_ABSOLUTE ${include_dir})
