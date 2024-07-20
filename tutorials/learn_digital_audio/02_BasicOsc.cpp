@@ -11,15 +11,14 @@ This app demonstrates a basic phase accumulator class
 
 /**
  * @brief Basic phase accumulator. 
- * Produces an ideal unipolar sawtooth wave
- * given a sample rate and frequency. 
+ * Produces an ideal unipolar sawtooth wave given a sample rate and frequency. 
  */
 template <typename T>
 class Phasor {
 private:
 int sampleRate;
-  T phase = 0.f; // the value an oscillator tracks over time
-  T frequency = 1.f; // determines how often the waveform repeats
+  T phase = 0; // the value an oscillator tracks over time
+  T frequency = 1; // determines how often the waveform repeats
   T phaseIncrement = frequency / sampleRate; // determines how much to increment phase by every frame
 
 public:
@@ -31,8 +30,8 @@ public:
    * @brief Sets the oscillator's frequency
    * @param freqHz frequency in hertz (cycles per second)
    */
-  virtual void setFrequency(T freqHz) {
-    frequency = freqHz;
+  virtual void setFrequency(T freqHz) { // notice that this function is 'virtual', meaning it can 
+    frequency = freqHz;                 // be overridden in classes that inherit from this one
     phaseIncrement = ::abs(this->frequency) / static_cast<T>(this->sampleRate);
   }
 
@@ -74,9 +73,8 @@ public:
  */
 struct BasicOsc : public al::App {
   // app member objects and variables
-  Oscilloscope<float> oScope{(int)(this->audioIO().framesPerSecond())}; // instance of our oscilloscope class
-  Phasor<float> osc{(int)(this->audioIO().framesPerSecond())};
-
+  Oscilloscope<float> oScope{(int)(this->audioIO().framesPerSecond())}; // instance of our Oscilloscope class
+  Phasor<float> osc{(int)(this->audioIO().framesPerSecond())}; // instance of our Phasor class
 
   /**
    * @brief in this override of `onSound`, 
@@ -88,8 +86,7 @@ struct BasicOsc : public al::App {
       oScope.writeSample(output); // update oScope
 
       // When writing an identical output to all channels (multi-mono), 
-      // we can write the output to all channels with a 'channel loop',
-      // which in this case is best put inside the sample loop. 
+      // we can use a 'channel loop' nested in our sample loop
       for (int channel = 0; channel < io.channelsOut(); channel++) {
         io.out(channel, sample) = output; // this is where we write output to speakers.
       }

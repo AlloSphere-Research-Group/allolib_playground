@@ -1,4 +1,6 @@
 // Joel A. Jaffe 2024-07-17
+// With acknowledgement and gratitude to 
+// Karl Yerkes, Graham Wakefield, and Mahdi Ayman
 
 /* Intro
 This series is intended as an introduction to 
@@ -27,10 +29,11 @@ private: // private 'member' variables unique to each instance
   std::vector<T> buffer; // a resizable array of variables representing past audio samples
 
 public: // public 'member' functions that allow for interaction with member variables 
-  // 'Constructor' that requires the oscilloscope to be instantiated with a sampleRate- this makes the scope remember 1 second of audio
+  // 'Constructor' that requires the oscilloscope to be instantiated with a sample rate- 
+  // this makes the scope remember 1 second of audio
   Oscilloscope(int sampleRate) : bufferSize(sampleRate) {
     this->primitive(al::Mesh::LINE_STRIP); // sets how mesh will be drawn
-    for (int i = 0; i < sampleRate; i++) { // for loop that... 
+    for (int i = 0; i < sampleRate; i++) { // for loop that: 
       buffer.push_back(0); // sets size of buffer and inits all values to zero
       this->vertex((i / static_cast<float>(sampleRate)) * 2.f - 1.f, 0); // populates mesh vertices 
       this->color(al::RGB(1.f)); // populates mesh colors
@@ -77,10 +80,10 @@ public: // public 'member' functions that allow for interaction with member vari
  * to visualize audio data. 
  */
 struct Intro : public App {
-  // app member objects and variables
+  // app member objects and variables are best but at the top
   Oscilloscope<float> oScope{(int)(AudioIOData().framesPerSecond())}; // instance of our oscilloscope class
 
-  // in this app, we'll override some member functions of al::App
+  // in this app, we'll override some member functions of `al::App`
   // to add the functionality we want
 
   // `onSound` is AlloLib's 'audio callback',
