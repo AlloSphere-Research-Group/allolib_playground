@@ -1,8 +1,16 @@
 // Joel A. Jaffe 2024-07-18
 
 /* Waveshaping
-This app demonstrates how our basic unipolar ramp oscillator 
-can be shaped into numerous useful waveforms in a derived class
+This app demonstrates how our Phasor object 
+can be shaped into numerous useful waveforms in a derived class.
+
+Our Phasor class has all the basic components of an oscillator,
+but has a waveform better suited to control signals than audio. 
+It's 'unipolar', meaning that it's output is limited to the range [0,1].
+Audio signals are typically `bipolar`, meaning they range [-1,1].
+
+Thankfully, we can `waveshape` the Phasor's output into nearly any
+waveform we want by overriding the `proccessSample()` method
 */
 
 #ifndef MAIN
@@ -10,10 +18,11 @@ can be shaped into numerous useful waveforms in a derived class
 #endif
 #include "02_BasicOsc.cpp"
 
-// Our Phasor class has all the basic components of an oscillator,
-// but has a waveform better suited to control signals than audio. 
-// We can `waveshape` the Phasor's output however into nearly any
-// waveform we want by overriding the `proccessSample()` method
+/**
+ * @brief Oscillator that inherits from Phasor 
+ * and can generate a range of different waveforms
+ * as stipulated by an enum.
+ */
 template <typename T>
 class SwissArmyOsc : public Phasor<T> { // here we define an object that 'inherits' from phasor 
 public:
@@ -52,7 +61,7 @@ public:
         output = 2 * output - 1;
         break;
       case Waveform::SQUARE:
-        output = output < 0.5 ? 1.0 : -1;
+        output = output < 0.5 ? 1.0 : -1; // concise syntax for an if/else statement
         break;
       case Waveform::TRIANGLE:
         output = 1 - 4 * std::abs(output - 0.5);
@@ -86,7 +95,7 @@ struct Waveshaping : public al::App {
 
   /**
    * @brief this `onAnimate` increments a phase at the frame rate (~60fps).
-   * We use the phase to cycle through the waveforms options of our osc
+   * We use the phase to cycle through the waveform options of our osc
    */
   void onAnimate(double dt) override {
     phase += dt/2; // dt counts seconds, so /2 gives us 2 seconds per waveform
@@ -96,7 +105,7 @@ struct Waveshaping : public al::App {
   }
 
   /**
-   * @brief and `onDraw`
+   * @brief this `onDraw` is identical to the previous app
    */
   void onDraw(al::Graphics &g) override {
     g.clear(0); // set black background 
