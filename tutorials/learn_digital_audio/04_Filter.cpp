@@ -12,7 +12,7 @@ a type of digital distortion known as 'aliasing'.
 
 To fix this, we can use a digital filter to remove the high frequency content.
 In this app we'll use a one-pole low-pass filter, which is simple to implement
-and subtle in effect, and demonstrates the basics of digital filter design.
+and demonstrates the basics of digital filter design.
 */
 
 #ifndef MAIN
@@ -41,7 +41,7 @@ public:
    * @param input input sample at current timestep 
    */
   T lpf(T x_0) {
-    y_1 = (y_1 * alpha) + (x_0 * (1-alpha));
+    this->y_1 = (y_1 * alpha) + (x_0 * (1-alpha));
     return y_1;
   }
 
@@ -89,7 +89,7 @@ struct Filter : public al::App {
 		// Set up the GUI
 		auto GUIdomain = al::GUIDomain::enableGUI(defaultWindowDomain());
     auto &gui = GUIdomain->newGUI();
-    gui.add(cutoffFreq); // add our Parameter 
+    gui.add(cutoffFreq); // add our parameter 
 	}
   
 
@@ -98,7 +98,7 @@ struct Filter : public al::App {
    * allowing our app to respond to key commands
    */
   bool onKeyDown(const Keyboard& k) override {
-    impulse = true; // hitting any key will fire a single sample impulse
+    impulse = true; // hitting any key will fire a single-sample impulse
     return true;
   }
 
