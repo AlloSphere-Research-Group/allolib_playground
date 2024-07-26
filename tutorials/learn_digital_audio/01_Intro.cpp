@@ -57,7 +57,7 @@ public: // public 'member' functions that allow for interaction with member vari
    * @param delayInSamples access a sample this many samples ago
    * @return `buffer[writeIndex - delayInSamples]`
    */
-  T readSample(size_t delayInSamples) const {
+  T readSample(int delayInSamples) const {
     if (delayInSamples >= bufferSize) {delayInSamples = bufferSize - 1;} // limit access to oldest sample
     int readIndex = writeIndex - delayInSamples; // calculate readIndex
     if (readIndex < 0) {readIndex += bufferSize;} // circular logic
