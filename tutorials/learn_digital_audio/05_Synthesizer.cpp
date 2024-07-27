@@ -22,7 +22,7 @@ that combines them.
  */
 template <typename T>
 T mToF(int midiNote) {
-    return 440.0 * std::pow(2.0, (midiNote - 69) / 12.0);
+  return 440.0 * std::pow(2.0, (midiNote - 69) / 12.0);
 }
 
 /**
@@ -51,7 +51,7 @@ MonoSynth(int sampleRate) { // constructor populates our osc and filter banks
   }
 }
 
-virtual T setFrequency(T freq) {
+virtual void setFrequency(T freq) {
   this->fundamental = freq;
   for (int i = 0; i < numOscs; i++) {
     oscBank[i].setFrequency(fundamental * (i+1));

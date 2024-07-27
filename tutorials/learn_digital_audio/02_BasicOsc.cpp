@@ -22,9 +22,10 @@ int sampleRate;
   T phaseIncrement = frequency / sampleRate; // determines how much to increment phase by every frame
 
 public:
-  Phasor(int sampleRate) : sampleRate(sampleRate) {
+  Phasor(int sampleRate) : sampleRate(sampleRate) { // constructor 
     phaseIncrement = frequency / sampleRate;
   }
+  virtual ~Phasor() {} // destructor 
 
   /**
    * @brief Sets the oscillator's frequency
