@@ -19,15 +19,16 @@ template <typename T>
 class DelayLine {
 private:  
   int bufferSize, writeIndex, sampleRate;
-  T delayTime; 
-  T feedback; // should be between 0 and 1
   std::vector<T> buffer;
-  OnePole<T> loPass; // digital delay effects often use a loPass to emulate the 
-                     // infidelity of analog delays 
+  T delayTime; // stored as a fractional amount of samples
+  T feedback; // should be between 0 and 1
+  OnePole<T> loPass; // digital delay effects often use a loPass  
+  T damping = 0.f; // to emulate the infidelity of analog delays 
 
 public:
   DelayLine(int sampleRate) : bufferSize(sampleRate * 2), sampleRate(sampleRate) {
     for (int i = 0; i < bufferSize; i++) {buffer.push_back(0);}
+    loPass.setAlpha(damping);
   }
 
   /**
@@ -43,9 +44,20 @@ public:
    * Clipped to `[0, 1]`
    */
   void setFeedback(T fbGain) {
-    fbGain > 1.0 ? 1.0 : fbGain; // if statement to keep fb <= 1
-    fbGain < 0.0 ? 0.0 : fbGain; // if statement to keep fb >= 0
+    fbGain = fbGain > 1.0 ? 1.0 : fbGain; // if statement to keep fb <= 1
+    fbGain = fbGain < 0.0 ? 0.0 : fbGain; // if statement to keep fb >= 0
     feedback = fbGain;
+  }
+
+  /**
+   * @brief Function for setting damping.
+   * Clipped to `[0, 1]`
+   */
+  void setDamping(T alpha) {
+    alpha = alpha > 1.0 ? 1.0 : alpha; // if statement to keep alpha <= 1
+    alpha = alpha < 0.0 ? 0.0 : alpha; // if statement to keep alpha >= 0
+    damping = alpha;
+    loPass.setAlpha(damping);
   }
 
   /**
@@ -105,18 +117,20 @@ struct Delay : public App {
   DelayLine<float> delayLine{sampleRate};
   bool impulse = false; // set impulse to false initially
 
-  Parameter time{"time", "", 1000.f, 0.f, 2000.f};
-  Parameter feedback{"feedback", "", 0.f, 0.f, 1.f};
+  Parameter time{"time", "", 250.f, 0.f, 2000.f}; // delay time in milliseconds 
+  Parameter feedback{"feedback", "", 0.f, 0.f, 1.f}; 
+  Parameter damping{"damping", "", 0.f, 0.f, 1.f};
 
   /**
    * @brief we'll override `onInit()` to create a GUI
    */
   void onInit() override {
 		// Set up the GUI
-		auto GUIdomain = al::GUIDomain::enableGUI(defaultWindowDomain());
+		auto GUIdomain = GUIDomain::enableGUI(defaultWindowDomain());
     auto &gui = GUIdomain->newGUI();
     gui.add(time);
     gui.add(feedback);
+    gui.add(damping);
 	}
   
 
@@ -148,6 +162,7 @@ struct Delay : public App {
     oScope.update();     
     delayLine.setDelay(time);
     delayLine.setFeedback(feedback);
+    delayLine.setDamping(damping);
   }
 
   void onDraw(Graphics &g) override {
