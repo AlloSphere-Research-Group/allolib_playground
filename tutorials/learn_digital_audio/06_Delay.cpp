@@ -74,12 +74,10 @@ public:
 
   /**
    * @brief Reads a sample from the buffer. Copied from Oscilloscope.
-   * This iteration allows
-   * for a fractional sample delay using linear interpolation.
    * @param delayInSamples access a sample this many samples ago
    * @return `buffer[writeIndex - delayInSamples]`
    */
-  T readSample(T delayInSamples) const {
+  T readSample(int delayInSamples) const {
     if (delayInSamples >= bufferSize) {delayInSamples = bufferSize - 1;} // limit access to oldest sample
     int readIndex = writeIndex - delayInSamples; // calculate readIndex
     if (readIndex < 0) {readIndex += bufferSize;} // circular logic
