@@ -1,6 +1,6 @@
 // Joel A. Jaffe 2024-07-17
 // With acknowledgement and gratitude to 
-// Karl Yerkes, Graham Wakefield, and Mahdi Ayman
+// Karl Yerkes, Graham Wakefield, Lance Putnam, and Mahdi Ayman
 
 /* Intro
 This series is intended as an introduction to 
