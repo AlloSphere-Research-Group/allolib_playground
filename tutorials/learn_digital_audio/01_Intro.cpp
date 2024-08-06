@@ -25,7 +25,7 @@ template <typename T>
 class Oscilloscope : public al::Mesh { // inherit from `al::Mesh`, the al:: is optional when using namespace
 private: // private 'member' variables unique to each instance 
   int bufferSize; // how many samples in the past oscilloscope will remember
-  int writeIndex; // variable that tracks what index of the buffer to write to
+  int writeIndex = 0; // variable that tracks what index of the buffer to write to
   std::vector<T> buffer; // a resizable array of variables representing past audio samples
 
 public: // public 'member' functions that allow for interaction with member variables 

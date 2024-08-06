@@ -18,7 +18,7 @@ Generating Sound & Organizing Time I - Wakefield and Taylor 2022.
 template <typename T>
 class DelayLine {
 private:  
-  int bufferSize, writeIndex, sampleRate;
+  int bufferSize, writeIndex = 0, sampleRate;
   std::vector<T> buffer;
   T delayTime; // stored as a fractional amount of samples
   T feedback; // should be between 0 and 1
