@@ -34,6 +34,7 @@ public:
   virtual void setFrequency(T freqHz) { // notice that this function is 'virtual', meaning it can 
     frequency = freqHz;                 // be overridden in classes that inherit from this one
     phaseIncrement = ::abs(this->frequency) / static_cast<T>(this->sampleRate);
+    if (phaseIncrement > 1) {phaseIncrement = 1;} // clamp phase to 1
   }
 
   /**
