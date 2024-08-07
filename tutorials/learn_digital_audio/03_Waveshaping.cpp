@@ -47,27 +47,36 @@ public:
   }
 
   /**
-   * @brief overridden `processSample()` function 
-   * that supports a number of different waveforms,
-   * determined by `this->shape`
+   * @brief Waveshaping function. 
+   * 
+   * Takes a phase in the range `[0, 1]` and returns a bipolar waveform 
+   * based on the value of `this->shape`
    */
-  virtual T processSample() override {
-    T output = Phasor<T>::processSample(); // call base class to increment & retrieve phase  
+  virtual T waveShape(T phase) {
     switch (this->shape) { // we can use a `switch` here on `shape`, similar to an `if/else`
       case Waveform::SINE:
-        output = std::sin(M_2PI * output);
+        return std::sin(M_2PI * phase);
         break;
       case Waveform::SAWTOOTH:
-        output = 2 * output - 1;
+        return 2 * phase - 1;
         break;
       case Waveform::SQUARE:
-        output = output < 0.5 ? 1.0 : -1; // concise syntax for an if/else statement
+        return phase < 0.5 ? 1.0 : -1; // concise syntax for an if/else statement
         break;
       case Waveform::TRIANGLE:
-        output = 1 - 4 * std::abs(output - 0.5);
+        return 1 - 4 * std::abs(phase - 0.5);
         break;
       }
-    return output;
+  } 
+
+  /**
+   * @brief overridden `processSample()` function 
+   * that produces bipolar waveforms using `this->waveShape`
+   */
+  virtual T processSample() override {
+    T output = Phasor<T>::processSample(); // call base class to increment & retrieve phase
+    output = this->waveShape(output); // apply waveshaping
+    return output; 
   }
 };
 
@@ -85,7 +94,7 @@ struct Waveshaping : public al::App {
    */
   void onSound(al::AudioIOData &io) override {
     for (int sample = 0; sample < io.framesPerBuffer(); sample++) {
-      float output = osc.processSample(); 
+      float output = osc.processSample() * 0.9; // scale by 0.9 to see waveform bounds
       oScope.writeSample(output); 
       for (int channel = 0; channel < io.channelsOut(); channel++) {
         io.out(channel, sample) = output;
