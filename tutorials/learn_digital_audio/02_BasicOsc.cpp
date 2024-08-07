@@ -43,7 +43,7 @@ public:
    */
   virtual T processSample() {
     phase += phaseIncrement; // increment phase
-    if (phase >= 1) {phase -= 1;} // if waveform zenith, wrap phase
+    phase -= std::floor(phase);
     if (frequency < 0) { // if negative frequency...
       return 1.f - phase; // return reverse phasor
     } else {return phase;} // return phasor
