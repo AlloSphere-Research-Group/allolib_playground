@@ -20,10 +20,10 @@ class DelayLine {
 private:  
   int bufferSize, writeIndex = 0, sampleRate;
   std::vector<T> buffer;
-  T delayTime; // stored as a fractional amount of samples
-  T feedback; // should be between 0 and 1
+  T delayTime = 0; // stored as a fractional amount of samples
+  T feedback = 0; // should be between 0 and 1
   OnePole<T> loPass; // digital delay effects often use a loPass  
-  T damping = 0.f; // to emulate the infidelity of analog delays 
+  T damping = 0; // to emulate the infidelity of analog delays 
 
 public:
   DelayLine(int sampleRate) : bufferSize(sampleRate * 2), writeIndex(0), sampleRate(sampleRate) {
