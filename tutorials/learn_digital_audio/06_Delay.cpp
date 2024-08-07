@@ -26,7 +26,7 @@ private:
   T damping = 0.f; // to emulate the infidelity of analog delays 
 
 public:
-  DelayLine(int sampleRate) : bufferSize(sampleRate * 2), sampleRate(sampleRate) {
+  DelayLine(int sampleRate) : bufferSize(sampleRate * 2), writeIndex(0), sampleRate(sampleRate) {
     for (int i = 0; i < bufferSize; i++) {buffer.push_back(0);}
     loPass.setAlpha(damping);
   }
