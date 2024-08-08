@@ -4,11 +4,7 @@
 This app demonstrates how to enable user input, and also how to generate 
 an impulse response for testing audio objects like filters.
 
-We've created a bipolar oscillator object that can produce various elemental waveforms,
-however have not sonified them at audio rates (frequencies > ~20Hz). 
-This is because the square, sawtooth, and triangle waveforms 
-contain frequencies above half the sample rate, and therefore will generate 
-a type of digital distortion known as 'aliasing'.
+@TODO: Intro paragraph
 
 To fix this, we can use a digital filter to remove the high frequency content.
 In this app we'll use a one-pole low-pass filter, which is simple to implement
@@ -16,9 +12,9 @@ and demonstrates the basics of digital filter design.
 */
 
 #ifndef MAIN
-#define MAIN 4
+#define MAIN 5
 #endif
-#include "03_Waveshaping.cpp"
+#include "04_Aliasing.cpp"
 #include "al/app/al_GUIDomain.hpp" // GUI for controlling filter
 
 /**
@@ -130,7 +126,7 @@ struct Filter : public al::App {
   
 };
 
-#if (MAIN == 4)
+#if (MAIN == 5)
 int main() {
   Filter app;
   app.start();

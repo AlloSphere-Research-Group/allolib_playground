@@ -6,9 +6,9 @@ Generating Sound & Organizing Time I - Wakefield and Taylor 2022.
 */
 
 #ifndef MAIN
-#define MAIN 6
+#define MAIN 7
 #endif
-#include "05_Synthesizer.cpp"
+#include "06_Synthesizer.cpp"
 
 /**
  * @brief A basic delay line. 
@@ -171,7 +171,7 @@ struct Delay : public App {
   
 };
 
-#if (MAIN == 6)
+#if (MAIN == 7)
 int main() {
   Delay app;
   app.start();

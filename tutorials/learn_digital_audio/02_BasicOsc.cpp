@@ -16,7 +16,7 @@ This app demonstrates a basic phase accumulator class
 template <typename T>
 class Phasor {
 private:
-int sampleRate;
+  int sampleRate;
   T phase = 0; // the value an oscillator tracks over time
   T frequency = 1; // determines how often the waveform repeats
   T phaseIncrement = frequency / sampleRate; // determines how much to increment phase by every frame

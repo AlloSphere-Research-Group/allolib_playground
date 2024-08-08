@@ -11,9 +11,9 @@ Journal of the Audio Engineering Society 45.10 (1997) pgs. 764-788
 */
 
 #ifndef MAIN
-#define MAIN 7
+#define MAIN 8
 #endif
-#include "06_Delay.cpp"
+#include "07_Delay.cpp"
 
 /**
  * @brief ModDelay class that implements Fig. 36 of Dattorro's paper,
@@ -201,7 +201,7 @@ struct ModulatedDelay : public App {
   
 };
 
-#if (MAIN == 7)
+#if (MAIN == 8)
 int main() {
   ModulatedDelay app;
   app.start();

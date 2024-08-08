@@ -6,14 +6,14 @@ that operates on MIDI frequency values and is enveloped by
 a filter.
 
 Now that we've created a versatile bipolar oscillator class
-and a filter for band-limiting, we can create a synthesizer class 
+and filter, we can create a synthesizer class 
 that combines them.
 */
 
 #ifndef MAIN
-#define MAIN 5
+#define MAIN 6
 #endif
-#include "04_Filter.cpp"
+#include "05_Filter.cpp"
 #include "al/math/al_Random.hpp"
 
 /**
@@ -138,7 +138,7 @@ struct Synthesizer : public al::App {
   
 };
 
-#if (MAIN == 5)
+#if (MAIN == 6)
 int main() {
   Synthesizer app;
   app.start();
