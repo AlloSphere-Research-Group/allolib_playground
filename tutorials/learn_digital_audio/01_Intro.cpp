@@ -31,7 +31,7 @@ private: // private 'member' variables unique to each instance
 public: // public 'member' functions that allow for interaction with member variables 
   // 'Constructor' that requires the oscilloscope to be instantiated with a sample rate- 
   // this makes the scope remember 1 second of audio
-  Oscilloscope(int sampleRate) : bufferSize(sampleRate) {
+  explicit Oscilloscope(int sampleRate) : bufferSize(sampleRate) {
     this->primitive(al::Mesh::LINE_STRIP); // sets how mesh will be drawn
     for (int i = 0; i < sampleRate; i++) { // for loop that: 
       buffer.push_back(0); // sets size of buffer and inits all values to zero

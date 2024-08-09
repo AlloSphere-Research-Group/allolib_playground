@@ -21,13 +21,13 @@ To fix this, we can extend our SwissArmyOsc in a derived class whose
 template <typename T>
 class AAOsc : public SwissArmyOsc<T> {
 public:
-  AAOsc(int sampleRate) : SwissArmyOsc<T>(sampleRate) {
+  explicit AAOsc(int sampleRate) : SwissArmyOsc<T>(sampleRate) {
     this->setFrequency(220);
   }
 
   /**
    * @brief Overridden waveshape function that returns 
-   * anti-aliased waveforms...
+   * anti-aliased waveforms
    * 
    * @TODO: Mathematical explanation
    */

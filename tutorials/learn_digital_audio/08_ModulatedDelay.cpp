@@ -36,7 +36,7 @@ private:
   SwissArmyOsc<T> osc; // osc for modulation
 
 public:
-  ModDelay(int sampleRate) : sampleRate(sampleRate), 
+  explicit ModDelay(int sampleRate) : sampleRate(sampleRate), 
   buffer(sampleRate), osc(sampleRate) {osc.setFrequency(0.15);}
 
   /**

@@ -33,38 +33,41 @@ T mToF(int midiNote) {
 template <typename T>
 class MonoSynth {
 private:
-  std::vector<SwissArmyOsc<T>> oscBank; // create an array of oscillators
-  std::vector<OnePole<T>> filterBank; // and an array of filters
+  int sampleRate;
   int numOscs = 4; // set number of oscs
   T fundamental = 1.f; // fundamental frequency variable
+  std::vector<AAOsc<T>> oscBank; // create an array of oscillators
+  OnePole<T> filter; // add a filter
+  
 
 public:
-MonoSynth(int sampleRate) { // constructor populates our osc and filter banks
-  for (int i = 0; i < numOscs; i++) {
-    SwissArmyOsc<T> osc(sampleRate); 
-    osc.setWaveform(SwissArmyOsc<float>::Waveform(i%4)); // mod 4 to cycle through osc types
-    osc.setFrequency(fundamental * (i+1)); // each successive osc is a harmonic
-    oscBank.push_back(osc); // append to oscBank
-    OnePole<T> loPass;
-    loPass.setCutoff(15.0, sampleRate); // set cutoff well below Nyquist 
-    filterBank.push_back(loPass); // append to filterBank
+  explicit MonoSynth(int sampleRate) : sampleRate(sampleRate) { // constructor populates our osc and filter banks
+    for (int i = 0; i < numOscs; i++) {
+      AAOsc<T> osc(sampleRate); 
+      osc.setWaveform(SwissArmyOsc<float>::Waveform(i%4)); // mod 4 to cycle through osc types
+      osc.setFrequency(fundamental * (i+1)); // each successive osc is a harmonic
+      oscBank.push_back(osc); // append to oscBank
+    }
   }
-}
 
-virtual void setFrequency(T freq) {
-  this->fundamental = freq;
-  for (int i = 0; i < numOscs; i++) {
-    oscBank[i].setFrequency(fundamental * (i+1));
+  virtual void setFrequency(T freq) {
+    this->fundamental = freq;
+    for (int i = 0; i < numOscs; i++) {
+      oscBank[i].setFrequency(fundamental * (i+1));
+    }
   }
-}
 
-virtual T processSample() {
-  T output = 0.0;
-  for (int i = 0; i < numOscs; i++) { // for every osc
-    output += filterBank[i].lpf(oscBank[i].processSample()); // process
+  virtual void setCutoff(T cutoffHz) {
+    this->filter.setCutoff(cutoffHz, sampleRate);
   }
-  return output; // no need to scale combined volume, filter takes care of this 
-}
+
+  virtual T processSample() {
+    T output = 0.0;
+    for (int i = 0; i < numOscs; i++) { // for every osc
+      output += filter.lpf(oscBank[i].processSample()); // process
+    }
+    return output / numOscs; // divide by numOscs to give each harmonic equal weight
+  }
 };
 
 /**
@@ -79,6 +82,7 @@ struct Synthesizer : public al::App {
   // Parameters for volume and frequency
   Parameter noteVal{"noteVal", "", 46.f, 22.f, 69.f}; // limit noteVal to a range
   Parameter volume{"volume", "", 0.f, 0.f, 1.f};
+  Parameter cutoffFreq{"cutoffFreq", "", sampleRate/2.f, 0.f, sampleRate/2.f};
 
   /**
    * @brief `onInit()` that creates a GUI
@@ -89,6 +93,7 @@ struct Synthesizer : public al::App {
     auto &gui = GUIdomain->newGUI();
     gui.add(noteVal);
     gui.add(volume);
+    gui.add(cutoffFreq);
     envelope.setCutoff(15.f, sampleRate); // set envelope 
 	}
 
@@ -127,7 +132,8 @@ struct Synthesizer : public al::App {
   }
 
   void onAnimate(double dt) override {
-    oScope.update();                                               
+    oScope.update();
+    synth.setCutoff(cutoffFreq);                                               
   }
 
   void onDraw(Graphics &g) override {

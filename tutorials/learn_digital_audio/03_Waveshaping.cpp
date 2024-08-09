@@ -35,7 +35,7 @@ public:
 protected:
   Waveform shape; // add a waveform variable to our osc
 public:
-  SwissArmyOsc(int sampleRate) : Phasor<T>(sampleRate) {
+  explicit SwissArmyOsc(int sampleRate) : Phasor<T>(sampleRate) {
     this->shape = SwissArmyOsc::SINE; // set default in constructor 
   }
 
