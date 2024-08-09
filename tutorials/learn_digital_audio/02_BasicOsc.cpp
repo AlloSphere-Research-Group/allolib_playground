@@ -15,7 +15,7 @@ This app demonstrates a basic phase accumulator class
  */
 template <typename T>
 class Phasor {
-private:
+protected: // protected variables can be accessed by derived classes
   int sampleRate;
   T phase = 0; // the value an oscillator tracks over time
   T frequency = 1; // determines how often the waveform repeats

@@ -4,11 +4,14 @@
 This app demonstrates how to enable user input, and also how to generate 
 an impulse response for testing audio objects like filters.
 
-@TODO: Intro paragraph
+The anti-aliased oscillator we built in the previous app tracked differences 
+between past and current output values to modify the sound. This is the core
+concept of digital filters, programs that modify audio signals by measuring 
+how they change over time.
 
-To fix this, we can use a digital filter to remove the high frequency content.
-In this app we'll use a one-pole low-pass filter, which is simple to implement
-and demonstrates the basics of digital filter design.
+In this app we'll make a one-pole low-pass filter, which is simple to implement
+and demonstrates the basics of digital filter design. It can be used to roll off 
+the nasty high-frequency content of sawtooth and square waves.
 */
 
 #ifndef MAIN

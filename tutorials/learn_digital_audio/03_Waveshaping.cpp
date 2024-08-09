@@ -32,7 +32,7 @@ public:
     SQUARE,
     TRIANGLE,
   };
-private:
+protected:
   Waveform shape; // add a waveform variable to our osc
 public:
   SwissArmyOsc(int sampleRate) : Phasor<T>(sampleRate) {
@@ -66,7 +66,7 @@ public:
       case Waveform::TRIANGLE:
         return 1 - 4 * std::abs(phase - 0.5);
         break;
-      }
+    }
   } 
 
   /**

@@ -10,7 +10,7 @@ contain frequencies above half the sample rate, and therefore will generate
 a type of digital distortion known as 'aliasing'.
 
 To fix this, we can extend our SwissArmyOsc in a derived class whose
-`processSample()` function generates an anti-aliased waveform.
+`waveShape()` and `processSample()` functions generate anti-aliased waveforms.
 */
 
 #ifndef MAIN
@@ -19,44 +19,44 @@ To fix this, we can extend our SwissArmyOsc in a derived class whose
 #include "03_Waveshaping.cpp"
 
 template <typename T>
-class AntiAliasedOsc : public SwissArmyOsc<T> {
-private:
-  T prevOutput = 0;
-  T sr, freq;
-
+class AAOsc : public SwissArmyOsc<T> {
 public:
-  AntiAliasedOsc(int sampleRate, T freqHz = 2862) : SwissArmyOsc<T>(sampleRate) {
-    sr = sampleRate;
-    freq = freqHz;
-    this->setFrequency(freqHz);
-    this->setWaveform(SwissArmyOsc<float>::Waveform::SAWTOOTH);
-    }
+  AAOsc(int sampleRate) : SwissArmyOsc<T>(sampleRate) {
+    this->setFrequency(220);
+  }
 
   /**
-   * @brief Increments and returns `phase` 
-   * @return `phase` (after increment)
+   * @brief Overridden waveshape function that returns 
+   * anti-aliased waveforms...
+   * 
+   * @TODO: Mathematical explanation
    */
-  virtual T processSample() override {
-    T prevPhase = this->getPhase();
-    T nextPhase = Phasor<T>::processSample();
-    
-    // Lance's method
-    T i1 = pow(this->waveShape(prevPhase), 2);
-    T i2 = pow(this->waveShape(nextPhase), 2);
-    T dpw_inspired = (i2 - i1) * (0.25 / std::fabs(freq / sr));
+  virtual T waveShape(T phase) override {
+    switch (this->shape) { 
+      case SwissArmyOsc<T>::Waveform::SINE:
+        return std::sin(M_2PI * phase);
+        break;
+      case SwissArmyOsc<T>::Waveform::SAWTOOTH:
+        return pow(2 * phase - 1, 2);
+        break;
+      case SwissArmyOsc<T>::Waveform::SQUARE:
+        return 2 * std::fabs(2 * phase - 1);
+        break;
+      case SwissArmyOsc<T>::Waveform::TRIANGLE:
+        phase = phase * 2 - 1;
+        return 2 * phase * (std::fabs(phase) - 1);
+        break;
+    }
+  }
 
-    // Graham's method
-    auto raw = this->waveShape(nextPhase);
-    auto b = nextPhase - 0.5f;
-    auto blep = 0.5f - std::abs(b); // upside-down triangle wave from 0.0 to 0.5
-    blep /= std::abs((freq/sr)); // subsample time since ramp step
-    blep = std::min(1.f, std::max(0.f, blep)); // we only care if the step happens this sample
-    blep = (blep - 1.f) * (1.f - blep); // the blep polynomial correction
-    blep = (b >= 0.f) ? blep : -blep; // flip the correction for 2nd half of transition
-
-    return dpw_inspired;
-    //return raw + blep;
-    //return raw;
+  /**
+   * @brief Increments, waveshapes, and compares `phase` with its previous value
+   * @return anti-aliased waveform
+   */
+  T processSample() override {
+    T prevPhase = this->waveShape(this->phase);
+    T nextPhase = this->waveShape(Phasor<T>::processSample());
+    return (nextPhase - prevPhase) * (0.25 / std::fabs(this->frequency / this->sampleRate));
   }
 };
 
@@ -65,12 +65,12 @@ public:
  */
 struct Aliasing : public al::App {
   Oscilloscope<float> oScope{(int)(this->audioIO().framesPerSecond())}; // instance of our Oscilloscope class
-  AntiAliasedOsc<float> osc{(int)(this->audioIO().framesPerSecond())}; // instance of our SwissArmyOsc class
+  AAOsc<float> osc{(int)(this->audioIO().framesPerSecond())}; // instance of our SwissArmyOsc class
   float phase; // <- see `onAnimate`
 
   /**
    * @brief this override of `onSound`
-   * is actually identical to the one from the previous app
+   * is identical to the previous app
    */
   void onSound(al::AudioIOData &io) override {
     for (int sample = 0; sample < io.framesPerBuffer(); sample++) {
@@ -83,18 +83,17 @@ struct Aliasing : public al::App {
   }
 
   /**
-   * @brief this `onAnimate` increments a phase at the frame rate (~60fps).
-   * We use the phase to cycle through the waveform options of our osc
+   * @brief as is this `onAnimate()`
    */
   void onAnimate(double dt) override {
     phase += dt/2; // dt counts seconds, so /2 gives us 2 seconds per waveform
     if (phase >= 4) {phase -= 4;} // wrap after numWaveforms is reached
-    //osc.setWaveform(SwissArmyOsc<float>::Waveform((int)(phase))); 
+    osc.setWaveform(SwissArmyOsc<float>::Waveform((int)(phase))); 
     oScope.update();                                              
   }
 
   /**
-   * @brief this `onDraw` is identical to the previous app
+   * @brief and this `onDraw` 
    */
   void onDraw(al::Graphics &g) override {
     g.clear(0); // set black background 
