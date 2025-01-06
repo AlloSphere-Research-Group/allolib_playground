@@ -164,7 +164,7 @@ TARGET_NAME=$(basename ${APP_FILE_INPUT} | sed 's/\.[^.]*$//')
 
 # set -x enters debug mode and prints the command
 set -x
-"${CMAKE_BINARY}" -G "${GENERATOR}" -Wno-deprecated -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_APP_FILE=../../../${APP_FILE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${VERBOSE_MAKEFILE} "${INITIALDIR}" > cmake_log.txt
+"${CMAKE_BINARY}" -G "${GENERATOR}" -Wno-deprecated -DRTAUDIO_API_JACK=OFF -DRTMIDI_API_JACK=OFF -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_APP_FILE=../../../${APP_FILE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${VERBOSE_MAKEFILE} "${INITIALDIR}" > cmake_log.txt
 set +x
 
 if [ ${RUN_APP} == 1 ]; then
