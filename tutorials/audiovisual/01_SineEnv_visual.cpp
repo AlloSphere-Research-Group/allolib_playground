@@ -167,6 +167,7 @@ public:
   // where the presets and sequences are stored
   SynthGUIManager<SineEnv> synthManager{"SineEnv"};
   RtMidiIn midiIn; // MIDI input carrier
+  ParameterMIDI parameterMIDI;
   Mesh mSpectrogram;
   vector<float> spectrum;
   bool showGUI = true;
@@ -199,6 +200,13 @@ public:
     // Play example sequence. Comment this line to start from scratch
     synthManager.synthSequencer().playSequence("synth1.synthSequence");
     synthManager.synthRecorder().verbose(true);
+
+    // Map MIDI controls to parameters here
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("amplitude"), 1, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("attackTime"), 2, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("releaseTime"), 3, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("pan"), 4, 1);
+
   }
 
   void onInit()
@@ -211,9 +219,11 @@ public:
       MIDIMessageHandler::bindTo(midiIn);
 
       // Open the last device found
-      unsigned int port = midiIn.getPortCount() - 1;
+      unsigned int port = 0; //midiIn.getPortCount() - 1;
       midiIn.openPort(port);
       printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
+    
+      parameterMIDI.open(port, true);
     }
     else
     {

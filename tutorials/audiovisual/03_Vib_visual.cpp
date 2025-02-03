@@ -269,6 +269,7 @@ class MyApp : public App, public MIDIMessageHandler {
  public:
   Vib vib;
   RtMidiIn midiIn; // MIDI input carrier
+  ParameterMIDI parameterMIDI;
   Mesh mSpectrogram;
   vector<float> spectrum;
   bool showGUI = true;
@@ -285,9 +286,12 @@ class MyApp : public App, public MIDIMessageHandler {
       MIDIMessageHandler::bindTo(midiIn);
 
       // Open the last device found
-      unsigned int port = midiIn.getPortCount() - 1;
+      unsigned int port = 0;// midiIn.getPortCount() - 1;
       midiIn.openPort(port);
       printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
+
+      parameterMIDI.open(port, true);
+
     }
     else
     {
@@ -308,6 +312,13 @@ class MyApp : public App, public MIDIMessageHandler {
     // Play example sequence. Comment this line to start from scratch
     // synthManager.synthSequencer().playSequence("synth3.synthSequence");
     synthManager.synthRecorder().verbose(true);
+
+    // Map MIDI controls to parameters here
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("amplitude"), 1, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("attackTime"), 2, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("releaseTime"), 3, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("pan"), 4, 1);
+
   }
 
   void onSound(AudioIOData& io) override {

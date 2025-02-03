@@ -209,7 +209,7 @@ public:
       MIDIMessageHandler::bindTo(midiIn);
 
       // Open the last device found
-      unsigned int port = midiIn.getPortCount() - 1;
+      unsigned int port = 0; //midiIn.getPortCount() - 1;
       midiIn.openPort(port);
       printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
 

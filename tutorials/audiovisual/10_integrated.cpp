@@ -41,7 +41,7 @@ public:
   // <SineEnv>, <OscEnv>, <Vib>, <FM>, <OscAM>, <OscTrm>, <AddSyn>, <Sub>, or <PluckedString>
   // ***** This is the only line to change the default instrument
   SynthGUIManager<FMWT> synthManager{"Integrated"}; 
-  //    ParameterMIDI parameterMIDI;
+  ParameterMIDI parameterMIDI;
   int midiNote;
   float harmonicSeriesScale[20];
   float halfStepScale[20];
@@ -65,9 +65,11 @@ public:
       MIDIMessageHandler::bindTo(midiIn);
 
       // Open the last device found
-      unsigned int port = midiIn.getPortCount() - 1;
+      unsigned int port = 0; //midiIn.getPortCount() - 1;
       midiIn.openPort(port);
       printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
+
+      parameterMIDI.open(port, true);
     }
     else
     {
@@ -88,17 +90,24 @@ public:
     // Play example sequence. Comment this line to start from scratch
     //    synthManager.synthSequencer().playSequence("synth7.synthSequence");
     synthManager.synthRecorder().verbose(true);
-        // Add another class used
-        synthManager.synth().registerSynthClass<SineEnv>();
-        synthManager.synth().registerSynthClass<OscEnv>();
-        synthManager.synth().registerSynthClass<Vib>();
-        synthManager.synth().registerSynthClass<FM>();
-        synthManager.synth().registerSynthClass<FMWT>();
-        synthManager.synth().registerSynthClass<OscAM>();
-        synthManager.synth().registerSynthClass<OscTrm>();
-        synthManager.synth().registerSynthClass<AddSyn>();
-        synthManager.synth().registerSynthClass<Sub>();
-        synthManager.synth().registerSynthClass<PluckedString>();
+    // Add another class used
+    synthManager.synth().registerSynthClass<SineEnv>();
+    synthManager.synth().registerSynthClass<OscEnv>();
+    synthManager.synth().registerSynthClass<Vib>();
+    synthManager.synth().registerSynthClass<FM>();
+    synthManager.synth().registerSynthClass<FMWT>();
+    synthManager.synth().registerSynthClass<OscAM>();
+    synthManager.synth().registerSynthClass<OscTrm>();
+    synthManager.synth().registerSynthClass<AddSyn>();
+    synthManager.synth().registerSynthClass<Sub>();
+    synthManager.synth().registerSynthClass<PluckedString>();
+
+    // Map MIDI controls to parameters here
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("amplitude"), 1, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("attackTime"), 2, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("releaseTime"), 3, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("pan"), 4, 1);
+
   }
 
   void onSound(AudioIOData &io) override

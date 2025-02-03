@@ -300,7 +300,7 @@ class MyApp : public App, public MIDIMessageHandler
 public:
   SynthGUIManager<FMWT> synthManager{"synth4VibWT"};
   RtMidiIn midiIn; // MIDI input carrier
-  //    ParameterMIDI parameterMIDI;
+  ParameterMIDI parameterMIDI;
   FMWT fmwt;
   int midiNote;
   float mVibFrq;
@@ -330,9 +330,11 @@ public:
       MIDIMessageHandler::bindTo(midiIn);
 
       // Open the last device found
-      unsigned int port = midiIn.getPortCount() - 1;
+      unsigned int port = 0; //midiIn.getPortCount() - 1;
       midiIn.openPort(port);
       printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
+
+      parameterMIDI.open(port, true);
     }
     else
     {
@@ -348,6 +350,13 @@ public:
     //    synthManager.synthSequencer().playSequence("synth2.synthSequence");
     synthManager.synthRecorder().verbose(true);
     nav().pos(3, 0, 17);
+
+    // Map MIDI controls to parameters here
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("amplitude"), 1, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("attackTime"), 2, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("releaseTime"), 3, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("pan"), 4, 1);
+
   }
 
   void onSound(AudioIOData &io) override
