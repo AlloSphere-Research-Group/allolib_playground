@@ -384,6 +384,7 @@ public:
     navControl().active(navi); // Disable navigation via keyboard, since we
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
+    ParameterGUI::drawParameterMIDI(&parameterMIDI);
     imguiEndFrame();
     // Map table number to table in memory
     fmwt.mtable = int(synthManager.voice()->getInternalParameterValue("table"));

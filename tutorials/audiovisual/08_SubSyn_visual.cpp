@@ -261,6 +261,7 @@ public:
         navControl().active(navi); // Disable navigation via keyboard, since we
         imguiBeginFrame();
         synthManager.drawSynthControlPanel();
+        ParameterGUI::drawParameterMIDI(&parameterMIDI);
         imguiEndFrame();
     }
 

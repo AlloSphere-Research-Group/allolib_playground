@@ -70,8 +70,8 @@ public:
   virtual void init()
   {
     // Import .obj file for the mesh
-    std::string fileName = "../obj/ducky.obj";
-    // std::string fileName = "../obj/flower01.obj";
+    // std::string fileName = "../obj/ducky.obj";
+    std::string fileName = "../obj/flower01.obj";
 
     ascene = Scene::import(fileName);
     if (!ascene)
@@ -330,6 +330,7 @@ public:
     // Draw GUI
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
+    ParameterGUI::drawParameterMIDI(&parameterMIDI);
     imguiEndFrame();
     // Map table number to table in memory
     oscam.mtable = int(synthManager.voice()->getInternalParameterValue("table"));

@@ -354,8 +354,8 @@ public:
         // STFT
         while (io())
         {
-            io.out(0) = tanh(io.out(0);
-            io.out(1) = tanh(io.out(1);
+            io.out(0) = tanh(io.out(0));
+            io.out(1) = tanh(io.out(1));
             if (stft(io.out(0)))
             { // Loop through all the frequency bins
                 for (unsigned k = 0; k < stft.numBins(); ++k)
@@ -373,6 +373,7 @@ public:
         navControl().active(navi); // Disable navigation via keyboard, since we
         imguiBeginFrame();
         synthManager.drawSynthControlPanel();
+        ParameterGUI::drawParameterMIDI(&parameterMIDI);
         imguiEndFrame();
         // Map table number to table in memory
         osctrm.mtable = int(synthManager.voice()->getInternalParameterValue("table"));

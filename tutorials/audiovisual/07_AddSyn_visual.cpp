@@ -259,10 +259,8 @@ public:
     synthManager.synthRecorder().verbose(true);
 
     // Map MIDI controls to parameters here
-    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("amplitude"), 1, 1);
-    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("attackTime"), 2, 1);
-    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("releaseTime"), 3, 1);
-    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("pan"), 4, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("amp"), 1, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("pan"), 2, 1);
 
   }
 
@@ -289,6 +287,7 @@ public:
     navControl().active(navi); // Disable navigation via keyboard, since we
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
+    ParameterGUI::drawParameterMIDI(&parameterMIDI);
     imguiEndFrame();
   }
 

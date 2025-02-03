@@ -257,6 +257,7 @@ public:
     imguiBeginFrame();
     // Draw a window that contains the synth control panel
     synthManager.drawSynthControlPanel();
+    ParameterGUI::drawParameterMIDI(&parameterMIDI);
     imguiEndFrame();
     navControl().active(navi);
   }

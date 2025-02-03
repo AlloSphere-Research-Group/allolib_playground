@@ -331,6 +331,7 @@ class MyApp : public App, public MIDIMessageHandler {
     // Draw GUI
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
+    ParameterGUI::drawParameterMIDI(&parameterMIDI);
     imguiEndFrame();
     // Map table number to table in memory
     oscenv.mtable = int(synthManager.voice()->getInternalParameterValue("table"));
