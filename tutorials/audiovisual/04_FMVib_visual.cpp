@@ -180,7 +180,7 @@ class MyApp : public App, public MIDIMessageHandler
 public:
   SynthGUIManager<FM> synthManager{"synth4Vib"};
   RtMidiIn midiIn; // MIDI input carrier
-  //    ParameterMIDI parameterMIDI;
+  ParameterMIDI parameterMIDI;
   int midiNote;
   float mVibFrq;
   float mVibDepth;
@@ -212,6 +212,8 @@ public:
       unsigned int port = midiIn.getPortCount() - 1;
       midiIn.openPort(port);
       printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
+
+      parameterMIDI.open(port, true);
     }
     else
     {
@@ -227,6 +229,13 @@ public:
     //    synthManager.synthSequencer().playSequence("synth2.synthSequence");
     synthManager.synthRecorder().verbose(true);
     nav().pos(3, 0, 17);
+
+    // Map MIDI controls to parameters here
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("carMul"), 1, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("modMul"), 2, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("vibDepth"), 3, 1);
+    parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("vibRate2"), 4, 1);
+
   }
 
   void onSound(AudioIOData &io) override
@@ -254,6 +263,7 @@ public:
     navControl().active(navi); // Disable navigation via keyboard, since we
     imguiBeginFrame();
     synthManager.drawSynthControlPanel();
+    ParameterGUI::drawParameterMIDI(&parameterMIDI);
     imguiEndFrame();
   }
 
