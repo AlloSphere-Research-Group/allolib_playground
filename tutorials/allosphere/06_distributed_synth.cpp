@@ -119,8 +119,19 @@ public:
       float s2;
       mEnvFollow(s1);
       mPan(s1, s1, s2);
-      io.out(0) += s1;
-      io.out(1) += s2;
+
+      // "multi-stereo" output
+      for (unsigned channel = 0; channel < io.channelsOut(); channel++)
+      {
+        if (channel % 2 == 0)
+        {
+          io.out(channel) += s1;
+        }
+        else
+        {
+          io.out(channel) += s2;
+        }
+      }
     }
     // We need to let the synth know that this voice is done
     // by calling the free(). This takes the voice out of the
