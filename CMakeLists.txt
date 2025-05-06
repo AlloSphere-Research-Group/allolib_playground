@@ -115,7 +115,7 @@ macro(BUILD_FILE  this_app_name this_app_path this_app_files_list)
       target_compile_options(${this_app_name} PRIVATE "-Wall")
     endif (AL_WINDOWS)
 
-    target_link_libraries(${this_app_name} PUBLIC al ${al_libs})
+    target_link_libraries(${this_app_name} PUBLIC alapp ${al_libs})
 
     foreach(include_dir IN LISTS app_include_dirs)
         if (IS_ABSOLUTE ${include_dir})
