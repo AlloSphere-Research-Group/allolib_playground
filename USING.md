@@ -283,42 +283,9 @@ To compile and build c++ source code files with VS Code, it requires to set thre
 
 - Open `01_SineEnv.cpp`  file under the `synthesis` folder with VS Code.
 
-- Select **Terminal** > **Configure Default Build Task** from the VS Code menu. and choose "**create tasks.json from the default template**". If you cannot see this item from a template list, choose any item in the list because you will replace the contents of `tasks.json`. Then it will open `tasks.json`. Change it as below:
+- Use and select **Terminal > Run Build Task (Control+Shift+B**) on the menu.
 
-  ```json
-  {
-      // See https://go.microsoft.com/fwlink/?LinkId=733558
-      // for the documentation about the tasks.json format
-      "version": "2.0.0",
-      "tasks": [
-          {
-              "label": "allolib_run",
-              "command": "./run.sh",
-              "args": [
-                "${file}"
-              ],
-              "type": "shell",
-              "group": {
-                "kind": "build",
-                "isDefault": true
-              }
-          },
-          {
-              "label": "allolib_debug",
-              "command": "./run.sh",
-              "args": [
-                "-n",
-                "${file}"
-              ],
-              "type": "shell"
-          }
-      ]
-  }
-  ```
-
-- Switch to the tab for `01_SineEnv.cpp` opened before, and select **Terminal > Run Build Task (Control+Shift+B**) on the menu.
-
-- Wait until finishing the code compiling.
+- Wait until the code compilation completes.
 
 - If it succeeds, a window  will appear.
 
