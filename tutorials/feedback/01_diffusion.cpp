@@ -54,7 +54,7 @@ struct DiffusionApp : public App {
     
     // init diffusion input tex0 with values to diffuse
     // Loop through the pixels to generate an image
-    vector<float> pixels;
+    std::vector<float> pixels;
     pixels.resize(4 * w * h);
 
     for (int j = 0; j < h; ++j) {
