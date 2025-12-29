@@ -1,0 +1,146 @@
+name: Cross-Platform Examples Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, devel ]
+  pull_request:
+    branches: [ main, devel ]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Cross-Platform-Build:
+    runs-on: ${{ matrix.os }}
+    name: "Build Examples"
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-22.04
+            name: Linux
+          - os: windows-latest
+            name: Windows
+          - os: macos-latest
+            name: macOS
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies (Linux)
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+        sudo apt-get update
+        sudo apt-get install build-essential \
+        libsndfile1-dev libassimp-dev libasound2-dev libxrandr-dev \
+        libopengl-dev libxinerama-dev libxcursor-dev libxi-dev \
+        libgl1-mesa-dev libglu1-mesa-dev libxmu-dev libxi-dev \
+        tcc
+
+    - name: Install dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        # Use chocolatey to install VS2017 with proper workloads
+        choco install -y visualstudio2017community --package-parameters "--add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Component.VC.CLI.Support --add Microsoft.VisualStudio.Component.VC.CMake.Project --includeRecommended"
+        
+        # Install TCC
+        set -euxo pipefail
+
+        curl -L https://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win64-bin.zip -o tcc.zip
+        unzip tcc.zip
+
+        mkdir -p "/c/Program Files/tcc"
+        cp tcc/tcc.exe "/c/Program Files/tcc/"
+
+        echo "/c/Program Files/tcc" >> "$GITHUB_PATH"
+      shell: bash
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install tcc
+
+    - name: Initialize repository
+      run: |
+        git submodule update --recursive --init --filter=blob:none
+      shell: bash
+
+    - name: Test playground files with run.sh -n
+      id: test
+      run: |
+        
+        # Set environment variables for Windows builds
+        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          echo "Visual Studio environment setup:"
+          echo "VSINSTALLDIR: $VSINSTALLDIR"
+          echo "VCToolsInstallDir: $VCToolsInstallDir"
+          where cmake.exe || echo "cmake.exe not found on PATH"
+        fi
+        
+        # Ensure previous results are cleared
+        : > failed_files.txt
+        
+        # Function to test files in a directory (use process substitution to avoid subshell issues)
+        test_files_in_dir() {
+          local dir=$1
+          if [ -d "$dir" ]; then
+            echo "Testing files in $dir/"
+            while IFS= read -r -d '' file; do
+              echo "Building: $file"
+              ./run.sh -n "$file"  # Run build (dry run, no execution)
+              
+              # Check if binary exists (binaries are in a 'bin' dir at the same level as the source file)
+              binary_dir="${file%/*}/bin"
+              binary_name="${file##*/}"
+              binary_name="${binary_name%.*}"
+              binary="$binary_dir/$binary_name"
+              if [ -f "$binary" ]; then
+                echo "Build succeeded for $file"
+              else
+                echo "Build failed for $file - no binary found at $binary"
+                echo "$file" >> failed_files.txt
+              fi
+            done < <(find "$dir" -type f \( -name "*.cpp" -o -name "*.c" \) -print0)
+          else
+            echo "Directory $dir does not exist, skipping..."
+          fi
+        }
+        
+        # Test files in each specified directory
+        test_files_in_dir "cookbook"
+        test_files_in_dir "src"
+        test_files_in_dir "tools"
+        test_files_in_dir "tutorials"
+        
+        # Export results as a multiline step output (GITHUB_OUTPUT)
+        if [ -s failed_files.txt ]; then
+          echo "failed_files<<EOF" >> "$GITHUB_OUTPUT"
+          cat failed_files.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+          # Debug: show count and contents (only when there are failures)
+          echo "DEBUG: failed_files.txt contains $(wc -l < failed_files.txt) entries"
+          echo "DEBUG: failed_files.txt contents:"
+          sed -n '1,200p' failed_files.txt || true
+        else
+          echo "failed_files=" >> "$GITHUB_OUTPUT"
+          echo "DEBUG: No failed files"
+        fi
+      shell: bash
+
+    - name: Report Build Results
+      run: |
+        if [ -s failed_files.txt ]; then
+          echo "The following files failed to build:"
+          cat failed_files.txt
+          echo "Total failed files: $(wc -l < failed_files.txt)"
+          exit 1
+        else
+          echo "All playground files tested successfully!"
+        fi
+      shell: bash
