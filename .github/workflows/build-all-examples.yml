@@ -101,7 +101,7 @@ jobs:
                 echo "Build failed for $file - no binary found at $binary"
                 echo "$file" >> failed_files.txt
               fi
-            done < <(find "$dir" -type f \( -name "*.cpp" -o -name "*.c" -o \) -print0)
+            done < <(find "$dir" -type f \( -name "*.cpp" -o -name "*.c" \) -print0)
           else
             echo "Directory $dir does not exist, skipping..."
           fi
