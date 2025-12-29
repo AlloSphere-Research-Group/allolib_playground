@@ -49,11 +49,15 @@ jobs:
         choco install -y visualstudio2017community --package-parameters "--add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Component.VC.CLI.Support --add Microsoft.VisualStudio.Component.VC.CMake.Project --includeRecommended"
         
         # Install TCC
+        set -euxo pipefail
+
         curl -L https://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win64-bin.zip -o tcc.zip
         unzip tcc.zip
-        mkdir "C:\Program Files\tcc"
-        copy "tcc-0.9.27-win64-bin\tcc.exe" "C:\Program Files\tcc\"
-        echo "C:\Program Files\tcc" >> $env:GITHUB_PATH
+
+        mkdir -p "/c/Program Files/tcc"
+        cp tcc/tcc.exe "/c/Program Files/tcc/"
+
+        echo "/c/Program Files/tcc" >> "$GITHUB_PATH"
       shell: bash
 
     - name: Install dependencies (macOS)
