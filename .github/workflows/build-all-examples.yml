@@ -39,14 +39,27 @@ jobs:
         sudo apt-get install build-essential \
         libsndfile1-dev libassimp-dev libasound2-dev libxrandr-dev \
         libopengl-dev libxinerama-dev libxcursor-dev libxi-dev \
-        libgl1-mesa-dev libglu1-mesa-dev libxmu-dev libxi-dev
+        libgl1-mesa-dev libglu1-mesa-dev libxmu-dev libxi-dev \
+        tcc
 
-    - name: Install Visual Studio 2017 (Windows)
+    - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         # Use chocolatey to install VS2017 with proper workloads
         choco install -y visualstudio2017community --package-parameters "--add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Component.VC.CLI.Support --add Microsoft.VisualStudio.Component.VC.CMake.Project --includeRecommended"
-      shell: bash        
+        
+        # Install TCC
+        curl -L https://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win64-bin.zip -o tcc.zip
+        unzip tcc.zip
+        mkdir "C:\Program Files\tcc"
+        copy "tcc-0.9.27-win64-bin\tcc.exe" "C:\Program Files\tcc\"
+        echo "C:\Program Files\tcc" >> $env:GITHUB_PATH
+      shell: bash
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install tcc
 
     - name: Initialize repository
       run: |
