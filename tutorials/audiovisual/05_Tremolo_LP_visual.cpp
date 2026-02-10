@@ -297,6 +297,7 @@ public:
     int midiNote;
     OscTrm osctrm;
     RtMidiIn midiIn; // MIDI input carrier
+    ParameterMIDI parameterMIDI;
     Mesh mSpectrogram;
     vector<float> spectrum;
     bool showGUI = true;
@@ -319,9 +320,11 @@ public:
             MIDIMessageHandler::bindTo(midiIn);
 
             // Open the last device found
-            unsigned int port = midiIn.getPortCount() - 1;
+            unsigned int port = 0; //midiIn.getPortCount() - 1;
             midiIn.openPort(port);
             printf("Opened port to %s\n", midiIn.getPortName(port).c_str());
+
+            parameterMIDI.open(port, true);
         }
         else
         {
@@ -336,6 +339,13 @@ public:
         //    synthManager.synthSequencer().playSequence("synth5.synthSequence");
         synthManager.synthRecorder().verbose(true);
         nav().pos(3, 0, 17);
+
+        // Map MIDI controls to parameters here
+        parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("amplitude"), 1, 1);
+        parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("attackTime"), 2, 1);
+        parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("releaseTime"), 3, 1);
+        parameterMIDI.connectControl(synthManager.voice()->getInternalParameter("pan"), 4, 1);
+
     }
 
     void onSound(AudioIOData &io) override
@@ -344,8 +354,8 @@ public:
         // STFT
         while (io())
         {
-            io.out(0) = tanh(io.out(0);
-            io.out(1) = tanh(io.out(1);
+            io.out(0) = tanh(io.out(0));
+            io.out(1) = tanh(io.out(1));
             if (stft(io.out(0)))
             { // Loop through all the frequency bins
                 for (unsigned k = 0; k < stft.numBins(); ++k)
@@ -363,6 +373,7 @@ public:
         navControl().active(navi); // Disable navigation via keyboard, since we
         imguiBeginFrame();
         synthManager.drawSynthControlPanel();
+        ParameterGUI::drawParameterMIDI(&parameterMIDI);
         imguiEndFrame();
         // Map table number to table in memory
         osctrm.mtable = int(synthManager.voice()->getInternalParameterValue("table"));
