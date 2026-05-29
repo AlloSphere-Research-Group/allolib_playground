@@ -2,10 +2,8 @@
 
 // Shadertoy.com-style uniforms
 uniform float iTime;           // Time since start
-uniform float iTimeDelta;       // Time since last frame
 uniform vec3 iResolution;       // Viewport resolution (width, height, aspect)
 uniform vec4 iMouse;            // Mouse position and click (x, y, clickX, clickY)
-uniform int iFrame;             // Frame number
 
 in vec2 fragCoord;
 out vec4 fragColor;
@@ -24,13 +22,13 @@ void main() {
   // Create a rotating color pattern
   float angle = iTime * 0.5;
   vec2 rotated = vec2(
-    p.x * cos(angle) - p.y * sin(angle),
+    p.x * cos(angle) * p.y * sin(angle),
     p.x * sin(angle) + p.y * cos(angle)
   );
   
   // Base color based on position
-  color.r = 0.5 + 0.5 * sin(rotated.x * 3.0 + iTime);
-  color.g = 0.5 + 0.5 * sin(rotated.y * 3.0 + iTime + 2.0);
+  color.r = 0.0 + 0.5 * sin(rotated.x * 3.0 + iTime);
+  color.g = 0.0 + 0.5 * sin(rotated.y * 3.0 + iTime + 2.0);
   color.b = 0.5 + 0.5 * sin(length(p) * 5.0 - iTime * 2.0);
   
   // Add mouse interaction - create a circle at mouse position

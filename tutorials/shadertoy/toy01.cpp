@@ -101,12 +101,9 @@ struct ShadertoyApp : App {
     // Set shadertoy.com-style uniforms
     shader
         .uniform("iTime", (float)currentTime)        // Time since start
-        .uniform("iTimeDelta", (float)deltaTime)     // Time since last frame
         .uniform("iResolution", Vec3f(w, h, aspect)) // Viewport resolution
         .uniform("iMouse", Vec4f(mousePos.x, mousePos.y, mouseClick.x,
-                                 mouseClick.y)) // Mouse position and click
-        .uniform("iFrame",
-                 (int)(currentTime * 60.0)); // Approximate frame number
+                                 mouseClick.y)); // Mouse position and click
 
     // Draw fullscreen quad
     quad.draw();
